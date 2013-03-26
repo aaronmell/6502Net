@@ -74,7 +74,11 @@ namespace Processor
 		/// </summary>
 		public bool IsSoftwareInterrupt { get; private set; }
 		/// <summary>
-		/// Is true if an arithmetic operaiton procudes a result larger than a byte
+		/// This property is set when an overflow occurs. An overflow happens if the high bit(7) changes during the operation. Remember that values from 128-256 are negative values
+		/// as the high bit is set to 1.
+		/// Examples:
+		/// 64 + 64 = -128 
+		/// -128 + -128 = 0
 		/// </summary>
 		public bool IsOverflow { get; private set; }
 		/// <summary>
@@ -148,7 +152,7 @@ namespace Processor
 				//ADC Add With Carry, Immediate, 2 Bytes, 2 Cycles
 				case 0x69:
 					{
-						AddWithCarry(AddressingMode.Immediate);
+						AddWithCarryOperation(AddressingMode.Immediate);
 						IncrementProgramCounter(2);
 						NumberofCyclesLeft -= 2;
 						break;
@@ -156,7 +160,7 @@ namespace Processor
 				//ADC Add With Carry, Zero Page, 2 Bytes, 3 Cycles
 				case 0x65:
 					{
-						AddWithCarry(AddressingMode.ZeroPage);
+						AddWithCarryOperation(AddressingMode.ZeroPage);
 						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
 						break;
@@ -164,7 +168,7 @@ namespace Processor
 				//ADC Add With Carry, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x75:
 					{
-						AddWithCarry(AddressingMode.ZeroPageX);
+						AddWithCarryOperation(AddressingMode.ZeroPageX);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(2);
 						break;
@@ -172,7 +176,7 @@ namespace Processor
 				//ADC Add With Carry, Absolute, 3 Bytes, 4 Cycles
 				case 0x60:
 					{
-						AddWithCarry(AddressingMode.Absolute);
+						AddWithCarryOperation(AddressingMode.Absolute);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
@@ -180,7 +184,7 @@ namespace Processor
 				//ADC Add With Carry, Absolute X, 3 Bytes, 4+ Cycles
 				case 0x7D:
 					{
-						AddWithCarry(AddressingMode.AbsoluteX);
+						AddWithCarryOperation(AddressingMode.AbsoluteX);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
@@ -188,7 +192,7 @@ namespace Processor
 				//ADC Add With Carry, Absolute Y, 3 Bytes, 4+ Cycles
 				case 0x79:
 					{
-						AddWithCarry(AddressingMode.AbsoluteY);
+						AddWithCarryOperation(AddressingMode.AbsoluteY);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
@@ -196,7 +200,7 @@ namespace Processor
 				//ADC Add With Carry, Indexed Indirect, 2 Bytes, 6 Cycles
 				case 0x61:
 					{
-						AddWithCarry(AddressingMode.IndexedIndirect);
+						AddWithCarryOperation(AddressingMode.IndexedIndirect);
 						NumberofCyclesLeft -= 6;
 						IncrementProgramCounter(2);
 						break;
@@ -204,9 +208,25 @@ namespace Processor
 				//ADC Add With Carry, Indexed Indirect, 2 Bytes, 5+ Cycles
 				case 0x71:
 					{
-						AddWithCarry(AddressingMode.IndirectIndexed);
+						AddWithCarryOperation(AddressingMode.IndirectIndexed);
 						NumberofCyclesLeft -= 5;
 						IncrementProgramCounter(2);
+						break;
+					}
+				//LDA Load Accumulator with Memory, 2 Bytes, 2 Cycles
+				case 0xA9:
+					{
+						Accumulator = GetValueFromMemory(AddressingMode.Immediate);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//SEC Set Carry, Implied Mode, 1 Bytes, 2 Cycles
+				case 0x38:
+					{
+						CarryFlag = true;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
 						break;
 					}
 				//SED Set Decimal, Implied Mode, 1 Bytes, 2 Cycles
@@ -233,9 +253,6 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-
-
-
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
 			}
@@ -256,20 +273,38 @@ namespace Processor
 		/// The ADC - Add Memory to Accumulator with Carry Operation
 		/// </summary>
 		/// <param name="addressingMode">The addressing mode used to perform this operation.</param>
-		private void AddWithCarry(AddressingMode addressingMode)
+		private void AddWithCarryOperation(AddressingMode addressingMode)
 		{
 			//Accumulator, Carry = Accumulator + ValueInMemoryLocation + Carry 
-			var newValue = GetValueFromMemory(addressingMode) + Accumulator + (CarryFlag ? 1 : 0);
+			var memoryValue = GetValueFromMemory(addressingMode);
+			var newValue =  memoryValue + Accumulator + (CarryFlag ? 1 : 0);
 
-			SetIsOverflow(newValue);
+			SetOverflow(Accumulator, memoryValue, newValue);
 
 			if (IsInDecimalMode)
-				CarryFlag = newValue > 99;
+			{
+				if (newValue > 99)
+				{
+					CarryFlag = true;
+					newValue -= 100;
+				}
+				else
+				{
+					CarryFlag = false;
+				}
+			}
 			else
-				CarryFlag = newValue > 255;
-
-			if (IsOverflow)
-				newValue = newValue - 256;
+			{
+				if (newValue > 255)
+				{
+					CarryFlag = true;
+					newValue -= 256;
+				}
+				else
+				{
+					CarryFlag = false;
+				}
+			}
 
 			SetIsResultZero(newValue);
 			SetIsSignNegative(newValue);
@@ -278,12 +313,16 @@ namespace Processor
 		}
 
 		/// <summary>
-		/// Sets the IsOverflow register
+		/// Sets the IsOverflow Register Correctly
 		/// </summary>
-		/// <param name="value"></param>
-		private void SetIsOverflow(int value)
+		/// <param name="accumulator">The Value in the accumulator before the operation</param>
+		/// <param name="memory">The value that came from memory</param>
+		/// <param name="result">The result of the operation between the accumulator and memory</param>
+		private void SetOverflow(int accumulator , int memory, int result)
 		{
-			IsOverflow = value > 255;
+			
+			IsOverflow = ( ( accumulator ^ result ) & ( memory ^ result ) & 0x80 ) != 0;
+
 		}
 
 		/// <summary>
@@ -292,6 +331,7 @@ namespace Processor
 		/// <param name="value"></param>
 		private void SetIsSignNegative(int value)
 		{
+			//on the 6502, any value greater than 127 is negative. 128 = 1000000 in Binary. the 8th bit is set, therefore the number is a negative number.
 			IsSignNegative = value > 127;
 		}
 
