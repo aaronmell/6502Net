@@ -213,7 +213,71 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//LDA Load Accumulator with Memory, 2 Bytes, 2 Cycles
+				//AND Compare Memory with Accumulator, Immediate, 2 Bytes, 2 Cycles
+				case 0x29:
+					{
+						AndOperation(AddressingMode.Immediate);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//AND Compare Memory with Accumulator, Zero Page, 2 Bytes, 3 Cycles
+				case 0x25:
+					{
+						AndOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//AND Compare Memory with Accumulator, Zero PageX, 2 Bytes, 4 Cycles
+				case 0x35:
+					{
+						AndOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//AND Compare Memory with Accumulator, Absolute,  3 Bytes, 4 Cycles
+				case 0x2D:
+					{
+						AndOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//AND Compare Memory with Accumulator, AbsolueteX 3 Bytes, 4+ Cycles
+				case 0x3D:
+					{
+						AndOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//AND Compare Memory with Accumulator, AbsoluteY, 3 Bytes, 4+ Cycles
+				case 0x39:
+					{
+						AndOperation(AddressingMode.AbsoluteY);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//AND Compare Memory with Accumulator, IndexedIndirect, 2 Bytes, 6 Cycles
+				case 0x21:
+					{
+						AndOperation(AddressingMode.IndexedIndirect);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//AND Compare Memory with Accumulator, IndirectIndexed, 2 Bytes, 5 Cycles
+				case 0x31:
+					{
+						AndOperation(AddressingMode.IndirectIndexed);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDA Load Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0xA9:
 					{
 						Accumulator = GetValueFromMemory(AddressingMode.Immediate);
@@ -310,6 +374,18 @@ namespace Processor
 			SetIsSignNegative(newValue);
 
 			Accumulator = newValue;
+		}
+		
+		/// <summary>
+		/// The AND - Compare Memory with Accumulator operation
+		/// </summary>
+		/// <param name="addressingMode"></param>
+		private void AndOperation(AddressingMode addressingMode)
+		{
+			Accumulator = GetValueFromMemory(addressingMode) & Accumulator;
+
+			SetIsResultZero(Accumulator);
+			SetIsSignNegative(Accumulator);
 		}
 
 		/// <summary>

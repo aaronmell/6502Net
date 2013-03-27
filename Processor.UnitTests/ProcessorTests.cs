@@ -256,34 +256,187 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			Assert.That(processor.IsOverflow, Is.EqualTo(expectedValue));
 		}
-		
-		[TestCase(0x69, 2)] // Immediate
-		[TestCase(0x65, 2)] // ZeroPage
-		[TestCase(0x75, 2)] // Zero Page X
-		[TestCase(0x60, 3)] // Absolute
-		[TestCase(0x7D, 3)] // Absolute X
-		[TestCase(0x79, 3)] // Absolute Y
-		[TestCase(0x61, 2)] // Indirect X
-		[TestCase(0x71, 2)] // Indirect Y
-		public void ADC_Program_Counter_Correct_After_Operations(byte operation, int expectedProgramCounterValue)
+		#endregion
+
+		#region AND - Compare Memory with Accumulator
+		[TestCase(0,0,0)]
+		[TestCase(255, 255, 255)]
+		[TestCase(255, 254, 254)]
+		[TestCase(170, 85, 0)]
+		public void AND_Accumulator_Correct(byte accumlatorIntialValue, byte amountToAnd, byte expectedResult)
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { operation, 0x03, 0x00, 0x03 }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorIntialValue, 0x29, amountToAnd }, 0x00);
+			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedProgramCounterValue));
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
+		#region|Address Mode Tests
+		[TestCase(0x69, 0x01, 0x01, 0x02)] // ADC
+		[TestCase(0x29, 0x03, 0x03, 0x03)] // AND
+		public void Immediate_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, operation, valueToTest }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0x69, 2)] // Immediate
-		[TestCase(0x65, 3)] // Zero Page
-		[TestCase(0x75, 4)] // Zero Page X
-		[TestCase(0x60, 4)] // Absolute
-		[TestCase(0x7D, 4)] // Absolute X
-		[TestCase(0x79, 4)] // Absolute Y
-		[TestCase(0x61, 6)] // Indrect X
-		[TestCase(0x71, 5)] // Indirect Y
-		public void ADC_NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
+		[TestCase(0x65, 0x01, 0x01, 0x02)] // ADC
+		[TestCase(0x25, 0x03, 0x03, 0x03)] // AND
+		public void ZeroPage_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, operation, 0x04, valueToTest }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+	
+		[TestCase(0x75, 0x00, 0x03, 0x03)] // ADC
+		[TestCase(0x35, 0x03, 0x03, 0x03)] // AND
+		public void ZeroPageX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			//Just remember that my value's for the STX and ADC were added to the end of the byte array. In a real program this would be invalid, as an opcode would be next and 0x03 would be somewhere else
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, 0x86, 0x06, operation, 0x06, 0x01, valueToTest }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x60, 0x00, 0x03, 0x03)] // ADC
+		[TestCase(0x2D, 0x03, 0x03, 0x03)] // AND
+		public void Absolute_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, operation, 0x05, 0x00, valueToTest }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x7D, 0x01, 0x01, false, 0x02)] // ADC
+		[TestCase(0x3D, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0x7D, 0x01, 0x01, true, 0x02)] // ADC
+		[TestCase(0x3D, 0x03, 0x03, true, 0x03)] // AND
+		public void AbsoluteX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, addressWraps
+				                      ? new byte[] {0xA9, accumulatorInitialValue, 0x86, 0x07, operation, 0xff, 0xff, 0x09, valueToTest}
+				                      : new byte[] {0xA9, accumulatorInitialValue, 0x86, 0x07, operation, 0x07, 0x00, 0x01, valueToTest}, 0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+			
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x79, 0x01, 0x01, false, 0x02)] // ADC
+		[TestCase(0x39, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0x79, 0x01, 0x01, true, 0x02)] // ADC
+		[TestCase(0x39, 0x03, 0x03, true, 0x03)] // AND
+		public void AbsoluteY_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, addressWraps
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x07, operation, 0xff, 0xff, 0x09, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x07, operation, 0x07, 0x00, 0x01, valueToTest }, 0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x61, 0x01, 0x01, false, 0x02)] // ADC
+		[TestCase(0x21, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0x61, 0x01, 0x01, true, 0x02)] // ADC
+		[TestCase(0x21, 0x03, 0x03, true, 0x03)] // AND
+		public void Indexed_Indirect_Mode_Accumulator_Correct_When_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0,
+			                      addressWraps
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0x86, 0x06, operation, 0xff, 0x08, 0x9, 0x00, valueToTest }
+				                      : new byte[] { 0xA9, accumulatorInitialValue, 0x86, 0x06, operation, 0x01, 0x06, 0x9, 0x00, valueToTest},
+			                      0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x71, 0x01, 0x01, false, 0x02)] // ADC
+		[TestCase(0x31, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0x71, 0x01, 0x01, true, 0x02)] // ADC
+		[TestCase(0x31, 0x03, 0x03, true, 0x03)] // AND
+		public void Indirect_Indexed_Mode_Accumulator_Correct_When_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0,
+								  addressWraps
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x06, operation, 0x07, 0x0A, 0xFF, 0xFF, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x06, operation, 0x07, 0x01, 0x08, 0x00, valueToTest },
+								  0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
+		#region Cycle Tests
+		[TestCase(0x69, 2)] // ADC Immediate
+		[TestCase(0x65, 3)] // ADC Zero Page
+		[TestCase(0x75, 4)] // ADC Zero Page X
+		[TestCase(0x60, 4)] // ADC Absolute
+		[TestCase(0x7D, 4)] // ADC Absolute X
+		[TestCase(0x79, 4)] // ADC Absolute Y
+		[TestCase(0x61, 6)] // ADC Indrect X
+		[TestCase(0x71, 5)] // ADC Indirect Y
+		[TestCase(0x29, 2)] // AND Immediate
+		[TestCase(0x25, 3)] // AND Zero Page
+		[TestCase(0x35, 4)] // AND Zero Page X
+		[TestCase(0x2D, 4)] // AND Absolute
+		[TestCase(0x3D, 4)] // AND Absolute X
+		[TestCase(0x39, 4)] // AND Absolute Y
+		[TestCase(0x21, 6)] // AND Indirect X
+		[TestCase(0x31, 5)] // AND Indirect Y
+		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
 			var startingNumberOfCycles = processor.NumberofCyclesLeft;
@@ -293,191 +446,70 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
-		
-		[TestCase(0x086,0x07d)]
-		[TestCase(0x084,0x079)]
-		public void ADC_NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte setRegisterOperation, byte adcOperation)
+
+		[TestCase(0x086, 0x07d,5)] // ADC Absolute X
+		[TestCase(0x084, 0x079,5)] // ADC Absolute Y
+		[TestCase(0x086, 0x03d,5)] // AND Absolute X
+		[TestCase(0x084, 0x039,5)] // AND Absolute Y
+		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte setRegisterOperation, byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
+			
+
+			processor.LoadProgram(0, new byte[] { setRegisterOperation, 0x05, operation, 0xff, 0xff, 0x07, 0x03 }, 0x00);
+			processor.NextStep();
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
 			var startingNumberOfCycles = processor.NumberofCyclesLeft;
-
-			processor.LoadProgram(0, new byte[] { 0x84, 0x05, 0x79, 0xff, 0xff, 0x07, 0x03 }, 0x00);
-			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - 9));
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
 
-		[Test]
-		public void ADC_NumberOfCyclesRemaining_Correct_When_In_IndirectIndexed_And_Wrap()
+		[TestCase(0x071, 6)] // ADC Indirect Y
+		[TestCase(0x031, 6)] // AND Indirect Y
+		public void NumberOfCyclesRemaining_Correct_When_In_IndirectIndexed_And_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
 
 			processor.LoadProgram(0, new byte[] { 0x84, 0x04, 0x71, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
 			processor.NextStep();
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - 10));
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
 		#endregion
-		
-		//These tests use the ADC op codes to fully test the addressing modes
-		#region AddressingMode Tests
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_Immediate_Mode()
+
+		#region Program Counter Tests
+		[TestCase(0x69, 2)] // ADC Immediate
+		[TestCase(0x65, 2)] // ADC ZeroPage
+		[TestCase(0x75, 2)] // ADC Zero Page X
+		[TestCase(0x60, 3)] // ADC Absolute
+		[TestCase(0x7D, 3)] // ADC Absolute X
+		[TestCase(0x79, 3)] // ADC Absolute Y
+		[TestCase(0x61, 2)] // ADC Indirect X
+		[TestCase(0x71, 2)] // ADC Indirect Y
+		[TestCase(0x29, 2)] // AND Immediate
+		[TestCase(0x25, 2)] // AND Zero Page
+		[TestCase(0x35, 2)] // AND Zero Page X
+		[TestCase(0x2D, 3)] // AND Absolute
+		[TestCase(0x3D, 3)] // AND Absolute X
+		[TestCase(0x39, 3)] // AND Absolute Y
+		[TestCase(0x21, 2)] // AND Indirect X
+		[TestCase(0x31, 2)] // AND Indirect Y
+		public void Program_Counter_Correct(byte operation, int expectedProgramCounter)
 		{
 			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 
-			
-			processor.LoadProgram(0, new byte[] { 0x69, 0x01 }, 0x00);
-			processor.NextStep();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x01));
-		}
-		
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_ZeroPage_Mode()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-			
-			processor.LoadProgram(0, new byte[] { 0x65, 0x02, 0x01 }, 0x00);
+
+			processor.LoadProgram(0, new byte[] { operation, 0x02, 0x03 }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Accumulator, Is.EqualTo(0x01));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_ZeroPageX_Mode()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			//Just remember that my value's for the STX and ADC were added to the end of the byte array. In a real program this would be invalid, as an opcode would be next and 0x03 would be somewhere else
-			processor.LoadProgram(0, new byte[] { 0x86, 0x04, 0x75, 0x04, 0x01, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_Absolute_Mode()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x60, 0x03, 0x00, 0x03}, 0x00);
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_AbsoluteY_Mode()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x84, 0x05, 0x79, 0x05, 0x00, 0x01, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-			
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_AbsoluteY_Mode_When_Wrapping_Occurs()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x84, 0x05, 0x79, 0xff, 0xff, 0x07, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_AbsoluteX_Mode()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x86, 0x05, 0x7D, 0x05, 0x00, 0x01, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_AbsoluteX_Mode_When_Wrapping_Occurs()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x86, 0x05, 0x7D, 0xff, 0xff, 0x07, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_Indexed_Indirect_Mode()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x86, 0x04, 0x61, 0x01, 0x04, 0x7, 0x00, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_Indexed_Indirect_Mode_When_Wrapping_Occurs()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x86, 0x04, 0x61, 0xff, 0x06, 0x7, 0x00, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_Indirect_Indexed_Mode()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x84, 0x04, 0x71, 0x05, 0x01, 0x6, 0x00, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
-		}
-
-		[Test]
-		public void Accumulator_Correct_After_ADC_Operation_When_In_Indirect_Indexed_Mode_When_Wrapping_Occurs()
-		{
-			var processor = new Processor();
-			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
-
-			processor.LoadProgram(0, new byte[] { 0x84, 0x04, 0x71, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedProgramCounter));
 		}
 		#endregion
-	
 	}
 }
