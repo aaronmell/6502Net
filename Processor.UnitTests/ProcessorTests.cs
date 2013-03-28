@@ -12,12 +12,12 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 			Assert.That(processor.CarryFlag, Is.False);
-			Assert.That(processor.IsResultZero, Is.False);
+			Assert.That(processor.Zero, Is.False);
 			Assert.That(processor.IsInterruptDisabled, Is.False);
 			Assert.That(processor.IsInDecimalMode, Is.False);
 			Assert.That(processor.IsSoftwareInterrupt, Is.False);
 			Assert.That(processor.IsOverflow, Is.False);
-			Assert.That(processor.IsSignNegative, Is.False);
+			Assert.That(processor.Sign, Is.False);
 		}
 
 		[Test]
@@ -181,7 +181,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
 
 			processor.NextStep();
-			Assert.That(processor.IsResultZero, Is.EqualTo(expectedValue));
+			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(126, 1, false)]
@@ -204,7 +204,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
 
 			processor.NextStep();
-			Assert.That(processor.IsSignNegative, Is.EqualTo(expectedValue));
+			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(0, 127, false, false)]
@@ -436,6 +436,11 @@ namespace Processor.UnitTests
 		[TestCase(0x39, 4)] // AND Absolute Y
 		[TestCase(0x21, 6)] // AND Indirect X
 		[TestCase(0x31, 5)] // AND Indirect Y
+		[TestCase(0x0A, 2)] // ASL Accumulator
+		[TestCase(0x06, 5)] // ASL Zero Page
+		[TestCase(0x16, 6)] // ASL Zero Page X
+		[TestCase(0x0E, 6)] // ASL Absolute
+		[TestCase(0x1E, 7)] // ASL Absolute X
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -447,16 +452,19 @@ namespace Processor.UnitTests
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
 
-		[TestCase(0x086, 0x07d,5)] // ADC Absolute X
-		[TestCase(0x084, 0x079,5)] // ADC Absolute Y
-		[TestCase(0x086, 0x03d,5)] // AND Absolute X
-		[TestCase(0x084, 0x039,5)] // AND Absolute Y
-		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte setRegisterOperation, byte operation, int numberOfCyclesUsed)
+		[TestCase(0x07d, true, 5)] // ADC Absolute X
+		[TestCase(0x079, false, 5)] // ADC Absolute Y
+		[TestCase(0x03d, true, 5)] // AND Absolute X
+		[TestCase(0x039, false, 5)] // AND Absolute Y
+		[TestCase(0x1E, true, 7)] // ASL Absolute X
+		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte operation, bool isAbsoluteX, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
-			
 
-			processor.LoadProgram(0, new byte[] { setRegisterOperation, 0x05, operation, 0xff, 0xff, 0x07, 0x03 }, 0x00);
+			processor.LoadProgram(0, isAbsoluteX
+				                      ? new byte[] {0x86, 0x05, operation, 0xff, 0xff, 0x07, 0x03}
+				                      : new byte[] {0x84, 0x05, operation, 0xff, 0xff, 0x07, 0x03}, 0x00);
+
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
@@ -499,6 +507,11 @@ namespace Processor.UnitTests
 		[TestCase(0x39, 3)] // AND Absolute Y
 		[TestCase(0x21, 2)] // AND Indirect X
 		[TestCase(0x31, 2)] // AND Indirect Y
+		[TestCase(0x0A, 1)] // ASL Accumulator
+		[TestCase(0x06, 2)] // ASL Zero Page
+		[TestCase(0x16, 2)] // ASL Zero Page X
+		[TestCase(0x0E, 3)] // ASL Absolute
+		[TestCase(0x1E, 3)] // ASL Absolute X
 		public void Program_Counter_Correct(byte operation, int expectedProgramCounter)
 		{
 			var processor = new Processor();
@@ -509,6 +522,80 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedProgramCounter));
+		}
+		#endregion
+
+		#region ASL - Arithmetic Shift Left
+
+		[TestCase(0x0A, 109, 218, 0)] // ASL Accumulator
+		[TestCase(0x0A, 108, 216, 0)] // ASL Accumulator
+		[TestCase(0x06, 109, 218, 0x01)] // ASL Zero Page
+		[TestCase(0x16, 109, 218, 0x01)] // ASL Zero Page X
+		[TestCase(0x0E, 109, 218, 0x01)] // ASL Absolute
+		[TestCase(0x1E, 109, 218, 0x01)] // ASL Absolute X
+		public void ASL_Correct_Value_Stored(byte operation, byte valueToShift, byte expectedValue, byte expectedLocation)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, operation, expectedLocation }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(operation == 0x0A 
+				? processor.Accumulator 
+				: processor.Memory.ReadValue(expectedLocation),
+			            Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(127,false)]
+		[TestCase(128, true)]
+		[TestCase(255, true)]
+		[TestCase(0, false)]
+		public void ASL_Carry_Set_Correctly(byte valueToShift, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(63, false)]
+		[TestCase(64, true)]
+		[TestCase(127, true)]
+		[TestCase(128, false)]
+		[TestCase(0, false)]
+		public void ASL_Negative_Set_Correctly(byte valueToShift, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			
+			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(127, false)]
+		[TestCase(128, true)]
+		[TestCase(0, true)]
+		public void ASL_Zero_Set_Correctly(byte valueToShift, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
 		}
 		#endregion
 	}

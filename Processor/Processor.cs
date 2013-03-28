@@ -60,7 +60,7 @@ namespace Processor
 		/// <summary>
 		/// Is true if the operation produced a zero result
 		/// </summary>
-		public bool IsResultZero { get; private set; }
+		public bool Zero { get; private set; }
 		/// <summary>
 		/// Interrupts are disabled if this is true
 		/// </summary>
@@ -82,9 +82,10 @@ namespace Processor
 		/// </summary>
 		public bool IsOverflow { get; private set; }
 		/// <summary>
-		/// Set to true if the result of an operation is negative
+		/// Set to true if the result of an operation is negative in ADC and SBC operations. 
+		/// In shift operations the sign holds the carry.
 		/// </summary>
-		public bool IsSignNegative { get; private set; }
+		public bool Sign { get; private set; }
 		#endregion
 
 		#region Public Methods
@@ -99,7 +100,7 @@ namespace Processor
 
 			InitalizeStack();
 
-			InterruptPeriod = 10;
+			InterruptPeriod = 20;
 			NumberofCyclesLeft = InterruptPeriod;
 		}
 
@@ -277,10 +278,51 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
+				case 0x0A:
+					{
+						ASlOperation(AddressingMode.Accumulator);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
+				case 0x06:
+					{
+						ASlOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
+				case 0x16:
+					{
+						ASlOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
+				case 0x0E:
+					{
+						ASlOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
+				case 0x1E:
+					{
+						ASlOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
+						break;
+					}
 				//LDA Load Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0xA9:
 					{
-						Accumulator = GetValueFromMemory(AddressingMode.Immediate);
+
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Immediate));
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(2);
 						break;
@@ -304,7 +346,7 @@ namespace Processor
 				//STX Store Index X, Zero Page Mode, 2 Bytes, 4 Cycles
 				case 0x86:
 					{
-						XRegister = GetValueFromMemory(AddressingMode.ZeroPage);
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(2);
 						break;
@@ -312,7 +354,7 @@ namespace Processor
 				//STY Store Index Y, Zero Page Mode, 2 Bytes, 4 Cycles
 				case 0x84:
 					{
-						YRegister = GetValueFromMemory(AddressingMode.ZeroPage);
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(2);
 						break;
@@ -332,62 +374,7 @@ namespace Processor
 			//The PC gets increments after the opcode is retrieved but before the opcode is executed. We want to add the remaining length.
 			ProgramCounter += lengthOfOperation - 1;
 		}
-
-		/// <summary>
-		/// The ADC - Add Memory to Accumulator with Carry Operation
-		/// </summary>
-		/// <param name="addressingMode">The addressing mode used to perform this operation.</param>
-		private void AddWithCarryOperation(AddressingMode addressingMode)
-		{
-			//Accumulator, Carry = Accumulator + ValueInMemoryLocation + Carry 
-			var memoryValue = GetValueFromMemory(addressingMode);
-			var newValue =  memoryValue + Accumulator + (CarryFlag ? 1 : 0);
-
-			SetOverflow(Accumulator, memoryValue, newValue);
-
-			if (IsInDecimalMode)
-			{
-				if (newValue > 99)
-				{
-					CarryFlag = true;
-					newValue -= 100;
-				}
-				else
-				{
-					CarryFlag = false;
-				}
-			}
-			else
-			{
-				if (newValue > 255)
-				{
-					CarryFlag = true;
-					newValue -= 256;
-				}
-				else
-				{
-					CarryFlag = false;
-				}
-			}
-
-			SetIsResultZero(newValue);
-			SetIsSignNegative(newValue);
-
-			Accumulator = newValue;
-		}
 		
-		/// <summary>
-		/// The AND - Compare Memory with Accumulator operation
-		/// </summary>
-		/// <param name="addressingMode"></param>
-		private void AndOperation(AddressingMode addressingMode)
-		{
-			Accumulator = GetValueFromMemory(addressingMode) & Accumulator;
-
-			SetIsResultZero(Accumulator);
-			SetIsSignNegative(Accumulator);
-		}
-
 		/// <summary>
 		/// Sets the IsOverflow Register Correctly
 		/// </summary>
@@ -408,7 +395,7 @@ namespace Processor
 		private void SetIsSignNegative(int value)
 		{
 			//on the 6502, any value greater than 127 is negative. 128 = 1000000 in Binary. the 8th bit is set, therefore the number is a negative number.
-			IsSignNegative = value > 127;
+			Sign = value > 127;
 		}
 
 		/// <summary>
@@ -417,16 +404,17 @@ namespace Processor
 		/// <param name="value"></param>
 		private void SetIsResultZero(int value)
 		{
-			IsResultZero = value == 0;
+			Zero = value == 0;
 		}
 
 		/// <summary>
-		/// Uses the AddressingMode to return the correct value from memory.
+		/// Uses the AddressingMode to return the correct address based on the mode.
 		/// Note: This method will not increment the program counter for any mode.
+		/// Note: This method will return an error if called for either the immediate or accumulator modes. 
 		/// </summary>
 		/// <param name="addressingMode">The addressing Mode to use</param>
-		/// <returns>A value from memory</returns>
-		private int GetValueFromMemory(AddressingMode addressingMode)
+		/// <returns>The memory Location</returns>
+		private int GetAddressByAddressingMode(AddressingMode addressingMode)
 		{
 			int address;
 			switch (addressingMode)
@@ -439,7 +427,7 @@ namespace Processor
 						//Get the second half of the address. We multiple the value by 256 so we retrieve the right address. 
 						//IF the first Value is FF and the second value is FF the address would be FFFF.
 						address += 256 * Memory.ReadValue(ProgramCounter + 1);
-						return Memory.ReadValue(address);
+						return address;
 					}
 				case AddressingMode.AbsoluteX:
 					{
@@ -457,11 +445,13 @@ namespace Processor
 						{
 							address = address - 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
+							//However, if this is an ASL operation, we do not decrease if by 1.
+							if (CurrentOpCode == 0x1E)
+								return Memory.ReadValue(address);
+
 							NumberofCyclesLeft--;
 						}
-
-
-						return Memory.ReadValue(address);
+						return address;
 					}
 				case AddressingMode.AbsoluteY:
 					{
@@ -482,11 +472,11 @@ namespace Processor
 							NumberofCyclesLeft--;
 						}
 
-						return Memory.ReadValue(address);
+						return address;
 					}
-				case (AddressingMode.Immediate):
+				case AddressingMode.Immediate:
 					{
-						return Memory.ReadValue(ProgramCounter);
+						return ProgramCounter;
 					}
 				case AddressingMode.IndexedIndirect:
 					{
@@ -499,7 +489,7 @@ namespace Processor
 
 						//Now get the final Address. The is not a zero page address either.
 						var finalAddress = Memory.ReadValue(address) + (256 * Memory.ReadValue(address + 1));
-						return Memory.ReadValue(finalAddress);
+						return finalAddress;
 					}
 				case AddressingMode.IndirectIndexed:
 					{
@@ -514,30 +504,120 @@ namespace Processor
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							NumberofCyclesLeft--;
 						}
-
-						return Memory.ReadValue(finalAddress);
-
+						return finalAddress;
 					}
 				case (AddressingMode.ZeroPage):
 					{
 						address = Memory.ReadValue(ProgramCounter);
-						return Memory.ReadValue(address);
+						return address;
 					}
 				case (AddressingMode.ZeroPageX):
 					{
 						address = Memory.ReadValue(ProgramCounter);
-						return Memory.ReadValue(address + XRegister);
+						return address + XRegister;
 					}
 				case (AddressingMode.ZeroPageY):
 					{
 						address = Memory.ReadValue(ProgramCounter);
-						return Memory.ReadValue(address + XRegister);
+						return address + XRegister;
 					}
 				default:
 					throw new InvalidEnumArgumentException(string.Format("The Addressing Mode {0} has not been implemented", addressingMode));
 			}
-
 		}
+	
+		#region Op Code Operations
+		/// <summary>
+		/// The ADC - Add Memory to Accumulator with Carry Operation
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode used to perform this operation.</param>
+		private void AddWithCarryOperation(AddressingMode addressingMode)
+		{
+			//Accumulator, Carry = Accumulator + ValueInMemoryLocation + Carry 
+			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
+			var newValue = memoryValue + Accumulator + (CarryFlag ? 1 : 0);
+
+			SetOverflow(Accumulator, memoryValue, newValue);
+
+			if (IsInDecimalMode)
+			{
+				if (newValue > 99)
+				{
+					CarryFlag = true;
+					newValue -= 100;
+				}
+				else
+				{
+					CarryFlag = false;
+				}
+			}
+			else
+			{
+				if (newValue > 255)
+				{
+					CarryFlag = true;
+					newValue -= 256;	
+				}
+				else
+				{
+					CarryFlag = false;
+				}
+			}
+
+			SetIsResultZero(newValue);
+			SetIsSignNegative(newValue);
+
+			Accumulator = newValue;
+		}
+
+		/// <summary>
+		/// The AND - Compare Memory with Accumulator operation
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode being used</param>
+		private void AndOperation(AddressingMode addressingMode)
+		{
+			Accumulator = Memory.ReadValue(GetAddressByAddressingMode(addressingMode)) & Accumulator;
+
+			SetIsResultZero(Accumulator);
+			SetIsSignNegative(Accumulator);
+		}
+
+		/// <summary>
+		/// The ASL - Shift Left One Bit (Memory or Accumulator)
+		/// </summary>
+		/// <param name="addressingMode">The addressing Mode being used</param>
+		public void ASlOperation(AddressingMode addressingMode)
+		{
+			int value;
+			var memoryAddress = 0;
+			if (addressingMode == AddressingMode.Accumulator)
+				value = Accumulator;
+			else
+			{
+				memoryAddress = GetAddressByAddressingMode(addressingMode);
+				value = Memory.ReadValue(memoryAddress);
+			}
+
+			//If the 7th bit is set, then we have a carry
+			CarryFlag = ((value & 0x80) != 0);
+
+			value = (value << 1);
+
+			if (value > 255)
+				value -= 256;
+
+			SetIsSignNegative(value);
+			SetIsResultZero(value);
+
+			if (addressingMode == AddressingMode.Accumulator)
+				Accumulator = value;
+			else
+			{
+				Memory.WriteValue(memoryAddress, (byte)value);
+			}
+		}
+		#endregion
+		
 		#endregion
 	}
 }
