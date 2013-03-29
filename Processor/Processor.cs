@@ -322,21 +322,18 @@ namespace Processor
 				//BCC Branch if Carry is Clear, Relative, 2 Bytes, 2++ Cycles
 				case 0x90:
 					{
-						if (!CarryFlag)
-						{
-							var value = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Relative));
-							//We are incrementing the value here instead of at the end. If we increment at the end we could have a situation where a wrap occurs and puts the PC out of bounds
-							IncrementProgramCounter(2);
-							MoveProgramCounterByRelativeValue(value);
-							//We add a cycle because the branch occured.
-							NumberofCyclesLeft -= 1;
-						}
-						else
-							IncrementProgramCounter(2);
 
+						BranchOperation(!CarryFlag);
 						NumberofCyclesLeft -= 2;
 						break;
 
+					}
+				//BCS Branch if Carry is Set, Relative, 2 Bytes, 2++ Cycles
+				case 0xF0:
+					{
+						BranchOperation(CarryFlag);
+						NumberofCyclesLeft -= 2;
+						break;
 					}
 				//CLC Clear Carry Flag, Implied 1 Bytes, 2 Cycles
 				case 0x18:
@@ -678,6 +675,25 @@ namespace Processor
 			{
 				Memory.WriteValue(memoryAddress, (byte)value);
 			}
+		}
+
+		/// <summary>
+		/// Performs the different branch operations.
+		/// </summary>
+		/// <param name="performBranch">Is a branch required</param>
+		private void BranchOperation(bool performBranch)
+		{
+			if (performBranch)
+			{
+				var value = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Relative));
+				//We are incrementing the value here instead of at the end. If we increment at the end we could have a situation where a wrap occurs and puts the PC out of bounds
+				IncrementProgramCounter(2);
+				MoveProgramCounterByRelativeValue(value);
+				//We add a cycle because the branch occured.
+				NumberofCyclesLeft -= 1;
+			}
+			else
+				IncrementProgramCounter(2);
 		}
 		#endregion
 		

@@ -369,6 +369,27 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region BCS - Branch on Carry Set
+		[TestCase(0, 0x00, 3)]
+		[TestCase(0, 1, 4)]
+		[TestCase(0xFFFB, 1, 0xFFFF)]
+		[TestCase(0xFFFC, 1, 0)]
+		[TestCase(0, 0x81, 2)]
+		[TestCase(0, 0x84, 0xFFFF)]
+		[TestCase(0, 0x83, 0)]
+		public void BCS_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0x38, 0xF0, offset }, programCounterInitalValue);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
 		#region CLC - Clear Carry Flag
 
 		[Test]
@@ -695,8 +716,10 @@ namespace Processor.UnitTests
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
 		
-		[TestCase(0x90, 2 , true)]
-		[TestCase(0x90, 3, false)]
+		[TestCase(0x90, 2 , true)] //BCC
+		[TestCase(0x90, 3, false)] //BCC
+		[TestCase(0xF0, 2, false)] //BCS
+		[TestCase(0xF0, 3, true)]  //BCS
 		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Carry(byte operation, int numberOfCyclesUsed, bool isCarrySet )
 		{
 			var processor = new Processor();
@@ -715,16 +738,31 @@ namespace Processor.UnitTests
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
 
-		[TestCase(0x90, 4, true)]  //BCC
-		[TestCase(0x90, 4, false)] //BCC
-		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Carry_And_Wrap(byte operation, int numberOfCyclesUsed, bool wrapRight)
+		[TestCase(0x90, 4, false, true)]  //BCC
+		[TestCase(0x90, 4, false, false)] //BCC
+		[TestCase(0xF0, 4, true, true)]  //BCS
+		[TestCase(0xF0, 4, true, false)] //BCS
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Carry_And_Wrap(byte operation, int numberOfCyclesUsed, bool isCarrySet,  bool wrapRight)
 		{
 			var processor = new Processor();
 
-			if (wrapRight)
-				processor.LoadProgram(0x0FFFC, new byte[] { operation, 0x04, 0x00 }, 0xFFFC);
+			if (isCarrySet)
+			{
+				if (wrapRight)
+					processor.LoadProgram(0x0FFFB, new byte[] { 0x38, operation, 0x04, 0x00 }, 0xFFFB);
+				else
+					processor.LoadProgram(0, new byte[] { 0x38, operation, 0x84, 0x00 }, 0x00);
+
+				processor.NextStep();
+			}
 			else
-				processor.LoadProgram(0, new byte[] { operation, 0x83, 0x00 }, 0x00);
+			{
+				if (wrapRight)
+					processor.LoadProgram(0x0FFFC, new byte[] { operation, 0x04, 0x00 }, 0xFFFC);
+				else
+					processor.LoadProgram(0, new byte[] { operation, 0x83, 0x00 }, 0x00);
+			}
+		
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
