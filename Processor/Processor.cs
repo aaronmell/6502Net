@@ -147,6 +147,7 @@ namespace Processor
 		private void ExecuteOpCode()
 		{
 			//The x+ cycles denotes that if a page wrap occurs, then an additional cycle is consumed.
+			//The x++ cycles denotes that 1 cycle is added when a branch occurs and it on the same page, and two cycles are added if its on a different page./
 			//This is handled inside the GetValueFromMemory Method
 			switch (CurrentOpCode)
 			{
@@ -318,6 +319,40 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
+				//BCC Branch if Carry is Clear, Relative, 2 Bytes, 2++ Cycles
+				case 0x90:
+					{
+						if (!CarryFlag)
+						{
+							var value = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Relative));
+							//We are incrementing the value here instead of at the end. If we increment at the end we could have a situation where a wrap occurs and puts the PC out of bounds
+							IncrementProgramCounter(2);
+							MoveProgramCounterByRelativeValue(value);
+							//We add a cycle because the branch occured.
+							NumberofCyclesLeft -= 1;
+						}
+						else
+							IncrementProgramCounter(2);
+
+						NumberofCyclesLeft -= 2;
+						break;
+
+					}
+				//CLC Clear Carry Flag, Implied 1 Bytes, 2 Cycles
+				case 0x18:
+					{
+						CarryFlag = false;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//JMP Jump to New Location, Absolute 3 Bytes, 3 Cycles
+				case 0x4C:
+					{
+						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 3;
+						break;
+					}
 				//LDA Load Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0xA9:
 					{
@@ -443,7 +478,7 @@ namespace Processor
 						//This address wraps if its greater than 0xFFFF
 						if (address > 0xFFFF)
 						{
-							address = address - 0x10000;
+							address-= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							//However, if this is an ASL operation, we do not decrease if by 1.
 							if (CurrentOpCode == 0x1E)
@@ -467,7 +502,7 @@ namespace Processor
 						//This address wraps if its greater than 0xFFFF
 						if (address > 0xFFFF)
 						{
-							address = address - 0x10000;
+							address-= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							NumberofCyclesLeft--;
 						}
@@ -485,7 +520,7 @@ namespace Processor
 
 						//Its a zero page address, so it wraps around if greater than 0xff
 						if (address > 0xff)
-							address = address - 0x100;
+							address-= 0x100;
 
 						//Now get the final Address. The is not a zero page address either.
 						var finalAddress = Memory.ReadValue(address) + (256 * Memory.ReadValue(address + 1));
@@ -500,11 +535,15 @@ namespace Processor
 						//This address wraps if its greater than 0xFFFF
 						if (finalAddress > 0xFFFF)
 						{
-							finalAddress = finalAddress - 0x10000;
+							finalAddress-= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							NumberofCyclesLeft--;
 						}
 						return finalAddress;
+					}
+				case AddressingMode.Relative:
+					{
+						return ProgramCounter;
 					}
 				case (AddressingMode.ZeroPage):
 					{
@@ -526,6 +565,30 @@ namespace Processor
 			}
 		}
 	
+		/// <summary>
+		/// Moves the ProgramCounter in a given direction based on the value inputted
+		/// 
+		/// </summary>
+		private void MoveProgramCounterByRelativeValue(byte valueToMove)
+		{
+			
+			var newAddress = valueToMove > 127 ? (valueToMove & 0x7f) * -1 : (valueToMove & 0x7f);
+
+			ProgramCounter+= newAddress;
+
+			if (ProgramCounter > 0xFFFF)
+			{
+				ProgramCounter -= 0x10000;
+				//We crossed a page boundry, so decrease the number of cycles by 1.
+				NumberofCyclesLeft--;
+			}
+			else if (ProgramCounter < 0)
+			{
+				ProgramCounter += 0x10000;
+				//We crossed a page boundry, so decrease the number of cycles by 1.
+				NumberofCyclesLeft--;
+			}
+		}
 		#region Op Code Operations
 		/// <summary>
 		/// The ADC - Add Memory to Accumulator with Carry Operation

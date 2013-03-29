@@ -275,9 +275,208 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region|Address Mode Tests
+		#region ASL - Arithmetic Shift Left
+
+		[TestCase(0x0A, 109, 218, 0)] // ASL Accumulator
+		[TestCase(0x0A, 108, 216, 0)] // ASL Accumulator
+		[TestCase(0x06, 109, 218, 0x01)] // ASL Zero Page
+		[TestCase(0x16, 109, 218, 0x01)] // ASL Zero Page X
+		[TestCase(0x0E, 109, 218, 0x01)] // ASL Absolute
+		[TestCase(0x1E, 109, 218, 0x01)] // ASL Absolute X
+		public void ASL_Correct_Value_Stored(byte operation, byte valueToShift, byte expectedValue, byte expectedLocation)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, operation, expectedLocation }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(operation == 0x0A
+				? processor.Accumulator
+				: processor.Memory.ReadValue(expectedLocation),
+						Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(127, false)]
+		[TestCase(128, true)]
+		[TestCase(255, true)]
+		[TestCase(0, false)]
+		public void ASL_Carry_Set_Correctly(byte valueToShift, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(63, false)]
+		[TestCase(64, true)]
+		[TestCase(127, true)]
+		[TestCase(128, false)]
+		[TestCase(0, false)]
+		public void ASL_Negative_Set_Correctly(byte valueToShift, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(127, false)]
+		[TestCase(128, true)]
+		[TestCase(0, true)]
+		public void ASL_Zero_Set_Correctly(byte valueToShift, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
+		#region BCC - Branch On Carry Clear
+
+		[TestCase(0, 0x00, 2)]
+		[TestCase(0, 1, 3)]
+		[TestCase(0xFFFC, 1, 0xFFFF)]
+		[TestCase(0xFFFD, 1, 0)]
+		[TestCase(0, 0x80, 2)]
+		[TestCase(0, 0x83, 0xFFFF)]
+		[TestCase(0, 0x82, 0)]
+		public void BCC_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0x90, offset }, programCounterInitalValue);
+			processor.NextStep();
+			
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
+		#region CLC - Clear Carry Flag
+
+		[Test]
+		public void CLC_Carry_Flag_Cleared_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x18 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(false));
+		}
+
+		#endregion
+
+		#region JMP - Jump to New Location
+
+		[Test]
+		public void JMP_Program_Counter_Set_Correctly_After_Jump()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x4C, 0x08, 0x00 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0x08));
+		}
+		#endregion
+
+		#region LDA - Load Accumulator with Memory
+
+		[Test]
+		public void LDA_Accumulator_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x03 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
+		}
+
+		#endregion
+
+		#region SEC - Set Carry Flag
+
+		[Test]
+		public void SEC_Carry_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x38 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));
+		}
+
+		#endregion
+
+		#region SED - Set Decimal Mode
+
+		[Test]
+		public void SED_Decimal_Mode_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xF8 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.IsInDecimalMode, Is.EqualTo(true));
+		}
+
+		#endregion
+
+		#region STX - Store Index X
+
+		[Test]
+		public void STX_XRegister_Value_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x86, 0x02, 0x03 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.XRegister, Is.EqualTo(0x03));
+		}
+
+		#endregion
+
+		#region STY - Store Index Y
+
+		[Test]
+		public void STY_YRegister_Value_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x84, 0x02, 0x03 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.YRegister, Is.EqualTo(0x03));
+		}
+
+		#endregion
+		
+		#region Address Mode Tests
 		[TestCase(0x69, 0x01, 0x01, 0x02)] // ADC
 		[TestCase(0x29, 0x03, 0x03, 0x03)] // AND
+		[TestCase(0xA9, 0x04, 0x03, 0x03)] // LDA
 		public void Immediate_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -441,6 +640,13 @@ namespace Processor.UnitTests
 		[TestCase(0x16, 6)] // ASL Zero Page X
 		[TestCase(0x0E, 6)] // ASL Absolute
 		[TestCase(0x1E, 7)] // ASL Absolute X
+		[TestCase(0x18, 2)] // CLC Implied
+		[TestCase(0x4c, 3)] // JMP Absolute
+		[TestCase(0xA9, 2)] // LDA Immediate
+		[TestCase(0x38, 2)] // SEC Implied
+		[TestCase(0xF8, 2)] // SED Implied
+		[TestCase(0x86, 4)] // STX Implied
+		[TestCase(0x84, 4)] // STY Implied
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -488,6 +694,46 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
+		
+		[TestCase(0x90, 2 , true)]
+		[TestCase(0x90, 3, false)]
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Carry(byte operation, int numberOfCyclesUsed, bool isCarrySet )
+		{
+			var processor = new Processor();
+
+
+			processor.LoadProgram(0, isCarrySet
+				                         ? new byte[] {0x38, operation, 0x00}
+				                         : new byte[] {0x18, operation, 0x00}, 0x00);
+			processor.NextStep();
+
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
+
+		[TestCase(0x90, 4, true)]  //BCC
+		[TestCase(0x90, 4, false)] //BCC
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Carry_And_Wrap(byte operation, int numberOfCyclesUsed, bool wrapRight)
+		{
+			var processor = new Processor();
+
+			if (wrapRight)
+				processor.LoadProgram(0x0FFFC, new byte[] { operation, 0x04, 0x00 }, 0xFFFC);
+			else
+				processor.LoadProgram(0, new byte[] { operation, 0x83, 0x00 }, 0x00);
+
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
+		
 		#endregion
 
 		#region Program Counter Tests
@@ -512,6 +758,12 @@ namespace Processor.UnitTests
 		[TestCase(0x16, 2)] // ASL Zero Page X
 		[TestCase(0x0E, 3)] // ASL Absolute
 		[TestCase(0x1E, 3)] // ASL Absolute X
+		[TestCase(0x18, 1)] // CLC Implied
+		[TestCase(0xA9, 2)] // LDA Immediate
+		[TestCase(0x38, 1)] // SEC Implied
+		[TestCase(0xF8, 1)] // SED Implied
+		[TestCase(0x86, 2)] // STX Implied
+		[TestCase(0x84, 2)] // STY Implied
 		public void Program_Counter_Correct(byte operation, int expectedProgramCounter)
 		{
 			var processor = new Processor();
@@ -525,78 +777,5 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region ASL - Arithmetic Shift Left
-
-		[TestCase(0x0A, 109, 218, 0)] // ASL Accumulator
-		[TestCase(0x0A, 108, 216, 0)] // ASL Accumulator
-		[TestCase(0x06, 109, 218, 0x01)] // ASL Zero Page
-		[TestCase(0x16, 109, 218, 0x01)] // ASL Zero Page X
-		[TestCase(0x0E, 109, 218, 0x01)] // ASL Absolute
-		[TestCase(0x1E, 109, 218, 0x01)] // ASL Absolute X
-		public void ASL_Correct_Value_Stored(byte operation, byte valueToShift, byte expectedValue, byte expectedLocation)
-		{
-			var processor = new Processor();
-			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
-
-
-			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, operation, expectedLocation }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(operation == 0x0A 
-				? processor.Accumulator 
-				: processor.Memory.ReadValue(expectedLocation),
-			            Is.EqualTo(expectedValue));
-		}
-
-		[TestCase(127,false)]
-		[TestCase(128, true)]
-		[TestCase(255, true)]
-		[TestCase(0, false)]
-		public void ASL_Carry_Set_Correctly(byte valueToShift, bool expectedValue)
-		{
-			var processor = new Processor();
-			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
-
-
-			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-			
-			Assert.That(processor.CarryFlag, Is.EqualTo(expectedValue));
-		}
-
-		[TestCase(63, false)]
-		[TestCase(64, true)]
-		[TestCase(127, true)]
-		[TestCase(128, false)]
-		[TestCase(0, false)]
-		public void ASL_Negative_Set_Correctly(byte valueToShift, bool expectedValue)
-		{
-			var processor = new Processor();
-			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
-
-			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-			
-			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
-		}
-
-		[TestCase(127, false)]
-		[TestCase(128, true)]
-		[TestCase(0, true)]
-		public void ASL_Zero_Set_Correctly(byte valueToShift, bool expectedValue)
-		{
-			var processor = new Processor();
-			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
-
-			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, 0x0A }, 0x00);
-			processor.NextStep();
-			processor.NextStep();
-
-			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
-		}
-		#endregion
 	}
 }
