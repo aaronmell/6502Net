@@ -32,18 +32,6 @@ namespace Processor.UnitTests
 		}
 
 		[Test]
-		public void Processor_Stack_Initialized_Correctly()
-		{
-			var processor = new Processor();
-			Assert.That(processor.StackPointer, Is.EqualTo(0xFF));
-
-			foreach (var value in processor.Stack)
-			{
-				Assert.That(value, Is.EqualTo(0x00));
-			}
-		}
-
-		[Test]
 		public void ProgramCounter_Correct_When_Program_Loaded()
 		{
 			var processor = new Processor();
@@ -363,7 +351,6 @@ namespace Processor.UnitTests
 
 			processor.LoadProgram(programCounterInitalValue, new byte[] { 0x90, offset }, programCounterInitalValue);
 			processor.NextStep();
-			
 
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
 		}
@@ -812,6 +799,39 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedProgramCounter));
+		}
+
+		//Not all flags have been implemented yet.
+		[TestCase(0xF0, true, 2)]  //BCC
+		[TestCase(0xF0, false, 2)] //BCS
+		public void Program_Counter_Correct_When_NoBranch_Occurs_On_Carry(byte operation, bool carrySet, byte expectedOutput)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0,
+			                      carrySet
+					                      ? new byte[] {0x38, operation }
+				                      : new byte[] {0x18, operation }, 0x00);
+
+			processor.NextStep();
+			var currentProgramCounter = processor.ProgramCounter;
+			
+			processor.NextStep();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(currentProgramCounter + expectedOutput));
+
+		}
+
+		[Test]
+		public void Program_Counter_Wraps_Correctly()
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0xFFFF, new byte[] {0x38}, 0xFFFF);
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 		}
 		#endregion
 

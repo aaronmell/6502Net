@@ -8,6 +8,8 @@ namespace Processor
 	/// </summary>
 	public class Processor
 	{
+		private int _programCounter;
+
 		//All of the properties here are public and read only to facilitate ease of debugging and testing.
 		#region Properties
 		/// <summary>
@@ -29,7 +31,19 @@ namespace Processor
 		/// <summary>
 		/// Points to the Current Address of the instruction being executed by the system. 
 		/// </summary>
-		public int ProgramCounter { get; private set; }
+		public int ProgramCounter
+		{
+			get { return _programCounter; } 
+			private set
+			{
+				if (value > 0xFFFF)
+					_programCounter = value - 0x10000;
+				else if (value < 0)
+					_programCounter = value + 0x10000;
+				else
+					_programCounter = value;
+			}
+		}
 		/// <summary>
 		/// Points to the Current Position of the Stack
 		/// </summary>
@@ -43,14 +57,9 @@ namespace Processor
 		/// </summary>
 		public int NumberofCyclesLeft { get; private set; }
 		/// <summary>
-		/// The stack
-		/// </summary>
-		public byte[] Stack { get; private set; }
-		/// <summary>
 		/// The Memory
 		/// </summary>
 		public Ram Memory { get; private set; }
-
 		//Status Registers
 		/// <summary>
 		/// This is the carry flag. when adding, if there is a carry, then this bit is enabled. 
@@ -94,11 +103,8 @@ namespace Processor
 		/// </summary>
 		public Processor()
 		{
-			Stack = new byte[256];
-			Memory = new Ram(0xFFFF);
+			Memory = new Ram(0x10000);
 			StackPointer = 0xFF;
-
-			InitalizeStack();
 
 			InterruptPeriod = 20;
 			NumberofCyclesLeft = InterruptPeriod;
@@ -132,15 +138,6 @@ namespace Processor
 		#endregion
 
 		#region Private Methods
-		/// <summary>
-		/// Initializes the stack to a default value
-		/// </summary>
-		private void InitalizeStack()
-		{
-			for (int i = 0; i < Stack.Length; i++)
-				Stack[i] = 0x00;
-		}
-
 		/// <summary>
 		/// Executes an Opcode
 		/// </summary>
@@ -571,20 +568,15 @@ namespace Processor
 			
 			var newAddress = valueToMove > 127 ? (valueToMove & 0x7f) * -1 : (valueToMove & 0x7f);
 
-			ProgramCounter+= newAddress;
+			var newProgramCounter = ProgramCounter + newAddress;
 
-			if (ProgramCounter > 0xFFFF)
+			if (newProgramCounter < 0x0 || newProgramCounter > 0xFFFF)
 			{
-				ProgramCounter -= 0x10000;
 				//We crossed a page boundry, so decrease the number of cycles by 1.
 				NumberofCyclesLeft--;
 			}
-			else if (ProgramCounter < 0)
-			{
-				ProgramCounter += 0x10000;
-				//We crossed a page boundry, so decrease the number of cycles by 1.
-				NumberofCyclesLeft--;
-			}
+			ProgramCounter = newProgramCounter;
+
 		}
 		#region Op Code Operations
 		/// <summary>
@@ -686,14 +678,13 @@ namespace Processor
 			if (performBranch)
 			{
 				var value = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Relative));
-				//We are incrementing the value here instead of at the end. If we increment at the end we could have a situation where a wrap occurs and puts the PC out of bounds
-				IncrementProgramCounter(2);
+				
 				MoveProgramCounterByRelativeValue(value);
 				//We add a cycle because the branch occured.
 				NumberofCyclesLeft -= 1;
 			}
-			else
-				IncrementProgramCounter(2);
+			
+			IncrementProgramCounter(2);
 		}
 		#endregion
 		
