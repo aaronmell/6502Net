@@ -369,12 +369,35 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 
-			processor.LoadProgram(programCounterInitalValue, new byte[] { 0x38, 0xF0, offset }, programCounterInitalValue);
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0x38, 0xB0, offset }, programCounterInitalValue);
 			processor.NextStep();
 			processor.NextStep();
 
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
 		}
+		#endregion
+
+		#region BEQ - Branch on Zero Set
+
+		[TestCase(0, 0x00, 4)]
+		[TestCase(0, 1, 5)]
+		[TestCase(0xFFFA, 1, 0xFFFF)]
+		[TestCase(0xFFFB, 1, 0)]
+		[TestCase(0, 0x82, 2)]
+		[TestCase(0, 0x85, 0xFFFF)]
+		[TestCase(0, 0x84, 0)]
+		public void BEQ_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0xA9, 0x00 ,0xF0, offset }, programCounterInitalValue);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
+		
 		#endregion
 
 		#region CLC - Clear Carry Flag
@@ -417,6 +440,32 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
+		}
+
+		[TestCase(0x0,true)]
+		[TestCase(0x3, false)]
+		public void LDA_Zero_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0x79, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0xFF, true)]
+		public void LDA_Negative_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
 		}
 
 		#endregion
@@ -705,8 +754,8 @@ namespace Processor.UnitTests
 		
 		[TestCase(0x90, 2 , true)] //BCC
 		[TestCase(0x90, 3, false)] //BCC
-		[TestCase(0xF0, 2, false)] //BCS
-		[TestCase(0xF0, 3, true)]  //BCS
+		[TestCase(0xB0, 2, false)] //BCS
+		[TestCase(0xB0, 3, true)]  //BCS
 		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Carry(byte operation, int numberOfCyclesUsed, bool isCarrySet )
 		{
 			var processor = new Processor();
@@ -727,29 +776,37 @@ namespace Processor.UnitTests
 
 		[TestCase(0x90, 4, false, true)]  //BCC
 		[TestCase(0x90, 4, false, false)] //BCC
-		[TestCase(0xF0, 4, true, true)]  //BCS
-		[TestCase(0xF0, 4, true, false)] //BCS
+		[TestCase(0xB0, 4, true, true)]  //BCC
+		[TestCase(0xB0, 4, true, false)] //BCC
 		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Carry_And_Wrap(byte operation, int numberOfCyclesUsed, bool isCarrySet,  bool wrapRight)
 		{
 			var processor = new Processor();
 
-			if (isCarrySet)
-			{
-				if (wrapRight)
-					processor.LoadProgram(0x0FFFB, new byte[] { 0x38, operation, 0x04, 0x00 }, 0xFFFB);
-				else
-					processor.LoadProgram(0, new byte[] { 0x38, operation, 0x84, 0x00 }, 0x00);
+			var carryOperation = isCarrySet ? 0x38 : 0x18;
+			var initialAddress = wrapRight ? 0xFFFB : 0x00;
+			var amountToMove = wrapRight ? 0x04 : 0x84;
 
-				processor.NextStep();
-			}
-			else
-			{
-				if (wrapRight)
-					processor.LoadProgram(0x0FFFC, new byte[] { operation, 0x04, 0x00 }, 0xFFFC);
-				else
-					processor.LoadProgram(0, new byte[] { operation, 0x83, 0x00 }, 0x00);
-			}
-		
+			processor.LoadProgram(initialAddress, new byte[] { (byte)carryOperation, operation, (byte)amountToMove, 0x00 }, initialAddress);
+			processor.NextStep();
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
+
+		[TestCase(0xF0, 3, true)]  //BEQ
+		[TestCase(0xF0, 2, false)] //BEQ
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Zero(byte operation, int numberOfCyclesUsed, bool isZeroSet)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, isZeroSet 
+				? new byte[] {0xA9, 0x00, operation, 0x00} 
+				: new byte[] {0xA9, 0x01, operation, 0x00}, 0x00);
+
+			processor.NextStep();
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
@@ -758,7 +815,26 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
-		
+
+		[TestCase(0xF0, 4, true, true)]  //BEQ
+		[TestCase(0xF0, 4, true, false)] //BEQ
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Zero_And_Wrap(byte operation, int numberOfCyclesUsed, bool isZeroSet, bool wrapRight)
+		{
+			var processor = new Processor();
+
+			var newAccumulatorValue = isZeroSet ? 0x00 : 0x01;
+			var initialAddress = wrapRight ? 0xFFFB : 0x00;
+			var amountToMove = wrapRight ? 0x04 : 0x84;
+
+			processor.LoadProgram(initialAddress, new byte[] { 0xA9, (byte)newAccumulatorValue, operation, (byte)amountToMove, 0x00 }, initialAddress);
+			processor.NextStep();
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
 		#endregion
 
 		#region Program Counter Tests
@@ -801,10 +877,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedProgramCounter));
 		}
 
-		//Not all flags have been implemented yet.
-		[TestCase(0xF0, true, 2)]  //BCC
-		[TestCase(0xF0, false, 2)] //BCS
-		public void Program_Counter_Correct_When_NoBranch_Occurs_On_Carry(byte operation, bool carrySet, byte expectedOutput)
+		[TestCase(0xB0, true, 2)]  //BCC
+		[TestCase(0x90, false, 2)] //BCS
+		public void Branch_On_Carry_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool carrySet, byte expectedOutput)
 		{
 			var processor = new Processor();
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
@@ -822,6 +897,25 @@ namespace Processor.UnitTests
 
 		}
 
+		[TestCase(0xF0, true, 2)]  //BEQ
+		public void Branch_On_Zero_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool zeroSet, byte expectedOutput)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0,
+								  zeroSet
+										  ? new byte[] { 0xA9, 0x00, operation }
+									  : new byte[] { 0xA9, 0x01, operation }, 0x00);
+
+			processor.NextStep();
+			var currentProgramCounter = processor.ProgramCounter;
+
+			processor.NextStep();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(currentProgramCounter + expectedOutput));
+
+		}
+
 		[Test]
 		public void Program_Counter_Wraps_Correctly()
 		{
@@ -834,6 +928,5 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 		}
 		#endregion
-
 	}
 }

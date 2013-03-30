@@ -326,9 +326,16 @@ namespace Processor
 
 					}
 				//BCS Branch if Carry is Set, Relative, 2 Bytes, 2++ Cycles
-				case 0xF0:
+				case 0xB0:
 					{
 						BranchOperation(CarryFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				//BEQ Branch if Zero is Set, Relative, 2 Bytes, 2++ Cycles
+				case 0xF0:
+					{
+						BranchOperation(Zero);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
@@ -352,6 +359,9 @@ namespace Processor
 					{
 
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Immediate));
+						SetIsResultZero(Accumulator);
+						SetIsSignNegative(Accumulator);
+
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(2);
 						break;
