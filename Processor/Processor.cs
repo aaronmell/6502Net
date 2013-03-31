@@ -368,11 +368,25 @@ namespace Processor
 						BranchOperation(!Zero);
 						NumberofCyclesLeft -= 2;
 						break;
-					}	
-				// BPL Branch if Negative Clear
+					}
+				// BPL Branch if Negative Clear, 2 Bytes, 2++ Cycles
 				case 0x10:
 					{
 						BranchOperation(!Negative);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				// BVC Branch if Overflow Clear, 2 Bytes, 2++ Cycles
+				case 0x50:
+					{
+						BranchOperation(!Overflow);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				// BVS Branch if Overflow Set, 2 Bytes, 2++ Cycles
+				case 0x70:
+					{
+						BranchOperation(Overflow);
 						NumberofCyclesLeft -= 2;
 						break;
 					}

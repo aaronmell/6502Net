@@ -554,6 +554,48 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region BVC Branch if Overflow Clear
+		[TestCase(0, 0x00, 2)]
+		[TestCase(0, 1, 3)]
+		[TestCase(0xFFFC, 1, 0xFFFF)]
+		[TestCase(0xFFFD, 1, 0)]
+		[TestCase(0, 0x80, 2)]
+		[TestCase(0, 0x83, 0xFFFF)]
+		[TestCase(0, 0x82, 0)]
+		public void BVC_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0x50, offset }, programCounterInitalValue);
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
+		#region BVS Branch if Overflow Set
+		[TestCase(0, 0x00, 6)]
+		[TestCase(0, 1, 7)]
+		[TestCase(0xFFF8, 1, 0xFFFF)]
+		[TestCase(0xFFF9, 1, 0)]
+		[TestCase(0, 0x84, 2)]
+		[TestCase(0, 0x87, 0xFFFF)]
+		[TestCase(0, 0x86, 0)]
+		public void BVS_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0xA9, 0x01, 0x69, 0x7F, 0x70, offset }, programCounterInitalValue);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
 		#region CLC - Clear Carry Flag
 
 		[Test]
@@ -1039,6 +1081,51 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
+
+		[TestCase(0x50, 3, false)]  //BVC
+		[TestCase(0x50, 2, true)] //BVC
+		[TestCase(0x70, 3, true)]  //BVS
+		[TestCase(0x70, 2, false)] //BVS
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Overflow(byte operation, int numberOfCyclesUsed, bool isOverflowSet)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, isOverflowSet
+				? new byte[] { 0xA9, 0x01, 0x69, 0x7F, operation, 0x00 }
+				: new byte[] { 0xA9, 0x01, 0x69, 0x01, operation, 0x00 }, 0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
+
+		[TestCase(0x50, 4, false, true)]  //BVC
+		[TestCase(0x50, 4, false, false)] //BVC
+		[TestCase(0x70, 4, true, true)]  //BVS
+		[TestCase(0x70, 4, true, false)] //BVS
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Overflow_And_Wrap(byte operation, int numberOfCyclesUsed, bool isOverflowSet, bool wrapRight)
+		{
+			var processor = new Processor();
+
+			var newAccumulatorValue = isOverflowSet ? 0x7F : 0x00;
+			var initialAddress = wrapRight ? 0xFFF9 : 0x00;
+			var amountToMove = wrapRight ? 0x04 : 0x86;
+
+			processor.LoadProgram(initialAddress, new byte[] { 0xA9, (byte)newAccumulatorValue, 0x69, 0x01, operation, (byte)amountToMove, 0x00 }, initialAddress);
+			processor.NextStep();
+			processor.NextStep();
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
 		#endregion
 
 		#region Program Counter Tests
@@ -1142,7 +1229,27 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(currentProgramCounter + expectedOutput));
 
 		}
-		
+
+		[TestCase(0x50, true, 2)]  //BVC
+		[TestCase(0x70, false, 2)]  //BVS
+		public void Branch_On_Overflow_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool overflowSet, byte expectedOutput)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, overflowSet
+				? new byte[] { 0xA9, 0x01, 0x69, 0x7F, operation, 0x00 }
+				: new byte[] { 0xA9, 0x01, 0x69, 0x01, operation, 0x00 }, 0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			var currentProgramCounter = processor.ProgramCounter;
+
+			processor.NextStep();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(currentProgramCounter + expectedOutput));
+
+		}
+
 		[Test]
 		public void Program_Counter_Wraps_Correctly()
 		{
