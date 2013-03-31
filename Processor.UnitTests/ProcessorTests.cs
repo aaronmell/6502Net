@@ -900,8 +900,8 @@ namespace Processor.UnitTests
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
-		[TestCase(0x86, 4)] // STX Implied
-		[TestCase(0x84, 4)] // STY Implied
+		[TestCase(0x86, 3)] // STX Zero Page
+		[TestCase(0x84, 3)] // STY Zero Page
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();

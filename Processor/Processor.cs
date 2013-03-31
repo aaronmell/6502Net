@@ -376,6 +376,12 @@ namespace Processor
 						NumberofCyclesLeft -= 2;
 						break;
 					}
+				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
+				case 0x00:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
 				// BVC Branch if Overflow Clear, 2 Bytes, 2++ Cycles
 				case 0x50:
 					{
@@ -417,7 +423,42 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//SEC Set Carry, Implied Mode, 1 Bytes, 2 Cycles
+				//LDA Load Accumulator with Memory, Zero Page, 2 Bytes, 3 Cycles
+				case 0xA5:
+					{
+						throw  new NotImplementedException();
+					}
+				//LDA Load Accumulator with Memory, Zero Page X, 2 Bytes, 4 Cycles
+				case 0xB5:
+					{
+						throw new NotImplementedException();
+					}
+				//LDA Load Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
+				case 0xAD:
+					{
+						throw new NotImplementedException();
+					}
+				//LDA Load Accumulator with Memory, Absolute X, 3 Bytes, 4+ Cycles
+				case 0xBD:
+					{
+						throw new NotImplementedException();
+					}
+				//LDA Load Accumulator with Memory, Absolute Y, 3 Bytes, 4+ Cycles
+				case 0xB9:
+					{
+						throw new NotImplementedException();
+					}
+				//LDA Load Accumulator with Memory, Index Indirect, 2 Bytes, 6 Cycles
+				case 0xA1:
+					{
+						throw new NotImplementedException();
+					}
+				//LDA Load Accumulator with Memory, Indirect Index, 2 Bytes, 5+ Cycles
+				case 0xB1:
+					{
+						throw new NotImplementedException();
+					}
+				//SEC Set Carry, Implied, 1 Bytes, 2 Cycles
 				case 0x38:
 					{
 						CarryFlag = true;
@@ -425,7 +466,7 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 					}
-				//SED Set Decimal, Implied Mode, 1 Bytes, 2 Cycles
+				//SED Set Decimal, Implied, 1 Bytes, 2 Cycles
 				case 0xF8:
 					{
 						IsInDecimalMode = true;
@@ -433,21 +474,41 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 					}
-				//STX Store Index X, Zero Page Mode, 2 Bytes, 4 Cycles
+				//STX Store Index X, Zero Page, 2 Bytes, 3 Cycles
 				case 0x86:
 					{
 						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
-						NumberofCyclesLeft -= 4;
+						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
 						break;
 					}
-				//STY Store Index Y, Zero Page Mode, 2 Bytes, 4 Cycles
+				//STX Store Index X, Zero Page Y, 2 Bytes, 4 Cycles
+				case 0x96:
+					{
+						throw new NotImplementedException();
+					}
+				//STX Store Index X, Absolute, 3 Bytes, 4 Cycles
+				case 0x8E:
+					{
+						throw new NotImplementedException();	
+					}
+				//STY Store Index Y, Zero Page, 2 Bytes, 3 Cycles
 				case 0x84:
 					{
 						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
-						NumberofCyclesLeft -= 4;
+						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
 						break;
+					}
+				//STY Store Index Y, Zero Page X, 2 Bytes, 4 Cycles
+				case 0x94:
+					{
+						throw new NotImplementedException();
+					}
+				//STY Store Index Y, Absolute, 2 Bytes, 4 Cycles
+				case 0x8C:
+					{
+						throw new NotImplementedException();
 					}
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
