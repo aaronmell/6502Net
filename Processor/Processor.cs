@@ -89,7 +89,7 @@ namespace Processor
 		/// 64 + 64 = -128 
 		/// -128 + -128 = 0
 		/// </summary>
-		public bool IsOverflow { get; private set; }
+		public bool Overflow { get; private set; }
 		/// <summary>
 		/// Set to true if the result of an operation is negative in ADC and SBC operations. 
 		/// In shift operations the sign holds the carry.
@@ -339,6 +339,22 @@ namespace Processor
 						NumberofCyclesLeft -= 2;
 						break;
 					}
+				//BIT Compare Memory with Accumulator, Zero Page , 2 Bytes 3 Cycles
+				case 0x24:
+					{
+						BitOperation(AddressingMode.ZeroPage);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 3;
+						break;
+					}
+				//BIT Compare Memory with Accumulator, Absolute , 2 Bytes 4 Cycles
+				case 0x2C:
+					{
+						BitOperation(AddressingMode.Absolute);
+						IncrementProgramCounter(3);
+						NumberofCyclesLeft -= 4;
+						break;
+					}
 				//BNE Branch if Zero is Not Set, Relative, 2 Bytes, 2++ Cycles
 				case 0xD0:
 					{
@@ -366,8 +382,8 @@ namespace Processor
 					{
 
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Immediate));
-						SetIsResultZero(Accumulator);
-						SetIsSignNegative(Accumulator);
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
 
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(2);
@@ -430,7 +446,7 @@ namespace Processor
 		private void SetOverflow(int accumulator , int memory, int result)
 		{
 			
-			IsOverflow = ( ( accumulator ^ result ) & ( memory ^ result ) & 0x80 ) != 0;
+			Overflow = ( ( accumulator ^ result ) & ( memory ^ result ) & 0x80 ) != 0;
 
 		}
 
@@ -438,7 +454,7 @@ namespace Processor
 		/// Sets the IsSignNegative register
 		/// </summary>
 		/// <param name="value"></param>
-		private void SetIsSignNegative(int value)
+		private void SetSignFlag(int value)
 		{
 			//on the 6502, any value greater than 127 is negative. 128 = 1000000 in Binary. the 8th bit is set, therefore the number is a negative number.
 			Sign = value > 127;
@@ -448,7 +464,7 @@ namespace Processor
 		/// Sets the IsResultZero register
 		/// </summary>
 		/// <param name="value"></param>
-		private void SetIsResultZero(int value)
+		private void SetZeroFlag(int value)
 		{
 			Zero = value == 0;
 		}
@@ -633,8 +649,8 @@ namespace Processor
 				}
 			}
 
-			SetIsResultZero(newValue);
-			SetIsSignNegative(newValue);
+			SetZeroFlag(newValue);
+			SetSignFlag(newValue);
 
 			Accumulator = newValue;
 		}
@@ -647,8 +663,8 @@ namespace Processor
 		{
 			Accumulator = Memory.ReadValue(GetAddressByAddressingMode(addressingMode)) & Accumulator;
 
-			SetIsResultZero(Accumulator);
-			SetIsSignNegative(Accumulator);
+			SetZeroFlag(Accumulator);
+			SetSignFlag(Accumulator);
 		}
 
 		/// <summary>
@@ -675,8 +691,8 @@ namespace Processor
 			if (value > 255)
 				value -= 256;
 
-			SetIsSignNegative(value);
-			SetIsResultZero(value);
+			SetSignFlag(value);
+			SetZeroFlag(value);
 
 			if (addressingMode == AddressingMode.Accumulator)
 				Accumulator = value;
@@ -702,6 +718,16 @@ namespace Processor
 			}
 			
 			IncrementProgramCounter(2);
+		}
+
+		private void BitOperation(AddressingMode addressingMode)
+		{
+			var valueToCompare = Memory.ReadValue(GetAddressByAddressingMode(addressingMode)) & Accumulator;
+
+			Overflow = (valueToCompare & 0x40) != 0;
+
+			SetSignFlag(valueToCompare);
+			SetZeroFlag(valueToCompare);
 		}
 		#endregion
 		
