@@ -17,7 +17,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.IsInDecimalMode, Is.False);
 			Assert.That(processor.IsSoftwareInterrupt, Is.False);
 			Assert.That(processor.Overflow, Is.False);
-			Assert.That(processor.Sign, Is.False);
+			Assert.That(processor.Negative, Is.False);
 		}
 
 		[Test]
@@ -192,7 +192,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
 
 			processor.NextStep();
-			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
+			Assert.That(processor.Negative, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(0, 127, false, false)]
@@ -316,7 +316,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
+			Assert.That(processor.Negative, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(127, false)]
@@ -400,7 +400,7 @@ namespace Processor.UnitTests
 		
 		#endregion
 
-		#region BIT Compare Memory with Accumulator
+		#region BIT - Compare Memory with Accumulator
 
 		[TestCase(0x24, 0x7f, 0x7F, false)] // BIT Zero Page
 		[TestCase(0x24, 0x80, 0x7F, false)] // BIT Zero Page
@@ -421,7 +421,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Sign, Is.EqualTo(expectedResult));
+			Assert.That(processor.Negative, Is.EqualTo(expectedResult));
 		}
 
 		[TestCase(0x24, 0x3F, 0x3F, false)] // BIT Zero Page
@@ -489,6 +489,27 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region BMI - Branch if Negative Set
+		[TestCase(0, 0x00, 4)]
+		[TestCase(0, 1, 5)]
+		[TestCase(0xFFFA, 1, 0xFFFF)]
+		[TestCase(0xFFFB, 1, 0)]
+		[TestCase(0, 0x82, 2)]
+		[TestCase(0, 0x85, 0xFFFF)]
+		[TestCase(0, 0x84, 0)]
+		public void BMI_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0xA9, 0x80, 0x30, offset }, programCounterInitalValue);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
 		#region BNE Branch On Result Not Zero
 
 		[TestCase(0, 0x00, 4)]
@@ -510,6 +531,27 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
 		}
 
+		#endregion
+
+		#region BPL - Branch if Negative Clear
+		[TestCase(0, 0x00, 4)]
+		[TestCase(0, 1, 5)]
+		[TestCase(0xFFFA, 1, 0xFFFF)]
+		[TestCase(0xFFFB, 1, 0)]
+		[TestCase(0, 0x82, 2)]
+		[TestCase(0, 0x85, 0xFFFF)]
+		[TestCase(0, 0x84, 0)]
+		public void BPL_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0xA9, 0x79, 0x10, offset }, programCounterInitalValue);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
 		#endregion
 
 		#region CLC - Clear Carry Flag
@@ -577,7 +619,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xA9, valueToLoad }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Sign, Is.EqualTo(expectedValue));
+			Assert.That(processor.Negative, Is.EqualTo(expectedValue));
 		}
 
 		#endregion
@@ -953,6 +995,50 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
+
+		[TestCase(0x30, 3, true)]  //BEQ
+		[TestCase(0x30, 2, false)] //BEQ
+		[TestCase(0x10, 3, false)]  //BNE
+		[TestCase(0x10, 2, true)] //BNE
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Negative(byte operation, int numberOfCyclesUsed, bool isNegativeSet)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, isNegativeSet
+				? new byte[] { 0xA9, 0x80, operation, 0x00 }
+				: new byte[] { 0xA9, 0x79, operation, 0x00 }, 0x00);
+
+			processor.NextStep();
+
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
+
+		[TestCase(0x30, 4, true, true)]  //BEQ
+		[TestCase(0x30, 4, true, false)] //BEQ
+		[TestCase(0x10, 4, false, true)]  //BNE
+		[TestCase(0x10, 4, false, false)] //BNE
+		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Negative_And_Wrap(byte operation, int numberOfCyclesUsed, bool isNegativeSet, bool wrapRight)
+		{
+			var processor = new Processor();
+
+			var newAccumulatorValue = isNegativeSet ? 0x80 : 0x79;
+			var initialAddress = wrapRight ? 0xFFFB : 0x00;
+			var amountToMove = wrapRight ? 0x04 : 0x84;
+
+			processor.LoadProgram(initialAddress, new byte[] { 0xA9, (byte)newAccumulatorValue, operation, (byte)amountToMove, 0x00 }, initialAddress);
+			processor.NextStep();
+
+			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			processor.NextStep();
+
+			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+		}
 		#endregion
 
 		#region Program Counter Tests
@@ -1037,6 +1123,26 @@ namespace Processor.UnitTests
 
 		}
 
+		[TestCase(0x30, true, 2)]  //BMI
+		[TestCase(0x10, false, 2)]  //BPL
+		public void Branch_On_Negative_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool negativeSet, byte expectedOutput)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0,
+								  negativeSet
+										  ? new byte[] { 0xA9, 0x80, operation }
+									  : new byte[] { 0xA9, 0x79, operation }, 0x00);
+
+			processor.NextStep();
+			var currentProgramCounter = processor.ProgramCounter;
+
+			processor.NextStep();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(currentProgramCounter + expectedOutput));
+
+		}
+		
 		[Test]
 		public void Program_Counter_Wraps_Correctly()
 		{

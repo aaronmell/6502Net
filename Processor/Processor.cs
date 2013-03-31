@@ -94,7 +94,7 @@ namespace Processor
 		/// Set to true if the result of an operation is negative in ADC and SBC operations. 
 		/// In shift operations the sign holds the carry.
 		/// </summary>
-		public bool Sign { get; private set; }
+		public bool Negative { get; private set; }
 		#endregion
 
 		#region Public Methods
@@ -355,10 +355,24 @@ namespace Processor
 						NumberofCyclesLeft -= 4;
 						break;
 					}
+				// BMI Branch if Negative Set
+				case 0x30:
+					{
+						BranchOperation(Negative);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
 				//BNE Branch if Zero is Not Set, Relative, 2 Bytes, 2++ Cycles
 				case 0xD0:
 					{
 						BranchOperation(!Zero);
+						NumberofCyclesLeft -= 2;
+						break;
+					}	
+				// BPL Branch if Negative Clear
+				case 0x10:
+					{
+						BranchOperation(!Negative);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
@@ -457,7 +471,7 @@ namespace Processor
 		private void SetSignFlag(int value)
 		{
 			//on the 6502, any value greater than 127 is negative. 128 = 1000000 in Binary. the 8th bit is set, therefore the number is a negative number.
-			Sign = value > 127;
+			Negative = value > 127;
 		}
 
 		/// <summary>
