@@ -400,6 +400,29 @@ namespace Processor.UnitTests
 		
 		#endregion
 
+		#region BNE Branch On Result Not Zero
+
+		[TestCase(0, 0x00, 4)]
+		[TestCase(0, 1, 5)]
+		[TestCase(0xFFFA, 1, 0xFFFF)]
+		[TestCase(0xFFFB, 1, 0)]
+		[TestCase(0, 0x82, 2)]
+		[TestCase(0, 0x85, 0xFFFF)]
+		[TestCase(0, 0x84, 0)]
+		public void BNE_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(programCounterInitalValue, new byte[] { 0xA9, 0x01, 0xD0, offset }, programCounterInitalValue);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedValue));
+		}
+
+		#endregion
+
 		#region CLC - Clear Carry Flag
 
 		[Test]
@@ -798,6 +821,8 @@ namespace Processor.UnitTests
 
 		[TestCase(0xF0, 3, true)]  //BEQ
 		[TestCase(0xF0, 2, false)] //BEQ
+		[TestCase(0xD0, 3, false)]  //BNE
+		[TestCase(0xD0, 2, true)] //BNE
 		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Zero(byte operation, int numberOfCyclesUsed, bool isZeroSet)
 		{
 			var processor = new Processor();
@@ -818,6 +843,8 @@ namespace Processor.UnitTests
 
 		[TestCase(0xF0, 4, true, true)]  //BEQ
 		[TestCase(0xF0, 4, true, false)] //BEQ
+		[TestCase(0xD0, 4, false, true)]  //BNE
+		[TestCase(0xD0, 4, false, false)] //BNE
 		public void NumberOfCyclesRemaining_Correct_When_Relative_And_Branch_On_Zero_And_Wrap(byte operation, int numberOfCyclesUsed, bool isZeroSet, bool wrapRight)
 		{
 			var processor = new Processor();
@@ -898,6 +925,7 @@ namespace Processor.UnitTests
 		}
 
 		[TestCase(0xF0, true, 2)]  //BEQ
+		[TestCase(0xD0, false, 2)]  //BNE
 		public void Branch_On_Zero_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool zeroSet, byte expectedOutput)
 		{
 			var processor = new Processor();

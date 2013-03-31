@@ -339,6 +339,13 @@ namespace Processor
 						NumberofCyclesLeft -= 2;
 						break;
 					}
+				//BNE Branch if Zero is Not Set, Relative, 2 Bytes, 2++ Cycles
+				case 0xD0:
+					{
+						BranchOperation(!Zero);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
 				//CLC Clear Carry Flag, Implied 1 Bytes, 2 Cycles
 				case 0x18:
 					{
