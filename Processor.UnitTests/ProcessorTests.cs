@@ -12,12 +12,12 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 			Assert.That(processor.CarryFlag, Is.False);
-			Assert.That(processor.Zero, Is.False);
-			Assert.That(processor.IsInterruptDisabled, Is.False);
+			Assert.That(processor.ZeroFlag, Is.False);
+			Assert.That(processor.InterruptFlag, Is.False);
 			Assert.That(processor.Decimal, Is.False);
 			Assert.That(processor.IsSoftwareInterrupt, Is.False);
-			Assert.That(processor.Overflow, Is.False);
-			Assert.That(processor.Negative, Is.False);
+			Assert.That(processor.OverflowFlag, Is.False);
+			Assert.That(processor.NegativeFlag, Is.False);
 		}
 
 		[Test]
@@ -169,7 +169,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
 
 			processor.NextStep();
-			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(126, 1, false)]
@@ -192,7 +192,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
 
 			processor.NextStep();
-			Assert.That(processor.Negative, Is.EqualTo(expectedValue));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(0, 127, false, false)]
@@ -242,7 +242,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
 
 			processor.NextStep();
-			Assert.That(processor.Overflow, Is.EqualTo(expectedValue));
+			Assert.That(processor.OverflowFlag, Is.EqualTo(expectedValue));
 		}
 		#endregion
 
@@ -316,7 +316,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Negative, Is.EqualTo(expectedValue));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(127, false)]
@@ -331,7 +331,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
 		}
 		#endregion
 
@@ -421,7 +421,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Negative, Is.EqualTo(expectedResult));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
 		}
 
 		[TestCase(0x24, 0x3F, 0x3F, false)] // BIT Zero Page
@@ -465,7 +465,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Overflow, Is.EqualTo(expectedResult));
+			Assert.That(processor.OverflowFlag, Is.EqualTo(expectedResult));
 		}
 
 		[TestCase(0x24, 0x00, 0x00, true)] // BIT Zero Page
@@ -485,7 +485,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Zero, Is.EqualTo(expectedResult));
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
 		}
 		#endregion
 
@@ -627,6 +627,36 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region CLI - Clear Interrupt Flag
+
+		[Test]
+		public void CLI_Interrup_Flag_Cleared_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x58 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.InterruptFlag, Is.EqualTo(false));
+		}
+
+		#endregion
+
+		#region CLV - Clear Overflow Flag
+
+		[Test]
+		public void CLV_Overflow_Flag_Cleared_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xB8 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.OverflowFlag, Is.EqualTo(false));
+		}
+
+		#endregion
+
 		#region JMP - Jump to New Location
 
 		[Test]
@@ -663,7 +693,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xA9, valueToLoad }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Zero, Is.EqualTo(expectedValue));
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(0x00, false)]
@@ -677,7 +707,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xA9, valueToLoad }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Negative, Is.EqualTo(expectedValue));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
 		}
 
 		#endregion
@@ -708,6 +738,21 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			Assert.That(processor.Decimal, Is.EqualTo(true));
+		}
+
+		#endregion
+
+		#region SEI - Set Interrup Flag
+
+		[Test]
+		public void SEI_Interrupt_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x78 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.InterruptFlag, Is.EqualTo(true));
 		}
 
 		#endregion
@@ -954,6 +999,8 @@ namespace Processor.UnitTests
 		[TestCase(0x2C, 4)] // BIT Absolute
 		[TestCase(0x18, 2)] // CLC Implied
 		[TestCase(0xD8, 2)] // CLD Implied
+		[TestCase(0x58, 2)] // CLI Implied
+		[TestCase(0xB8, 2)] // CLV Implied
 		[TestCase(0x4c, 3)] // JMP Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 3)] // LDA Zero Page
@@ -965,6 +1012,7 @@ namespace Processor.UnitTests
 		[TestCase(0xB1, 5)] // LDA Indirect Y
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
+		[TestCase(0x78, 2)] // SEI Implied
 		[TestCase(0x86, 3)] // STX Zero Page
 		[TestCase(0x96, 4)] // STX Zero Page Y
 		[TestCase(0x8E, 4)] // STX Absolute
@@ -1226,6 +1274,8 @@ namespace Processor.UnitTests
 		[TestCase(0x2C, 3)] // BIT Absolute
 		[TestCase(0x18, 1)] // CLC Implied
 		[TestCase(0xD8, 1)] // CLD Implied
+		[TestCase(0x58, 1)] // CLI Implied
+		[TestCase(0xB8, 1)] // CLV Implied
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X
@@ -1236,6 +1286,7 @@ namespace Processor.UnitTests
 		[TestCase(0xB1, 2)] // LDA Indirect Y
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
+		[TestCase(0x78, 1)] // SEI Implied
 		[TestCase(0x86, 2)] // STX Zero Page
 		[TestCase(0x96, 2)] // STX Zero Page Y
 		[TestCase(0x8E, 3)] // STX Absolute

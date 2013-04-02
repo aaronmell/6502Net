@@ -69,11 +69,11 @@ namespace Processor
 		/// <summary>
 		/// Is true if the operation produced a zero result
 		/// </summary>
-		public bool Zero { get; private set; }
+		public bool ZeroFlag { get; private set; }
 		/// <summary>
 		/// Interrupts are disabled if this is true
 		/// </summary>
-		public bool IsInterruptDisabled { get; private set; }
+		public bool InterruptFlag { get; private set; }
 		/// <summary>
 		/// If true, the CPU is in decimal mode.
 		/// </summary>
@@ -89,12 +89,12 @@ namespace Processor
 		/// 64 + 64 = -128 
 		/// -128 + -128 = 0
 		/// </summary>
-		public bool Overflow { get; private set; }
+		public bool OverflowFlag { get; private set; }
 		/// <summary>
 		/// Set to true if the result of an operation is negative in ADC and SBC operations. 
 		/// In shift operations the sign holds the carry.
 		/// </summary>
-		public bool Negative { get; private set; }
+		public bool NegativeFlag { get; private set; }
 		#endregion
 
 		#region Public Methods
@@ -335,7 +335,7 @@ namespace Processor
 				//BEQ Branch if Zero is Set, Relative, 2 Bytes, 2++ Cycles
 				case 0xF0:
 					{
-						BranchOperation(Zero);
+						BranchOperation(ZeroFlag);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
@@ -358,21 +358,21 @@ namespace Processor
 				// BMI Branch if Negative Set
 				case 0x30:
 					{
-						BranchOperation(Negative);
+						BranchOperation(NegativeFlag);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
 				//BNE Branch if Zero is Not Set, Relative, 2 Bytes, 2++ Cycles
 				case 0xD0:
 					{
-						BranchOperation(!Zero);
+						BranchOperation(!ZeroFlag);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
 				// BPL Branch if Negative Clear, 2 Bytes, 2++ Cycles
 				case 0x10:
 					{
-						BranchOperation(!Negative);
+						BranchOperation(!NegativeFlag);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
@@ -385,14 +385,14 @@ namespace Processor
 				// BVC Branch if Overflow Clear, 2 Bytes, 2++ Cycles
 				case 0x50:
 					{
-						BranchOperation(!Overflow);
+						BranchOperation(!OverflowFlag);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
 				// BVS Branch if Overflow Set, 2 Bytes, 2++ Cycles
 				case 0x70:
 					{
-						BranchOperation(Overflow);
+						BranchOperation(OverflowFlag);
 						NumberofCyclesLeft -= 2;
 						break;
 					}
@@ -412,6 +412,23 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 
+					}
+				//CLI Clear Interrupt Flag, Implied, 1 Byte, 2 Cycles
+				case 0x58:
+					{
+						InterruptFlag = false;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+
+					}
+				//CLV Clear Overflow Flag, Implied, 1 Byte, 2 Cycles
+				case 0xB8:
+					{
+						OverflowFlag = false;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
 					}
 				//JMP Jump to New Location, Absolute 3 Bytes, 3 Cycles
 				case 0x4C:
@@ -517,7 +534,15 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 					}
-				//SED Set Decimal, Implied, 1 Bytes, 2 Cycles
+				//SEI Set Interrupt, Implied, 1 Bytes, 2 Cycles
+				case 0x78:
+					{
+						InterruptFlag = true;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//SED Set Interrupt, Implied, 1 Bytes, 2 Cycles
 				case 0xF8:
 					{
 						Decimal = true;
@@ -598,7 +623,7 @@ namespace Processor
 		private void SetOverflow(int accumulator , int memory, int result)
 		{
 			
-			Overflow = ( ( accumulator ^ result ) & ( memory ^ result ) & 0x80 ) != 0;
+			OverflowFlag = ( ( accumulator ^ result ) & ( memory ^ result ) & 0x80 ) != 0;
 
 		}
 
@@ -609,7 +634,7 @@ namespace Processor
 		private void SetSignFlag(int value)
 		{
 			//on the 6502, any value greater than 127 is negative. 128 = 1000000 in Binary. the 8th bit is set, therefore the number is a negative number.
-			Negative = value > 127;
+			NegativeFlag = value > 127;
 		}
 
 		/// <summary>
@@ -618,7 +643,7 @@ namespace Processor
 		/// <param name="value"></param>
 		private void SetZeroFlag(int value)
 		{
-			Zero = value == 0;
+			ZeroFlag = value == 0;
 		}
 
 		/// <summary>
@@ -876,7 +901,7 @@ namespace Processor
 		{
 			var valueToCompare = Memory.ReadValue(GetAddressByAddressingMode(addressingMode)) & Accumulator;
 
-			Overflow = (valueToCompare & 0x40) != 0;
+			OverflowFlag = (valueToCompare & 0x40) != 0;
 
 			SetSignFlag(valueToCompare);
 			SetZeroFlag(valueToCompare);
