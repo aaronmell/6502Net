@@ -426,37 +426,79 @@ namespace Processor
 				//LDA Load Accumulator with Memory, Zero Page, 2 Bytes, 3 Cycles
 				case 0xA5:
 					{
-						throw  new NotImplementedException();
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
+
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
 					}
 				//LDA Load Accumulator with Memory, Zero Page X, 2 Bytes, 4 Cycles
 				case 0xB5:
 					{
-						throw new NotImplementedException();
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX));
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
 					}
 				//LDA Load Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
 				case 0xAD:
 					{
-						throw new NotImplementedException();
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
 					}
 				//LDA Load Accumulator with Memory, Absolute X, 3 Bytes, 4+ Cycles
 				case 0xBD:
 					{
-						throw new NotImplementedException();
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteX));
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
 					}
 				//LDA Load Accumulator with Memory, Absolute Y, 3 Bytes, 4+ Cycles
 				case 0xB9:
 					{
-						throw new NotImplementedException();
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteY));
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
 					}
 				//LDA Load Accumulator with Memory, Index Indirect, 2 Bytes, 6 Cycles
 				case 0xA1:
 					{
-						throw new NotImplementedException();
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.IndexedIndirect));
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
+
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
 					}
 				//LDA Load Accumulator with Memory, Indirect Index, 2 Bytes, 5+ Cycles
 				case 0xB1:
 					{
-						throw new NotImplementedException();
+						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.IndirectIndexed));
+						SetZeroFlag(Accumulator);
+						SetSignFlag(Accumulator);
+
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
 					}
 				//SEC Set Carry, Implied, 1 Bytes, 2 Cycles
 				case 0x38:
@@ -485,12 +527,18 @@ namespace Processor
 				//STX Store Index X, Zero Page Y, 2 Bytes, 4 Cycles
 				case 0x96:
 					{
-						throw new NotImplementedException();
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY));
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
 					}
 				//STX Store Index X, Absolute, 3 Bytes, 4 Cycles
 				case 0x8E:
 					{
-						throw new NotImplementedException();	
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
 					}
 				//STY Store Index Y, Zero Page, 2 Bytes, 3 Cycles
 				case 0x84:
@@ -503,12 +551,18 @@ namespace Processor
 				//STY Store Index Y, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x94:
 					{
-						throw new NotImplementedException();
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX));
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
 					}
 				//STY Store Index Y, Absolute, 2 Bytes, 4 Cycles
 				case 0x8C:
 					{
-						throw new NotImplementedException();
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
 					}
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));

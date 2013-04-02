@@ -744,6 +744,7 @@ namespace Processor.UnitTests
 
 		[TestCase(0x65, 0x01, 0x01, 0x02)] // ADC
 		[TestCase(0x25, 0x03, 0x03, 0x03)] // AND
+		[TestCase(0xA5, 0x04, 0x03, 0x03)] // LDA
 		public void ZeroPage_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -758,6 +759,7 @@ namespace Processor.UnitTests
 	
 		[TestCase(0x75, 0x00, 0x03, 0x03)] // ADC
 		[TestCase(0x35, 0x03, 0x03, 0x03)] // AND
+		[TestCase(0xB5, 0x04, 0x03, 0x03)] // LDA
 		public void ZeroPageX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -774,6 +776,7 @@ namespace Processor.UnitTests
 
 		[TestCase(0x60, 0x00, 0x03, 0x03)] // ADC
 		[TestCase(0x2D, 0x03, 0x03, 0x03)] // AND
+		[TestCase(0xAD, 0x04, 0x03, 0x03)] // LDA
 		public void Absolute_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -788,8 +791,10 @@ namespace Processor.UnitTests
 
 		[TestCase(0x7D, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x3D, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0xBD, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x7D, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x3D, 0x03, 0x03, true, 0x03)] // AND
+		[TestCase(0xBD, 0x04, 0x03, true, 0x03)] // LDA
 		public void AbsoluteX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -808,8 +813,10 @@ namespace Processor.UnitTests
 
 		[TestCase(0x79, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x39, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0xB9, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x79, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x39, 0x03, 0x03, true, 0x03)] // AND
+		[TestCase(0xB9, 0x04, 0x03, true, 0x03)] // LDA
 		public void AbsoluteY_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -828,9 +835,11 @@ namespace Processor.UnitTests
 
 		[TestCase(0x61, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x21, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0xA1, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x61, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x21, 0x03, 0x03, true, 0x03)] // AND
-		public void Indexed_Indirect_Mode_Accumulator_Correct_When_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
+		[TestCase(0xA1, 0x04, 0x03, true, 0x03)] // LDA
+		public void Indexed_Indirect_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
@@ -850,9 +859,11 @@ namespace Processor.UnitTests
 
 		[TestCase(0x71, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x31, 0x03, 0x03, false, 0x03)] // AND
+		[TestCase(0xB1, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x71, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x31, 0x03, 0x03, true, 0x03)] // AND
-		public void Indirect_Indexed_Mode_Accumulator_Correct_When_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
+		[TestCase(0xB1, 0x04, 0x03, true, 0x03)] // LDA
+		public void Indirect_Indexed_Mode_Accumulato_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
@@ -868,6 +879,36 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x86, 0x03, true)] // STX Zero Page
+		[TestCase(0x96, 0x03, true)] // STX Zero Page Y
+		[TestCase(0x84, 0x03, false)] // STY Zero Page
+		[TestCase(0x94, 0x03, false)] // STY Zero Page X
+		public void ZeroPage_Mode_Index_Has_Correct_Result(byte operation, byte valueToLoad, bool testXRegister)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { operation, 0x02, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
+		}
+
+		[TestCase(0x86, 0x03, true)] // STX Zero Page
+		[TestCase(0x96, 0x03, true)] // STX Zero Page Y
+		[TestCase(0x84, 0x03, false)] // STY Zero Page
+		[TestCase(0x94, 0x03, false)] // STY Zero Page X
+		public void Absolute_Mode_Index_Has_Correct_Result(byte operation, byte valueToLoad, bool testXRegister)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { operation, 0x03, 0x00, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
 		}
 		#endregion
 
@@ -898,10 +939,21 @@ namespace Processor.UnitTests
 		[TestCase(0x18, 2)] // CLC Implied
 		[TestCase(0x4c, 3)] // JMP Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
+		[TestCase(0xA5, 3)] // LDA Zero Page
+		[TestCase(0xB5, 4)] // LDA Zero Page X
+		[TestCase(0xAD, 4)] // LDA Absolute
+		[TestCase(0xBD, 4)] // LDA Absolute X
+		[TestCase(0xB9, 4)] // LDA Absolute Y
+		[TestCase(0xA1, 6)] // LDA Indirect X
+		[TestCase(0xB1, 5)] // LDA Indirect Y
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
 		[TestCase(0x86, 3)] // STX Zero Page
+		[TestCase(0x96, 4)] // STX Zero Page Y
+		[TestCase(0x8E, 4)] // STX Absolute
 		[TestCase(0x84, 3)] // STY Zero Page
+		[TestCase(0x94, 4)] // STY Zero Page X
+		[TestCase(0x8C, 4)] // STY Absolute
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -918,6 +970,8 @@ namespace Processor.UnitTests
 		[TestCase(0x03d, true, 5)] // AND Absolute X
 		[TestCase(0x039, false, 5)] // AND Absolute Y
 		[TestCase(0x1E, true, 7)] // ASL Absolute X
+		[TestCase(0xBD, true, 5)] // LDA Absolute X
+		[TestCase(0xB9, false, 5)] // LDA Absolute Y
 		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte operation, bool isAbsoluteX, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -937,6 +991,7 @@ namespace Processor.UnitTests
 
 		[TestCase(0x071, 6)] // ADC Indirect Y
 		[TestCase(0x031, 6)] // AND Indirect Y
+		[TestCase(0xB1, 6)] // LDA Indirect Y
 		public void NumberOfCyclesRemaining_Correct_When_In_IndirectIndexed_And_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -1154,10 +1209,21 @@ namespace Processor.UnitTests
 		[TestCase(0x2C, 3)] // BIT Absolute
 		[TestCase(0x18, 1)] // CLC Implied
 		[TestCase(0xA9, 2)] // LDA Immediate
+		[TestCase(0xA5, 2)] // LDA Zero Page
+		[TestCase(0xB5, 2)] // LDA Zero Page X
+		[TestCase(0xAD, 3)] // LDA Absolute
+		[TestCase(0xBD, 3)] // LDA Absolute X
+		[TestCase(0xB9, 3)] // LDA Absolute Y
+		[TestCase(0xA1, 2)] // LDA Indirect X
+		[TestCase(0xB1, 2)] // LDA Indirect Y
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
-		[TestCase(0x86, 2)] // STX Implied
-		[TestCase(0x84, 2)] // STY Implied
+		[TestCase(0x86, 2)] // STX Zero Page
+		[TestCase(0x96, 2)] // STX Zero Page Y
+		[TestCase(0x8E, 3)] // STX Absolute
+		[TestCase(0x84, 2)] // STY Zero Page
+		[TestCase(0x94, 2)] // STY Zero Page X
+		[TestCase(0x8C, 3)] // STY Absolute
 		public void Program_Counter_Correct(byte operation, int expectedProgramCounter)
 		{
 			var processor = new Processor();
