@@ -77,7 +77,7 @@ namespace Processor
 		/// <summary>
 		/// If true, the CPU is in decimal mode.
 		/// </summary>
-		public bool IsInDecimalMode { get; private set; }
+		public bool Decimal { get; private set; }
 		/// <summary>
 		/// It true when a BRK instruction is executed
 		/// </summary>
@@ -396,13 +396,22 @@ namespace Processor
 						NumberofCyclesLeft -= 2;
 						break;
 					}
-				//CLC Clear Carry Flag, Implied 1 Bytes, 2 Cycles
+				//CLC Clear Carry Flag, Implied, 1 Byte, 2 Cycles
 				case 0x18:
 					{
 						CarryFlag = false;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
+					}
+				//CLD Clear Decimal Flag, Implied, 1 Byte, 2 Cycles
+				case 0xD8:
+					{
+						Decimal = false;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+
 					}
 				//JMP Jump to New Location, Absolute 3 Bytes, 3 Cycles
 				case 0x4C:
@@ -511,7 +520,7 @@ namespace Processor
 				//SED Set Decimal, Implied, 1 Bytes, 2 Cycles
 				case 0xF8:
 					{
-						IsInDecimalMode = true;
+						Decimal = true;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
@@ -767,7 +776,7 @@ namespace Processor
 
 			SetOverflow(Accumulator, memoryValue, newValue);
 
-			if (IsInDecimalMode)
+			if (Decimal)
 			{
 				if (newValue > 99)
 				{

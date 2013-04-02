@@ -14,7 +14,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.CarryFlag, Is.False);
 			Assert.That(processor.Zero, Is.False);
 			Assert.That(processor.IsInterruptDisabled, Is.False);
-			Assert.That(processor.IsInDecimalMode, Is.False);
+			Assert.That(processor.Decimal, Is.False);
 			Assert.That(processor.IsSoftwareInterrupt, Is.False);
 			Assert.That(processor.Overflow, Is.False);
 			Assert.That(processor.Negative, Is.False);
@@ -611,6 +611,22 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region CLD - Clear Decimal Flag
+
+		[Test]
+		public void CLD_Carry_Flag_Set_And_Cleared_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xF8, 0xD8 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Decimal, Is.EqualTo(false));
+		}
+
+		#endregion
+
 		#region JMP - Jump to New Location
 
 		[Test]
@@ -691,7 +707,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xF8 }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.IsInDecimalMode, Is.EqualTo(true));
+			Assert.That(processor.Decimal, Is.EqualTo(true));
 		}
 
 		#endregion
@@ -937,6 +953,7 @@ namespace Processor.UnitTests
 		[TestCase(0x24, 3)] // BIT Zero Page
 		[TestCase(0x2C, 4)] // BIT Absolute
 		[TestCase(0x18, 2)] // CLC Implied
+		[TestCase(0xD8, 2)] // CLD Implied
 		[TestCase(0x4c, 3)] // JMP Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 3)] // LDA Zero Page
@@ -1208,6 +1225,7 @@ namespace Processor.UnitTests
 		[TestCase(0x24, 2)] // BIT Zero Page
 		[TestCase(0x2C, 3)] // BIT Absolute
 		[TestCase(0x18, 1)] // CLC Implied
+		[TestCase(0xD8, 1)] // CLD Implied
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X
