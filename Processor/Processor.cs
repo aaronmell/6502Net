@@ -422,6 +422,70 @@ namespace Processor
 						break;
 
 					}
+				//CMP Compare Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
+				case 0xC9:
+					{
+						CompareOperation(AddressingMode.Immediate, Accumulator);	
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CMP Compare Accumulator with Memory, Zero Page, 2 Bytes, 3 Cycles
+				case 0xC5:
+					{
+						CompareOperation(AddressingMode.ZeroPage, Accumulator);
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CMP Compare Accumulator with Memory, Zero Page x, 2 Bytes, 4 Cycles
+				case 0xD5:
+					{
+						CompareOperation(AddressingMode.ZeroPageX, Accumulator);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CMP Compare Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
+				case 0xCD:
+					{
+						CompareOperation(AddressingMode.Absolute, Accumulator);	
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//CMP Compare Accumulator with Memory, Absolute X, 2 Bytes, 4 Cycles
+				case 0xDD:
+					{
+						CompareOperation(AddressingMode.AbsoluteX, Accumulator);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//CMP Compare Accumulator with Memory, Absolute Y, 2 Bytes, 4 Cycles
+				case 0xD9:
+					{
+						CompareOperation(AddressingMode.AbsoluteY, Accumulator);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//CMP Compare Accumulator with Memory, Indirect X, 2 Bytes, 6 Cycles
+				case 0xC1:
+					{
+						CompareOperation(AddressingMode.IndexedIndirect, Accumulator);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CMP Compare Accumulator with Memory, Indirect Y, 2 Bytes, 5 Cycles
+				case 0xD1:
+					{
+						CompareOperation(AddressingMode.IndexedIndirect, Accumulator);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
 				//CLV Clear Overflow Flag, Implied, 1 Byte, 2 Cycles
 				case 0xB8:
 					{
@@ -443,7 +507,7 @@ namespace Processor
 
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Immediate));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(2);
@@ -454,7 +518,7 @@ namespace Processor
 					{
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
@@ -465,7 +529,7 @@ namespace Processor
 					{
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(2);
@@ -476,7 +540,7 @@ namespace Processor
 					{
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
@@ -487,7 +551,7 @@ namespace Processor
 					{
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteX));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
@@ -498,7 +562,7 @@ namespace Processor
 					{
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteY));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
@@ -509,7 +573,7 @@ namespace Processor
 					{
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.IndexedIndirect));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 6;
 						IncrementProgramCounter(2);
@@ -520,7 +584,7 @@ namespace Processor
 					{
 						Accumulator = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.IndirectIndexed));
 						SetZeroFlag(Accumulator);
-						SetSignFlag(Accumulator);
+						SetNegativeFlag(Accumulator);
 
 						NumberofCyclesLeft -= 5;
 						IncrementProgramCounter(2);
@@ -631,7 +695,7 @@ namespace Processor
 		/// Sets the IsSignNegative register
 		/// </summary>
 		/// <param name="value"></param>
-		private void SetSignFlag(int value)
+		private void SetNegativeFlag(int value)
 		{
 			//on the 6502, any value greater than 127 is negative. 128 = 1000000 in Binary. the 8th bit is set, therefore the number is a negative number.
 			NegativeFlag = value > 127;
@@ -827,7 +891,7 @@ namespace Processor
 			}
 
 			SetZeroFlag(newValue);
-			SetSignFlag(newValue);
+			SetNegativeFlag(newValue);
 
 			Accumulator = newValue;
 		}
@@ -841,7 +905,7 @@ namespace Processor
 			Accumulator = Memory.ReadValue(GetAddressByAddressingMode(addressingMode)) & Accumulator;
 
 			SetZeroFlag(Accumulator);
-			SetSignFlag(Accumulator);
+			SetNegativeFlag(Accumulator);
 		}
 
 		/// <summary>
@@ -868,7 +932,7 @@ namespace Processor
 			if (value > 255)
 				value -= 256;
 
-			SetSignFlag(value);
+			SetNegativeFlag(value);
 			SetZeroFlag(value);
 
 			if (addressingMode == AddressingMode.Accumulator)
@@ -903,8 +967,22 @@ namespace Processor
 
 			OverflowFlag = (valueToCompare & 0x40) != 0;
 
-			SetSignFlag(valueToCompare);
+			SetNegativeFlag(valueToCompare);
 			SetZeroFlag(valueToCompare);
+		}
+
+		private void CompareOperation(AddressingMode addressingMode, int comparisonValue)
+		{
+			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
+			var comparedValue = comparisonValue - memoryValue;
+
+			if (comparedValue < 0)
+				comparedValue += 0x10000;
+
+			SetZeroFlag(comparedValue);
+
+			CarryFlag = memoryValue <= comparisonValue;
+			SetNegativeFlag(comparedValue);
 		}
 		#endregion
 		

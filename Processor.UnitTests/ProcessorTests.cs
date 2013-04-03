@@ -657,6 +657,58 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region CMP Compare Memory With Accumulator
+
+		[TestCase(0x00, 0x00, true)]
+		[TestCase(0xFF, 0x00, false)]
+		[TestCase(0x00, 0xFF, false)]
+		[TestCase(0xFF, 0xFF, true)]
+		public void CMP_Zero_Flag_Set_When_Values_Match(byte accumulatorValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0xC9, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+
+		[TestCase(0x00, 0x00, true)]
+		[TestCase(0xFF, 0x00, true)]
+		[TestCase(0x00, 0xFF, false)]
+		[TestCase(0x00, 0x01, false)]
+		[TestCase(0xFF, 0xFF, true)]
+		public void CMP_Carry_Flag_Set_When_Accumulator_Is_Greater_Than_Or_Equal(byte accumulatorValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0xC9, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0xFE, 0xFF, true)]
+		[TestCase(0x81, 0x1, true)]
+		[TestCase(0x81, 0x2, false)]
+		[TestCase(0x79, 0x1, false)]
+		[TestCase(0x00, 0x1, true)]
+		public void CMP_Negative_Flag_Set_When_Result_Is_Negative(byte accumulatorValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0xC9, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+
+		#endregion
+
 		#region JMP - Jump to New Location
 
 		[Test]
@@ -924,7 +976,7 @@ namespace Processor.UnitTests
 		[TestCase(0x71, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x31, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xB1, 0x04, 0x03, true, 0x03)] // LDA
-		public void Indirect_Indexed_Mode_Accumulato_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
+		public void Indirect_Indexed_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
@@ -957,10 +1009,8 @@ namespace Processor.UnitTests
 			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
 		}
 
-		[TestCase(0x86, 0x03, true)] // STX Zero Page
-		[TestCase(0x96, 0x03, true)] // STX Zero Page Y
-		[TestCase(0x84, 0x03, false)] // STY Zero Page
-		[TestCase(0x94, 0x03, false)] // STY Zero Page X
+		[TestCase(0x8E, 0x03, true)] // STX Absolute
+		[TestCase(0x8C, 0x03, false)] // STY Absolute
 		public void Absolute_Mode_Index_Has_Correct_Result(byte operation, byte valueToLoad, bool testXRegister)
 		{
 			var processor = new Processor();
@@ -970,6 +1020,93 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
+		}
+		
+		[TestCase(0xC9, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Immediate
+		public void Immediate_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, operation, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(false));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));
+		}
+
+		[TestCase(0xC5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page
+		[TestCase(0xD5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page X
+		public void ZeroPage_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, operation, 0x04, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(false));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));
+		}
+
+		[TestCase(0xCD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page
+		[TestCase(0xDD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page X
+		public void Absolute_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, operation, 0x05, 0x00, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(false));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));
+		}
+
+		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, true)] //CMP Zero Page
+		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, false)] //CMP Zero Page
+		public void Indexed_Indirect_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode, bool addressWraps)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0,
+									  addressWraps
+										  ? new byte[] { 0xA9, accumulatorValue, 0x86, 0x06, operation, 0xff, 0x08, 0x9, 0x00, memoryValue }
+										  : new byte[] { 0xA9, accumulatorValue, 0x86, 0x06, operation, 0x01, 0x06, 0x9, 0x00, memoryValue },
+									  0x00);
+
+
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(false));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));
+		}
+
+		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, true)] //CMP Zero Page
+		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, false)] //CMP Zero Page
+		public void Indirect_Indexed_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode,  bool addressWraps)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0,
+							  addressWraps
+								  ? new byte[] { 0xA9, accumulatorValue, 0x84, 0x06, operation, 0x07, 0x0A, 0xFF, 0xFF, memoryValue }
+								  : new byte[] { 0xA9, accumulatorValue, 0x84, 0x06, operation, 0x07, 0x01, 0x08, 0x00, memoryValue },
+							  0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(false));
+			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));
 		}
 		#endregion
 
@@ -1001,6 +1138,14 @@ namespace Processor.UnitTests
 		[TestCase(0xD8, 2)] // CLD Implied
 		[TestCase(0x58, 2)] // CLI Implied
 		[TestCase(0xB8, 2)] // CLV Implied
+		[TestCase(0xC9, 2)] // CMP Immediate
+		[TestCase(0xC5, 3)] // CMP ZeroPage
+		[TestCase(0xD5, 4)] // CMP Zero Page X
+		[TestCase(0xCD, 4)] // CMP Absolute
+		[TestCase(0xDD, 4)] // CMP Absolute X
+		[TestCase(0xD9, 4)] // CMP Absolute Y
+		[TestCase(0xC1, 6)] // CMP Indirect X
+		[TestCase(0xD1, 5)] // CMP Indirect Y
 		[TestCase(0x4c, 3)] // JMP Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 3)] // LDA Zero Page
@@ -1035,6 +1180,8 @@ namespace Processor.UnitTests
 		[TestCase(0x03d, true, 5)] // AND Absolute X
 		[TestCase(0x039, false, 5)] // AND Absolute Y
 		[TestCase(0x1E, true, 7)] // ASL Absolute X
+		[TestCase(0xDD, true, 5)] // CMP Absolute X
+		[TestCase(0xD9, false, 5)] // CMP Absolute Y
 		[TestCase(0xBD, true, 5)] // LDA Absolute X
 		[TestCase(0xB9, false, 5)] // LDA Absolute Y
 		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte operation, bool isAbsoluteX, int numberOfCyclesUsed)
@@ -1057,6 +1204,7 @@ namespace Processor.UnitTests
 		[TestCase(0x071, 6)] // ADC Indirect Y
 		[TestCase(0x031, 6)] // AND Indirect Y
 		[TestCase(0xB1, 6)] // LDA Indirect Y
+		[TestCase(0xD1, 6)] // CMP Indirect Y
 		public void NumberOfCyclesRemaining_Correct_When_In_IndirectIndexed_And_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -1276,6 +1424,14 @@ namespace Processor.UnitTests
 		[TestCase(0xD8, 1)] // CLD Implied
 		[TestCase(0x58, 1)] // CLI Implied
 		[TestCase(0xB8, 1)] // CLV Implied
+		[TestCase(0xC9, 2)] // CMP Immediate
+		[TestCase(0xC5, 2)] // CMP ZeroPage
+		[TestCase(0xD5, 2)] // CMP Zero Page X
+		[TestCase(0xCD, 3)] // CMP Absolute
+		[TestCase(0xDD, 3)] // CMP Absolute X
+		[TestCase(0xD9, 3)] // CMP Absolute Y
+		[TestCase(0xC1, 2)] // CMP Indirect X
+		[TestCase(0xD1, 2)] // CMP Indirect Y
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X
