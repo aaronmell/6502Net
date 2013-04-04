@@ -486,7 +486,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//CPX Compare Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
+				//CPX Compare Accumulator with X Register, Immediate, 2 Bytes, 2 Cycles
 				case 0xE0:
 					{
 						CompareOperation(AddressingMode.Immediate, XRegister);
@@ -494,7 +494,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//CPX Compare Accumulator with Memory, Zero Page, 2 Bytes, 3 Cycles
+				//CPX Compare Accumulator with X Register, Zero Page, 2 Bytes, 3 Cycles
 				case 0xE4:
 					{
 						CompareOperation(AddressingMode.ZeroPage, XRegister);
@@ -502,8 +502,32 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//CPX Compare Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
+				//CPX Compare Accumulator with X Register, Absolute, 3 Bytes, 4 Cycles
 				case 0xEC:
+					{
+						CompareOperation(AddressingMode.Absolute, XRegister);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//CPY Compare Accumulator with Y Register, Immediate, 2 Bytes, 2 Cycles
+				case 0xC0:
+					{
+						CompareOperation(AddressingMode.Immediate, XRegister);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CPY Compare Accumulator with Y Register, Zero Page, 2 Bytes, 3 Cycles
+				case 0xC4:
+					{
+						CompareOperation(AddressingMode.ZeroPage, XRegister);
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CPY Compare Accumulator with Y Register, Absolute, 3 Bytes, 4 Cycles
+				case 0xCC:
 					{
 						CompareOperation(AddressingMode.Absolute, XRegister);
 						NumberofCyclesLeft -= 4;

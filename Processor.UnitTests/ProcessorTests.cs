@@ -758,6 +758,55 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region CPY Compare Memory With X Register
+		[TestCase(0x00, 0x00, true)]
+		[TestCase(0xFF, 0x00, false)]
+		[TestCase(0x00, 0xFF, false)]
+		[TestCase(0xFF, 0xFF, true)]
+		public void CPY_Zero_Flag_Set_When_Values_Match(byte xValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xC0, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x00, 0x00, true)]
+		[TestCase(0xFF, 0x00, true)]
+		[TestCase(0x00, 0xFF, false)]
+		[TestCase(0x00, 0x01, false)]
+		[TestCase(0xFF, 0xFF, true)]
+		public void CPY_Carry_Flag_Set_When_Accumulator_Is_Greater_Than_Or_Equal(byte xValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xC0, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0xFE, 0xFF, true)]
+		[TestCase(0x81, 0x1, true)]
+		[TestCase(0x81, 0x2, false)]
+		[TestCase(0x79, 0x1, false)]
+		[TestCase(0x00, 0x1, true)]
+		public void CPY_Negative_Flag_Set_When_Result_Is_Negative(byte xValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xC0, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
 		#region JMP - Jump to New Location
 
 		[Test]
@@ -1158,6 +1207,7 @@ namespace Processor.UnitTests
 		
 		[TestCase(0xC9, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Immediate
 		[TestCase(0xE0, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Immediate
+		[TestCase(0xC0, 0xFF, 0x00, ComparisonMode.XRegister)] //CPY Immediate
 		public void Immediate_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
@@ -1189,6 +1239,7 @@ namespace Processor.UnitTests
 		[TestCase(0xC5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page
 		[TestCase(0xD5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page X
 		[TestCase(0xE4, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Zero Page
+		[TestCase(0xC4, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Zero Page
 		public void ZeroPage_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
@@ -1220,6 +1271,7 @@ namespace Processor.UnitTests
 		[TestCase(0xCD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Absolute
 		[TestCase(0xDD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Absolute X
 		[TestCase(0xEC, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Absolute
+		[TestCase(0xCC, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Absolute
 		public void Absolute_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
@@ -1331,6 +1383,9 @@ namespace Processor.UnitTests
 		[TestCase(0xE0, 2)] // CPX Immediate
 		[TestCase(0xE4, 3)] // CPX ZeroPage
 		[TestCase(0xEC, 4)] // CPX Absolute
+		[TestCase(0xC0, 2)] // CPY Immediate
+		[TestCase(0xC4, 3)] // CPY ZeroPage
+		[TestCase(0xCC, 4)] // CPY Absolute
 		[TestCase(0x4c, 3)] // JMP Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 3)] // LDA Zero Page
@@ -1632,6 +1687,9 @@ namespace Processor.UnitTests
 		[TestCase(0xE0, 2)] // CPX Immediate
 		[TestCase(0xE4, 2)] // CPX ZeroPage
 		[TestCase(0xEC, 3)] // CPX Absolute
+		[TestCase(0xC0, 2)] // CPY Immediate
+		[TestCase(0xC4, 2)] // CPY ZeroPage
+		[TestCase(0xCC, 3)] // CPY Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X
