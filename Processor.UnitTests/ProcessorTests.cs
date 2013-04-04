@@ -1062,7 +1062,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region Address Mode Tests
+		#region Accumulator Address Tests
 		[TestCase(0x69, 0x01, 0x01, 0x02)] // ADC
 		[TestCase(0x29, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xA9, 0x04, 0x03, 0x03)] // LDA
@@ -1216,7 +1216,9 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
 		}
+		#endregion
 
+		#region Index Address Tests
 		[TestCase(0xA6, 0x03, true)] // LDX Zero Page
 		[TestCase(0xB6, 0x03, true)] // LDX Zero Page Y
 		[TestCase(0xA4, 0x03, false)] // LDY Zero Page
@@ -1245,7 +1247,9 @@ namespace Processor.UnitTests
 
 			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
 		}
-		
+		#endregion 
+
+		#region Compare Address Tests
 		[TestCase(0xC9, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Immediate
 		[TestCase(0xE0, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Immediate
 		[TestCase(0xC0, 0xFF, 0x00, ComparisonMode.YRegister)] //CPY Immediate
@@ -1383,7 +1387,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
 			Assert.That(processor.CarryFlag, Is.EqualTo(true));
 		}
+		#endregion
 
+		#region Decrement/Increment Address Tests
 		[TestCase(0xC6,0xFF, 0xFE)] //DEC Zero Page
 		[TestCase(0xC6, 0xFF, 0xFE)] //DEC Zero Page X
 		public void Zero_Page_DEC_INC_Has_Correct_Result(byte operation, byte memoryValue, byte expectedValue)
