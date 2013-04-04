@@ -709,6 +709,55 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region CPX Compare Memory With X Register
+		[TestCase(0x00, 0x00, true)]
+		[TestCase(0xFF, 0x00, false)]
+		[TestCase(0x00, 0xFF, false)]
+		[TestCase(0xFF, 0xFF, true)]
+		public void CPX_Zero_Flag_Set_When_Values_Match(byte xValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xE0, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x00, 0x00, true)]
+		[TestCase(0xFF, 0x00, true)]
+		[TestCase(0x00, 0xFF, false)]
+		[TestCase(0x00, 0x01, false)]
+		[TestCase(0xFF, 0xFF, true)]
+		public void CPX_Carry_Flag_Set_When_Accumulator_Is_Greater_Than_Or_Equal(byte xValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xE0, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0xFE, 0xFF, true)]
+		[TestCase(0x81, 0x1, true)]
+		[TestCase(0x81, 0x2, false)]
+		[TestCase(0x79, 0x1, false)]
+		[TestCase(0x00, 0x1, true)]
+		public void CPX_Negative_Flag_Set_When_Result_Is_Negative(byte xValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xE0, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
 		#region JMP - Jump to New Location
 
 		[Test]
@@ -764,6 +813,88 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region LDX - Load X with Memory
+
+		[Test]
+		public void LDX_XRegister_Value_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, 0x03 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.XRegister, Is.EqualTo(0x03));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0x79, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0xFF, true)]
+		public void LDX_Negative_Flag_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x0, true)]
+		[TestCase(0x3, false)]
+		public void LDX_Zero_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
+		}
+
+		#endregion
+
+		#region LDY - Load Y with Memory
+
+		[Test]
+		public void STY_YRegister_Value_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, 0x03 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.YRegister, Is.EqualTo(0x03));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0x79, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0xFF, true)]
+		public void LDY_Negative_Flag_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x0, true)]
+		[TestCase(0x3, false)]
+		public void LDY_Zero_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, valueToLoad }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
+		}
+
+		#endregion
+
 		#region SEC - Set Carry Flag
 
 		[Test]
@@ -809,36 +940,38 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region STX - Store Index X
+		#region STX Set Memory To X
 
 		[Test]
-		public void STX_XRegister_Value_Has_Correct_Value()
+		public void STX_Memory_Has_Correct_Value()
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0x86, 0x02, 0x03 }, 0x00);
+			processor.LoadProgram(0, new byte[] {0xA2, 0x03, 0x86, 0x04  }, 0x00);
+			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.XRegister, Is.EqualTo(0x03));
+			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(0x03));
 		}
 
 		#endregion
 
-		#region STY - Store Index Y
+		#region STY Set Memory To Y
 
 		[Test]
-		public void STY_YRegister_Value_Has_Correct_Value()
+		public void STY_Memory_Has_Correct_Value()
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0x84, 0x02, 0x03 }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA0, 0x03, 0x84, 0x04 }, 0x00);
+			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.YRegister, Is.EqualTo(0x03));
+			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(0x03));
 		}
 
 		#endregion
-		
+
 		#region Address Mode Tests
 		[TestCase(0x69, 0x01, 0x01, 0x02)] // ADC
 		[TestCase(0x29, 0x03, 0x03, 0x03)] // AND
@@ -879,7 +1012,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
 			//Just remember that my value's for the STX and ADC were added to the end of the byte array. In a real program this would be invalid, as an opcode would be next and 0x03 would be somewhere else
-			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, 0x86, 0x06, operation, 0x06, 0x01, valueToTest }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x01, operation, 0x05, valueToTest }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 			processor.NextStep();
@@ -914,8 +1047,8 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
 			processor.LoadProgram(0, addressWraps
-				                      ? new byte[] {0xA9, accumulatorInitialValue, 0x86, 0x07, operation, 0xff, 0xff, 0x09, valueToTest}
-				                      : new byte[] {0xA9, accumulatorInitialValue, 0x86, 0x07, operation, 0x07, 0x00, 0x01, valueToTest}, 0x00);
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x08, operation, 0xff, 0xff, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x01, operation, 0x06, 0x00, valueToTest }, 0x00);
 
 			processor.NextStep();
 			processor.NextStep();
@@ -936,8 +1069,8 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
 			processor.LoadProgram(0, addressWraps
-									  ? new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x07, operation, 0xff, 0xff, 0x09, valueToTest }
-									  : new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x07, operation, 0x07, 0x00, 0x01, valueToTest }, 0x00);
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x08, operation, 0xff, 0xff, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x01, operation, 0x06, 0x00, valueToTest }, 0x00);
 
 			processor.NextStep();
 			processor.NextStep();
@@ -959,8 +1092,8 @@ namespace Processor.UnitTests
 
 			processor.LoadProgram(0,
 			                      addressWraps
-									  ? new byte[] { 0xA9, accumulatorInitialValue, 0x86, 0x06, operation, 0xff, 0x08, 0x9, 0x00, valueToTest }
-				                      : new byte[] { 0xA9, accumulatorInitialValue, 0x86, 0x06, operation, 0x01, 0x06, 0x9, 0x00, valueToTest},
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA6, 0x06, operation, 0xff, 0x08, 0x9, 0x00, valueToTest }
+				                      : new byte[] { 0xA9, accumulatorInitialValue, 0xA6, 0x06, operation, 0x01, 0x06, 0x9, 0x00, valueToTest},
 			                      0x00);
 
 			processor.NextStep();
@@ -983,8 +1116,8 @@ namespace Processor.UnitTests
 
 			processor.LoadProgram(0,
 								  addressWraps
-									  ? new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x06, operation, 0x07, 0x0A, 0xFF, 0xFF, valueToTest }
-									  : new byte[] { 0xA9, accumulatorInitialValue, 0x84, 0x06, operation, 0x07, 0x01, 0x08, 0x00, valueToTest },
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x09, operation, 0x06, 0xFF, 0xFF, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x01, operation, 0x06, 0x07, 0x00, valueToTest },
 								  0x00);
 
 			processor.NextStep();
@@ -994,10 +1127,10 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0x86, 0x03, true)] // STX Zero Page
-		[TestCase(0x96, 0x03, true)] // STX Zero Page Y
-		[TestCase(0x84, 0x03, false)] // STY Zero Page
-		[TestCase(0x94, 0x03, false)] // STY Zero Page X
+		[TestCase(0xA6, 0x03, true)] // LDX Zero Page
+		[TestCase(0xB6, 0x03, true)] // LDX Zero Page Y
+		[TestCase(0xA4, 0x03, false)] // LDY Zero Page
+		[TestCase(0xB4, 0x03, false)] // LDY Zero Page X
 		public void ZeroPage_Mode_Index_Has_Correct_Result(byte operation, byte valueToLoad, bool testXRegister)
 		{
 			var processor = new Processor();
@@ -1009,8 +1142,8 @@ namespace Processor.UnitTests
 			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
 		}
 
-		[TestCase(0x8E, 0x03, true)] // STX Absolute
-		[TestCase(0x8C, 0x03, false)] // STY Absolute
+		[TestCase(0xAE, 0x03, true)] // LDX Absolute
+		[TestCase(0xAC, 0x03, false)] // LDY Absolute
 		public void Absolute_Mode_Index_Has_Correct_Result(byte operation, byte valueToLoad, bool testXRegister)
 		{
 			var processor = new Processor();
@@ -1018,16 +1151,33 @@ namespace Processor.UnitTests
 
 			processor.LoadProgram(0, new byte[] { operation, 0x03, 0x00, valueToLoad }, 0x00);
 			processor.NextStep();
+			
 
 			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
 		}
 		
 		[TestCase(0xC9, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Immediate
+		[TestCase(0xE0, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Immediate
 		public void Immediate_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
+			byte loadOperation;
 
-			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, operation, memoryValue }, 0x00);
+			switch (mode)
+			{
+				case ComparisonMode.Accumulator:
+					loadOperation = 0xA9;
+					break;
+				case ComparisonMode.XRegister:
+					loadOperation = 0xA2;
+					break;
+				default:
+					loadOperation = 0xA0;
+					break;
+			}
+
+			processor.LoadProgram(0, new [] { loadOperation, accumulatorValue, operation, memoryValue }, 0x00);
+			
 			processor.NextStep();
 			processor.NextStep();
 
@@ -1038,11 +1188,27 @@ namespace Processor.UnitTests
 
 		[TestCase(0xC5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page
 		[TestCase(0xD5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page X
+		[TestCase(0xE4, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Zero Page
 		public void ZeroPage_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, operation, 0x04, memoryValue }, 0x00);
+			byte loadOperation;
+
+			switch (mode)
+			{
+				case ComparisonMode.Accumulator:
+					loadOperation = 0xA9;
+					break;
+				case ComparisonMode.XRegister:
+					loadOperation = 0xA2;
+					break;
+				default:
+					loadOperation = 0xA0;
+					break;
+			}
+
+			processor.LoadProgram(0, new byte[] { loadOperation, accumulatorValue, operation, 0x04, memoryValue }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -1051,13 +1217,29 @@ namespace Processor.UnitTests
 			Assert.That(processor.CarryFlag, Is.EqualTo(true));
 		}
 
-		[TestCase(0xCD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page
-		[TestCase(0xDD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page X
+		[TestCase(0xCD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Absolute
+		[TestCase(0xDD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Absolute X
+		[TestCase(0xEC, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Absolute
 		public void Absolute_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, operation, 0x05, 0x00, memoryValue }, 0x00);
+			byte loadOperation;
+
+			switch (mode)
+			{
+				case ComparisonMode.Accumulator:
+					loadOperation = 0xA9;
+					break;
+				case ComparisonMode.XRegister:
+					loadOperation = 0xA2;
+					break;
+				default:
+					loadOperation = 0xA0;
+					break;
+			}
+
+			processor.LoadProgram(0, new byte[] { loadOperation, accumulatorValue, operation, 0x05, 0x00, memoryValue }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -1066,16 +1248,16 @@ namespace Processor.UnitTests
 			Assert.That(processor.CarryFlag, Is.EqualTo(true));
 		}
 
-		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, true)] //CMP Zero Page
-		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, false)] //CMP Zero Page
-		public void Indexed_Indirect_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode, bool addressWraps)
+		[TestCase(0xD1, 0xFF, 0x00, true)] 
+		[TestCase(0xD1, 0xFF, 0x00, false)] 
+		public void Indexed_Indirect_Mode_CMP_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, bool addressWraps)
 		{
 			var processor = new Processor();
 
 			processor.LoadProgram(0,
 									  addressWraps
-										  ? new byte[] { 0xA9, accumulatorValue, 0x86, 0x06, operation, 0xff, 0x08, 0x9, 0x00, memoryValue }
-										  : new byte[] { 0xA9, accumulatorValue, 0x86, 0x06, operation, 0x01, 0x06, 0x9, 0x00, memoryValue },
+										  ? new byte[] { 0xA9, accumulatorValue, 0xA6, 0x06, operation, 0xff, 0x08, 0x9, 0x00, memoryValue }
+										  : new byte[] { 0xA9, accumulatorValue, 0xA6, 0x06, operation, 0x01, 0x06, 0x9, 0x00, memoryValue },
 									  0x00);
 
 
@@ -1088,9 +1270,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.CarryFlag, Is.EqualTo(true));
 		}
 
-		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, true)] //CMP Zero Page
-		[TestCase(0xD1, 0xFF, 0x00, ComparisonMode.Accumulator, false)] //CMP Zero Page
-		public void Indirect_Indexed_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode,  bool addressWraps)
+		[TestCase(0xD1, 0xFF, 0x00, true)] 
+		[TestCase(0xD1, 0xFF, 0x00, false)] 
+		public void Indirect_Indexed_Mode_CMP_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, bool addressWraps)
 		{
 			var processor = new Processor();
 
@@ -1146,6 +1328,9 @@ namespace Processor.UnitTests
 		[TestCase(0xD9, 4)] // CMP Absolute Y
 		[TestCase(0xC1, 6)] // CMP Indirect X
 		[TestCase(0xD1, 5)] // CMP Indirect Y
+		[TestCase(0xE0, 2)] // CPX Immediate
+		[TestCase(0xE4, 3)] // CPX ZeroPage
+		[TestCase(0xEC, 4)] // CPX Absolute
 		[TestCase(0x4c, 3)] // JMP Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 3)] // LDA Zero Page
@@ -1155,6 +1340,16 @@ namespace Processor.UnitTests
 		[TestCase(0xB9, 4)] // LDA Absolute Y
 		[TestCase(0xA1, 6)] // LDA Indirect X
 		[TestCase(0xB1, 5)] // LDA Indirect Y
+		[TestCase(0xA2, 2)] // LDX Immediate
+		[TestCase(0xA6, 3)] // LDX Zero Page
+		[TestCase(0xB6, 4)] // LDX Zero Page Y
+		[TestCase(0xAE, 4)] // LDX Absolute
+		[TestCase(0xBE, 4)] // LDX Absolute Y
+		[TestCase(0xA0, 2)] // LDY Immediate
+		[TestCase(0xA4, 3)] // LDY Zero Page
+		[TestCase(0xB4, 4)] // LDY Zero Page Y
+		[TestCase(0xAC, 4)] // LDY Absolute
+		[TestCase(0xBC, 4)] // LDY Absolute Y
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
 		[TestCase(0x78, 2)] // SEI Implied
@@ -1184,13 +1379,15 @@ namespace Processor.UnitTests
 		[TestCase(0xD9, false, 5)] // CMP Absolute Y
 		[TestCase(0xBD, true, 5)] // LDA Absolute X
 		[TestCase(0xB9, false, 5)] // LDA Absolute Y
+		[TestCase(0xBE, false, 5)] // LDX Absolute Y
+		[TestCase(0xBC, true, 5)] // LDY Absolute X
 		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte operation, bool isAbsoluteX, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
 
 			processor.LoadProgram(0, isAbsoluteX
-				                      ? new byte[] {0x86, 0x05, operation, 0xff, 0xff, 0x07, 0x03}
-				                      : new byte[] {0x84, 0x05, operation, 0xff, 0xff, 0x07, 0x03}, 0x00);
+				                      ? new byte[] {0xA6, 0x05, operation, 0xff, 0xff, 0x07, 0x03}
+				                      : new byte[] {0xA4, 0x05, operation, 0xff, 0xff, 0x07, 0x03}, 0x00);
 
 			processor.NextStep();
 
@@ -1209,7 +1406,7 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0x84, 0x04, 0x71, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA0, 0x04, 0x71, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
 			processor.NextStep();
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
 			var startingNumberOfCycles = processor.NumberofCyclesLeft;
@@ -1432,6 +1629,9 @@ namespace Processor.UnitTests
 		[TestCase(0xD9, 3)] // CMP Absolute Y
 		[TestCase(0xC1, 2)] // CMP Indirect X
 		[TestCase(0xD1, 2)] // CMP Indirect Y
+		[TestCase(0xE0, 2)] // CPX Immediate
+		[TestCase(0xE4, 2)] // CPX ZeroPage
+		[TestCase(0xEC, 3)] // CPX Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X
@@ -1440,6 +1640,16 @@ namespace Processor.UnitTests
 		[TestCase(0xB9, 3)] // LDA Absolute Y
 		[TestCase(0xA1, 2)] // LDA Indirect X
 		[TestCase(0xB1, 2)] // LDA Indirect Y
+		[TestCase(0xA2, 2)] // LDX Immediate
+		[TestCase(0xA6, 2)] // LDX Zero Page
+		[TestCase(0xB6, 2)] // LDX Zero Page Y
+		[TestCase(0xAE, 2)] // LDX Absolute
+		[TestCase(0xBE, 2)] // LDX Absolute Y
+		[TestCase(0xA0, 2)] // LDY Immediate
+		[TestCase(0xA4, 2)] // LDY Zero Page
+		[TestCase(0xB4, 2)] // LDY Zero Page Y
+		[TestCase(0xAC, 2)] // LDY Absolute
+		[TestCase(0xBC, 2)] // LDY Absolute Y
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
 		[TestCase(0x78, 1)] // SEI Implied

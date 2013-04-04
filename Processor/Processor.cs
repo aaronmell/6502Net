@@ -425,7 +425,7 @@ namespace Processor
 				//CMP Compare Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0xC9:
 					{
-						CompareOperation(AddressingMode.Immediate, Accumulator);	
+						CompareOperation(AddressingMode.Immediate, Accumulator);
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(2);
 						break;
@@ -449,7 +449,7 @@ namespace Processor
 				//CMP Compare Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
 				case 0xCD:
 					{
-						CompareOperation(AddressingMode.Absolute, Accumulator);	
+						CompareOperation(AddressingMode.Absolute, Accumulator);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
@@ -484,6 +484,30 @@ namespace Processor
 						CompareOperation(AddressingMode.IndexedIndirect, Accumulator);
 						NumberofCyclesLeft -= 5;
 						IncrementProgramCounter(2);
+						break;
+					}
+				//CPX Compare Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
+				case 0xE0:
+					{
+						CompareOperation(AddressingMode.Immediate, XRegister);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CPX Compare Accumulator with Memory, Zero Page, 2 Bytes, 3 Cycles
+				case 0xE4:
+					{
+						CompareOperation(AddressingMode.ZeroPage, XRegister);
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//CPX Compare Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
+				case 0xEC:
+					{
+						CompareOperation(AddressingMode.Absolute, XRegister);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
 						break;
 					}
 				//CLV Clear Overflow Flag, Implied, 1 Byte, 2 Cycles
@@ -590,6 +614,116 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
+				//LDX Load X with memory, Immediate, 2 Bytes, 2 Cycles
+				case 0xA2:
+					{
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Immediate));
+						SetZeroFlag(XRegister);
+						SetNegativeFlag(XRegister);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDX Load X with memory, Zero Page, 2 Bytes, 3 Cycles
+				case 0xA6:
+					{
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
+						SetZeroFlag(XRegister);
+						SetNegativeFlag(XRegister);
+
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDX Load X with memory, Zero Page Y, 2 Bytes, 4 Cycles
+				case 0xB6:
+					{
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY));
+						SetZeroFlag(XRegister);
+						SetNegativeFlag(XRegister);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDX Load X with memory, Absolute, 2 Bytes, 4 Cycles
+				case 0xAE:
+					{
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
+						SetZeroFlag(XRegister);
+						SetNegativeFlag(XRegister);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDX Load X with memory, Absolute Y, 2 Bytes, 4+ Cycles
+				case 0xBE:
+					{
+						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteY));
+						SetZeroFlag(XRegister);
+						SetNegativeFlag(XRegister);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDY Load Y with memory, Immediate, 2 Bytes, 2 Cycles
+				case 0xA0:
+					{
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Immediate));
+						SetZeroFlag(YRegister);
+						SetNegativeFlag(YRegister);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDY Load Y with memory, Zero Page, 2 Bytes, 3 Cycles
+				case 0xA4:
+					{
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
+						SetZeroFlag(YRegister);
+						SetNegativeFlag(YRegister);
+
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDY Load Y with memory, Zero Page X, 2 Bytes, 4 Cycles
+				case 0xB4:
+					{
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX));
+						SetZeroFlag(YRegister);
+						SetNegativeFlag(YRegister);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDY Load Y with memory, Absolute, 2 Bytes, 4 Cycles
+				case 0xAC:
+					{
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
+						SetZeroFlag(YRegister);
+						SetNegativeFlag(YRegister);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LDY Load Y with memory, Absolue X, 2 Bytes, 4+ Cycles
+				case 0xBC:
+					{
+						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteX));
+						SetZeroFlag(YRegister);
+						SetNegativeFlag(YRegister);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
 				//SEC Set Carry, Implied, 1 Bytes, 2 Cycles
 				case 0x38:
 					{
@@ -617,7 +751,7 @@ namespace Processor
 				//STX Store Index X, Zero Page, 2 Bytes, 3 Cycles
 				case 0x86:
 					{
-						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPage), (byte)XRegister);
 						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
 						break;
@@ -625,7 +759,7 @@ namespace Processor
 				//STX Store Index X, Zero Page Y, 2 Bytes, 4 Cycles
 				case 0x96:
 					{
-						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY));
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY), (byte)XRegister);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(2);
 						break;
@@ -633,7 +767,7 @@ namespace Processor
 				//STX Store Index X, Absolute, 3 Bytes, 4 Cycles
 				case 0x8E:
 					{
-						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.Absolute), (byte)XRegister);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
@@ -641,7 +775,7 @@ namespace Processor
 				//STY Store Index Y, Zero Page, 2 Bytes, 3 Cycles
 				case 0x84:
 					{
-						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPage), (byte)YRegister);
 						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
 						break;
@@ -649,7 +783,7 @@ namespace Processor
 				//STY Store Index Y, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x94:
 					{
-						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX));
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX), (byte)YRegister);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(2);
 						break;
@@ -657,7 +791,7 @@ namespace Processor
 				//STY Store Index Y, Absolute, 2 Bytes, 4 Cycles
 				case 0x8C:
 					{
-						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY), (byte)YRegister);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
