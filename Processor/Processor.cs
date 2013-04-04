@@ -940,7 +940,7 @@ namespace Processor
 						//This address wraps if its greater than 0xFFFF
 						if (address > 0xFFFF)
 						{
-							address-= 0x10000;
+							address -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							//However, if this is an ASL or DEC operation, we do not decrease if by 1.
 							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE)
@@ -964,7 +964,7 @@ namespace Processor
 						//This address wraps if its greater than 0xFFFF
 						if (address > 0xFFFF)
 						{
-							address-= 0x10000;
+							address -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							NumberofCyclesLeft--;
 						}
@@ -982,7 +982,7 @@ namespace Processor
 
 						//Its a zero page address, so it wraps around if greater than 0xff
 						if (address > 0xff)
-							address-= 0x100;
+							address -= 0x100;
 
 						//Now get the final Address. The is not a zero page address either.
 						var finalAddress = Memory.ReadValue(address) + (256 * Memory.ReadValue(address + 1));
@@ -997,7 +997,7 @@ namespace Processor
 						//This address wraps if its greater than 0xFFFF
 						if (finalAddress > 0xFFFF)
 						{
-							finalAddress-= 0x10000;
+							finalAddress -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							NumberofCyclesLeft--;
 						}
@@ -1023,7 +1023,7 @@ namespace Processor
 						return address + XRegister;
 					}
 				default:
-					throw new InvalidEnumArgumentException(string.Format("The Addressing Mode {0} has not been implemented", addressingMode));
+					throw new InvalidOperationException(string.Format("The Address Mode '{0}' does not require an address", addressingMode));
 			}
 		}
 	

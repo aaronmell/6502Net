@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 
 namespace Processor.UnitTests
 {
@@ -37,6 +38,14 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			processor.LoadProgram(0, new byte[1], 0x01);
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0x01));
+		}
+
+		[Test, ExpectedException(typeof(NotSupportedException))]
+		public void Throws_Exception_When_OpCode_Is_Invalid()
+		{
+			var processor = new Processor();
+			processor.LoadProgram(0x00, new byte[] { 0xFF}, 0x00);
+			processor.NextStep();
 		}
 		#endregion
 
