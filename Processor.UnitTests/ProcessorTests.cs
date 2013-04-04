@@ -767,7 +767,7 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xC0, memoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA0, xValue, 0xC0, memoryValue }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -783,7 +783,7 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xC0, memoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA0, xValue, 0xC0, memoryValue }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -799,8 +799,49 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA2, xValue, 0xC0, memoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA0, xValue, 0xC0, memoryValue }, 0x00);
 			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
+		#region DEC Decrement Memory by One
+		
+		[TestCase(0x00,0xFF)]
+		[TestCase(0xFF, 0xFE)]
+		public void DEC_Memory_Has_Correct_Value(byte initalMemoryValue, byte expectedMemoryValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xC6, 0x02, initalMemoryValue }, 0x00);
+			processor.NextStep();
+			
+			Assert.That(processor.Memory.ReadValue(0x02), Is.EqualTo(expectedMemoryValue));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0x01, true)]
+		[TestCase(0x02, false)]
+		public void DEC_Zero_Has_Correct_Value(byte initalMemoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xC6, 0x02, initalMemoryValue }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x80, false)]
+		[TestCase(0x81, true)]
+		[TestCase(0x00, true)]
+		public void DEC_Negative_Has_Correct_Value(byte initalMemoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xC6, 0x02, initalMemoryValue }, 0x00);
 			processor.NextStep();
 
 			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
@@ -1207,7 +1248,7 @@ namespace Processor.UnitTests
 		
 		[TestCase(0xC9, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Immediate
 		[TestCase(0xE0, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Immediate
-		[TestCase(0xC0, 0xFF, 0x00, ComparisonMode.XRegister)] //CPY Immediate
+		[TestCase(0xC0, 0xFF, 0x00, ComparisonMode.YRegister)] //CPY Immediate
 		public void Immediate_Mode_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
@@ -1239,7 +1280,7 @@ namespace Processor.UnitTests
 		[TestCase(0xC5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page
 		[TestCase(0xD5, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Zero Page X
 		[TestCase(0xE4, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Zero Page
-		[TestCase(0xC4, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Zero Page
+		[TestCase(0xC4, 0xFF, 0x00, ComparisonMode.YRegister)] //CPY Zero Page
 		public void ZeroPage_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
@@ -1271,7 +1312,7 @@ namespace Processor.UnitTests
 		[TestCase(0xCD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Absolute
 		[TestCase(0xDD, 0xFF, 0x00, ComparisonMode.Accumulator)] //CMP Absolute X
 		[TestCase(0xEC, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Absolute
-		[TestCase(0xCC, 0xFF, 0x00, ComparisonMode.XRegister)] //CPX Absolute
+		[TestCase(0xCC, 0xFF, 0x00, ComparisonMode.YRegister)] //CPY Absolute
 		public void Absolute_Modes_Compare_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, ComparisonMode mode)
 		{
 			var processor = new Processor();
@@ -1342,6 +1383,30 @@ namespace Processor.UnitTests
 			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
 			Assert.That(processor.CarryFlag, Is.EqualTo(true));
 		}
+
+		[TestCase(0xC6,0xFF, 0xFE)] //DEC Zero Page
+		[TestCase(0xC6, 0xFF, 0xFE)] //DEC Zero Page X
+		public void Zero_Page_DEC_INC_Has_Correct_Result(byte operation, byte memoryValue, byte expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { operation, 0x02, memoryValue }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.Memory.ReadValue(0x02), Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0xCE, 0xFF, 0xFE)] //DEC Zero Page
+		[TestCase(0xDE, 0xFF, 0xFE)] //DEC Zero Page X
+		public void Absolute_DEC_INC_Has_Correct_Result(byte operation, byte memoryValue, byte expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { operation, 0x03, 0x00, memoryValue }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.Memory.ReadValue(0x03), Is.EqualTo(expectedValue));
+		}
 		#endregion
 
 		#region Cycle Tests
@@ -1380,6 +1445,10 @@ namespace Processor.UnitTests
 		[TestCase(0xD9, 4)] // CMP Absolute Y
 		[TestCase(0xC1, 6)] // CMP Indirect X
 		[TestCase(0xD1, 5)] // CMP Indirect Y
+		[TestCase(0xC6, 5)] // DEC Zero Page
+		[TestCase(0xD6, 6)] // DEC Zero Page X
+		[TestCase(0xCE, 6)] // DEC Absolute
+		[TestCase(0xDE, 7)] // DEC Absolute X
 		[TestCase(0xE0, 2)] // CPX Immediate
 		[TestCase(0xE4, 3)] // CPX ZeroPage
 		[TestCase(0xEC, 4)] // CPX Absolute
@@ -1432,6 +1501,7 @@ namespace Processor.UnitTests
 		[TestCase(0x1E, true, 7)] // ASL Absolute X
 		[TestCase(0xDD, true, 5)] // CMP Absolute X
 		[TestCase(0xD9, false, 5)] // CMP Absolute Y
+		[TestCase(0xDE, true, 7)] // DEC Absolute X
 		[TestCase(0xBD, true, 5)] // LDA Absolute X
 		[TestCase(0xB9, false, 5)] // LDA Absolute Y
 		[TestCase(0xBE, false, 5)] // LDX Absolute Y
@@ -1441,8 +1511,8 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 
 			processor.LoadProgram(0, isAbsoluteX
-				                      ? new byte[] {0xA6, 0x05, operation, 0xff, 0xff, 0x07, 0x03}
-				                      : new byte[] {0xA4, 0x05, operation, 0xff, 0xff, 0x07, 0x03}, 0x00);
+				                      ? new byte[] {0xA6, 0x06, operation, 0xff, 0xff, 0x00, 0x03}
+				                      : new byte[] {0xA4, 0x06, operation, 0xff, 0xff, 0x00, 0x03}, 0x00);
 
 			processor.NextStep();
 
@@ -1690,6 +1760,10 @@ namespace Processor.UnitTests
 		[TestCase(0xC0, 2)] // CPY Immediate
 		[TestCase(0xC4, 2)] // CPY ZeroPage
 		[TestCase(0xCC, 3)] // CPY Absolute
+		[TestCase(0xC6, 2)] // DEC Zero Page
+		[TestCase(0xD6, 2)] // DEC Zero Page X
+		[TestCase(0xCE, 3)] // DEC Absolute
+		[TestCase(0xDE, 3)] // DEC Absolute X
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X

@@ -422,6 +422,14 @@ namespace Processor
 						break;
 
 					}
+				//CLV Clear Overflow Flag, Implied, 1 Byte, 2 Cycles
+				case 0xB8:
+					{
+						OverflowFlag = false;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
 				//CMP Compare Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0xC9:
 					{
@@ -513,7 +521,7 @@ namespace Processor
 				//CPY Compare Accumulator with Y Register, Immediate, 2 Bytes, 2 Cycles
 				case 0xC0:
 					{
-						CompareOperation(AddressingMode.Immediate, XRegister);
+						CompareOperation(AddressingMode.Immediate, YRegister);
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(2);
 						break;
@@ -521,7 +529,7 @@ namespace Processor
 				//CPY Compare Accumulator with Y Register, Zero Page, 2 Bytes, 3 Cycles
 				case 0xC4:
 					{
-						CompareOperation(AddressingMode.ZeroPage, XRegister);
+						CompareOperation(AddressingMode.ZeroPage, YRegister);
 						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
 						break;
@@ -529,17 +537,45 @@ namespace Processor
 				//CPY Compare Accumulator with Y Register, Absolute, 3 Bytes, 4 Cycles
 				case 0xCC:
 					{
-						CompareOperation(AddressingMode.Absolute, XRegister);
+						CompareOperation(AddressingMode.Absolute, YRegister);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
 					}
-				//CLV Clear Overflow Flag, Implied, 1 Byte, 2 Cycles
-				case 0xB8:
+				//DEC Decrement Memory by One, Zero Page, 2 Bytes, 5 Cycles
+				case 0xC6:
 					{
-						OverflowFlag = false;
-						NumberofCyclesLeft -= 2;
-						IncrementProgramCounter(1);
+						ChangeMemoryByOne(AddressingMode.ZeroPage, true);
+
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//DEC Decrement Memory by One, Zero Page X, 2 Bytes, 6 Cycles
+				case 0xD6:
+					{
+						ChangeMemoryByOne(AddressingMode.ZeroPageX, true);
+
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//DEC Decrement Memory by One, Absolute, 3 Bytes, 6 Cycles
+				case 0xCE:
+					{
+						ChangeMemoryByOne(AddressingMode.Absolute, true);
+
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//DEC Decrement Memory by One, Absolute X, 3 Bytes, 7 Cycles
+				case 0xDE:
+					{
+						ChangeMemoryByOne(AddressingMode.AbsoluteX, true);
+
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
 						break;
 					}
 				//JMP Jump to New Location, Absolute 3 Bytes, 3 Cycles
@@ -906,9 +942,9 @@ namespace Processor
 						{
 							address-= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
-							//However, if this is an ASL operation, we do not decrease if by 1.
-							if (CurrentOpCode == 0x1E)
-								return Memory.ReadValue(address);
+							//However, if this is an ASL or DEC operation, we do not decrease if by 1.
+							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE)
+								return address;
 
 							NumberofCyclesLeft--;
 						}
@@ -1119,6 +1155,10 @@ namespace Processor
 			IncrementProgramCounter(2);
 		}
 
+		/// <summary>
+		/// The bit operation, does an & comparison between a value in memory and the accumulator
+		/// </summary>
+		/// <param name="addressingMode"></param>
 		private void BitOperation(AddressingMode addressingMode)
 		{
 			var valueToCompare = Memory.ReadValue(GetAddressByAddressingMode(addressingMode)) & Accumulator;
@@ -1129,6 +1169,11 @@ namespace Processor
 			SetZeroFlag(valueToCompare);
 		}
 
+		/// <summary>
+		/// The compare operation. This operation compares a value in memory with a value passed into it.
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
+		/// <param name="comparisonValue">The value to compare against memory</param>
 		private void CompareOperation(AddressingMode addressingMode, int comparisonValue)
 		{
 			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
@@ -1142,6 +1187,28 @@ namespace Processor
 			CarryFlag = memoryValue <= comparisonValue;
 			SetNegativeFlag(comparedValue);
 		}
+
+		/// <summary>
+		/// Changes a value in memory by 1
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
+		/// <param name="decrement">If the operation is decrementing or incrementing the vaulue by 1 </param>
+		private void ChangeMemoryByOne(AddressingMode addressingMode, bool decrement)
+		{
+			var memoryLocation = GetAddressByAddressingMode(addressingMode);
+			var memory = Memory.ReadValue(memoryLocation);
+			
+			if (decrement)
+				memory -= 1;
+			else
+				memory += 1;
+
+			SetZeroFlag(memory);
+			SetNegativeFlag(memory);
+
+			Memory.WriteValue(memoryLocation,memory);
+		}
+		
 		#endregion
 		
 		#endregion
