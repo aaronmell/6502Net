@@ -1079,6 +1079,13 @@ namespace Processor
 					}
 				#endregion
 
+				//NOP Operation, Implied, 1 Byte, 2 Cycles
+				case 0xEA:
+					{
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
 			}

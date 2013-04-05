@@ -1855,6 +1855,7 @@ namespace Processor.UnitTests
 		[TestCase(0x56, 6)] // LSR Zero Page X
 		[TestCase(0x4E, 6)] // LSR Absolute
 		[TestCase(0x5E, 7)] // LSR Absolute X
+		[TestCase(0xEA, 2)] // NOP Implied
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
 		[TestCase(0x78, 2)] // SEI Implied
@@ -2189,6 +2190,7 @@ namespace Processor.UnitTests
 		[TestCase(0x56, 2)] // LSR Zero Page X
 		[TestCase(0x4E, 3)] // LSR Absolute
 		[TestCase(0x5E, 3)] // LSR Absolute X
+		[TestCase(0xEA, 1)] // NOP Implied
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
 		[TestCase(0x78, 1)] // SEI Implied
