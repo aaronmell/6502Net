@@ -738,12 +738,22 @@ namespace Processor
 						NumberofCyclesLeft -= 3;
 						break;
 					}
+				//JMP Jump to New Location, Indirect 3 Bytes, 5 Cycles
+				case 0x6C:
+					{
+						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Indirect);
+						NumberofCyclesLeft -= 5;
+						break;
+					}
 				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
 				case 0x00:
 					{
 						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
 						throw new NotImplementedException();
 					}
+
+
+
 				#endregion
 
 				#region Load Value From Memory Operations

@@ -1768,7 +1768,8 @@ namespace Processor.UnitTests
 		[TestCase(0xC0, 2)] // CPY Immediate
 		[TestCase(0xC4, 3)] // CPY ZeroPage
 		[TestCase(0xCC, 4)] // CPY Absolute
-		[TestCase(0x4c, 3)] // JMP Absolute
+		[TestCase(0x4C, 3)] // JMP Absolute
+		[TestCase(0x6C, 5)] // JMP Indirect
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 3)] // LDA Zero Page
 		[TestCase(0xB5, 4)] // LDA Zero Page X
