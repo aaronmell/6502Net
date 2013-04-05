@@ -1260,6 +1260,68 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region LSR Logical Shift Right
+		[TestCase(0xFF)]
+		[TestCase(0xFE)]
+		public void LSR_Negative_Set_Correctly(byte accumlatorValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA5, accumlatorValue, 0x4A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(false));
+		}
+
+		[TestCase(0x1, true)]
+		[TestCase(0x2, false)]
+		public void LSR_Zero_Set_Correctly(byte accumlatorValue, bool expectedResult)
+		{
+			var processor = new Processor();
+		
+			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorValue, 0x4A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x1, true)]
+		[TestCase(0x2, false)]
+		public void LSR_Carry_Flag_Set_Correctly(byte accumlatorValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorValue, 0x4A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x4A, 0xFF, 0x7F, 0x00)] // LSR Accumulator
+		[TestCase(0x4A, 0xFD, 0x7E, 0x00)] // LSR Accumulator
+		[TestCase(0x46, 0xFF, 0x7F, 0x01)] // LSR Zero Page
+		[TestCase(0x56, 0xFF, 0x7F, 0x01)] // LSR Zero Page X
+		[TestCase(0x4E, 0xFF, 0x7F, 0x01)] // LSR Absolute
+		[TestCase(0x5E, 0xFF, 0x7F, 0x01)] // LSR Absolute X
+		public void LSR_Correct_Value_Stored(byte operation, byte valueToShift, byte expectedValue, byte expectedLocation)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToShift, operation, expectedLocation }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(operation == 0x4A
+				? processor.Accumulator
+				: processor.Memory.ReadValue(expectedLocation),
+						Is.EqualTo(expectedValue));
+		}
+		#endregion
+
 		#region SEC - Set Carry Flag
 
 		[Test]
@@ -1788,6 +1850,11 @@ namespace Processor.UnitTests
 		[TestCase(0xB4, 4)] // LDY Zero Page Y
 		[TestCase(0xAC, 4)] // LDY Absolute
 		[TestCase(0xBC, 4)] // LDY Absolute Y
+		[TestCase(0x4A, 2)] // LSR Accumulator
+		[TestCase(0x46, 5)] // LSR Zero Page
+		[TestCase(0x56, 6)] // LSR Zero Page X
+		[TestCase(0x4E, 6)] // LSR Absolute
+		[TestCase(0x5E, 7)] // LSR Absolute X
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
 		[TestCase(0x78, 2)] // SEI Implied
@@ -1823,6 +1890,7 @@ namespace Processor.UnitTests
 		[TestCase(0xB9, false, 5)] // LDA Absolute Y
 		[TestCase(0xBE, false, 5)] // LDX Absolute Y
 		[TestCase(0xBC, true, 5)] // LDY Absolute X
+		[TestCase(0x5E, true, 7)] // LSR Absolute X
 		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte operation, bool isAbsoluteX, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -2116,6 +2184,11 @@ namespace Processor.UnitTests
 		[TestCase(0xB4, 2)] // LDY Zero Page Y
 		[TestCase(0xAC, 2)] // LDY Absolute
 		[TestCase(0xBC, 2)] // LDY Absolute Y
+		[TestCase(0x4A, 1)] // LSR Accumulator
+		[TestCase(0x46, 2)] // LSR Zero Page
+		[TestCase(0x56, 2)] // LSR Zero Page X
+		[TestCase(0x4E, 3)] // LSR Absolute
+		[TestCase(0x5E, 3)] // LSR Absolute X
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
 		[TestCase(0x78, 1)] // SEI Implied

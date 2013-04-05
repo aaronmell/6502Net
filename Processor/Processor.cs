@@ -218,7 +218,7 @@ namespace Processor
 				//ASL Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
 				case 0x0A:
 					{
-						ASlOperation(AddressingMode.Accumulator);
+						AslOperation(AddressingMode.Accumulator);
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
@@ -226,7 +226,7 @@ namespace Processor
 				//ASL Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
 				case 0x06:
 					{
-						ASlOperation(AddressingMode.ZeroPage);
+						AslOperation(AddressingMode.ZeroPage);
 						NumberofCyclesLeft -= 5;
 						IncrementProgramCounter(2);
 						break;
@@ -234,7 +234,7 @@ namespace Processor
 				//ASL Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
 				case 0x16:
 					{
-						ASlOperation(AddressingMode.ZeroPageX);
+						AslOperation(AddressingMode.ZeroPageX);
 						NumberofCyclesLeft -= 6;
 						IncrementProgramCounter(2);
 						break;
@@ -242,7 +242,7 @@ namespace Processor
 				//ASL Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
 				case 0x0E:
 					{
-						ASlOperation(AddressingMode.Absolute);
+						AslOperation(AddressingMode.Absolute);
 						NumberofCyclesLeft -= 6;
 						IncrementProgramCounter(3);
 						break;
@@ -250,7 +250,47 @@ namespace Processor
 				//ASL Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
 				case 0x1E:
 					{
-						ASlOperation(AddressingMode.AbsoluteX);
+						AslOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
+				case 0x4A:
+					{
+						LsrOperation(AddressingMode.Accumulator);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
+				case 0x46:
+					{
+						LsrOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
+				case 0x56:
+					{
+						LsrOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
+				case 0x4E:
+					{
+						LsrOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
+				case 0x5E:
+					{
+						LsrOperation(AddressingMode.AbsoluteX);
 						NumberofCyclesLeft -= 7;
 						IncrementProgramCounter(3);
 						break;
@@ -1125,8 +1165,8 @@ namespace Processor
 						{
 							address -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
-							//However, if this is an ASL or DEC operation, we do not decrease if by 1.
-							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE || CurrentOpCode == 0xFE)
+							//However, if this is an ASL, LSR, DEC, or INC operation, we do not decrease if by 1.
+							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE || CurrentOpCode == 0xFE || CurrentOpCode == 0x5E)
 								return address;
 
 							NumberofCyclesLeft--;
@@ -1289,7 +1329,7 @@ namespace Processor
 		/// The ASL - Shift Left One Bit (Memory or Accumulator)
 		/// </summary>
 		/// <param name="addressingMode">The addressing Mode being used</param>
-		public void ASlOperation(AddressingMode addressingMode)
+		public void AslOperation(AddressingMode addressingMode)
 		{
 			int value;
 			var memoryAddress = 0;
@@ -1426,6 +1466,35 @@ namespace Processor
 
 			SetNegativeFlag(Accumulator);
 			SetZeroFlag(Accumulator);
+		}
+
+		private void LsrOperation(AddressingMode addressingMode)
+		{
+			int value;
+			var memoryAddress = 0;
+			if (addressingMode == AddressingMode.Accumulator)
+				value = Accumulator;
+			else
+			{
+				memoryAddress = GetAddressByAddressingMode(addressingMode);
+				value = Memory.ReadValue(memoryAddress);
+			}
+
+			NegativeFlag = false;
+
+			//If the Zero bit is set, we have a carry
+			CarryFlag = ( value & 0x01 ) != 0;
+
+			value = (value >> 1);
+
+			SetZeroFlag(value);
+
+			if (addressingMode == AddressingMode.Accumulator)
+				Accumulator = value;
+			else
+			{
+				Memory.WriteValue(memoryAddress, (byte)value);
+			}
 		}
 		#endregion
 		
