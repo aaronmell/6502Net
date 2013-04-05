@@ -1337,7 +1337,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0x60, 0x00, 0x03, 0x03)] // ADC
+		[TestCase(0x6D, 0x00, 0x03, 0x03)] // ADC
 		[TestCase(0x2D, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xAD, 0x04, 0x03, 0x03)] // LDA
 		public void Absolute_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
@@ -1650,7 +1650,7 @@ namespace Processor.UnitTests
 		[TestCase(0x69, 2)] // ADC Immediate
 		[TestCase(0x65, 3)] // ADC Zero Page
 		[TestCase(0x75, 4)] // ADC Zero Page X
-		[TestCase(0x60, 4)] // ADC Absolute
+		[TestCase(0x6D, 4)] // ADC Absolute
 		[TestCase(0x7D, 4)] // ADC Absolute X
 		[TestCase(0x79, 4)] // ADC Absolute Y
 		[TestCase(0x61, 6)] // ADC Indrect X
@@ -1968,7 +1968,7 @@ namespace Processor.UnitTests
 		[TestCase(0x69, 2)] // ADC Immediate
 		[TestCase(0x65, 2)] // ADC ZeroPage
 		[TestCase(0x75, 2)] // ADC Zero Page X
-		[TestCase(0x60, 3)] // ADC Absolute
+		[TestCase(0x6D, 3)] // ADC Absolute
 		[TestCase(0x7D, 3)] // ADC Absolute X
 		[TestCase(0x79, 3)] // ADC Absolute Y
 		[TestCase(0x61, 2)] // ADC Indirect X

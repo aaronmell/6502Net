@@ -147,6 +147,7 @@ namespace Processor
 			//This is handled inside the GetValueFromMemory Method
 			switch (CurrentOpCode)
 			{
+				#region Add / Subtract Operations
 				//ADC Add With Carry, Immediate, 2 Bytes, 2 Cycles
 				case 0x69:
 					{
@@ -172,7 +173,7 @@ namespace Processor
 						break;
 					}
 				//ADC Add With Carry, Absolute, 3 Bytes, 4 Cycles
-				case 0x60:
+				case 0x6D:
 					{
 						AddWithCarryOperation(AddressingMode.Absolute);
 						NumberofCyclesLeft -= 4;
@@ -211,6 +212,114 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
+				#endregion
+				
+				#region Shift Operations
+				//ASL Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
+				case 0x0A:
+					{
+						ASlOperation(AddressingMode.Accumulator);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
+				case 0x06:
+					{
+						ASlOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
+				case 0x16:
+					{
+						ASlOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
+				case 0x0E:
+					{
+						ASlOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
+				case 0x1E:
+					{
+						ASlOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
+						break;
+					}
+				#endregion
+				
+				#region Branch Operations
+				//BCC Branch if Carry is Clear, Relative, 2 Bytes, 2++ Cycles
+				case 0x90:
+					{
+
+						BranchOperation(!CarryFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+
+					}
+				//BCS Branch if Carry is Set, Relative, 2 Bytes, 2++ Cycles
+				case 0xB0:
+					{
+						BranchOperation(CarryFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				//BEQ Branch if Zero is Set, Relative, 2 Bytes, 2++ Cycles
+				case 0xF0:
+					{
+						BranchOperation(ZeroFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+
+				// BMI Branch if Negative Set
+				case 0x30:
+					{
+						BranchOperation(NegativeFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				//BNE Branch if Zero is Not Set, Relative, 2 Bytes, 2++ Cycles
+				case 0xD0:
+					{
+						BranchOperation(!ZeroFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				// BPL Branch if Negative Clear, 2 Bytes, 2++ Cycles
+				case 0x10:
+					{
+						BranchOperation(!NegativeFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				// BVC Branch if Overflow Clear, 2 Bytes, 2++ Cycles
+				case 0x50:
+					{
+						BranchOperation(!OverflowFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				// BVS Branch if Overflow Set, 2 Bytes, 2++ Cycles
+				case 0x70:
+					{
+						BranchOperation(OverflowFlag);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				#endregion
+
+				#region BitWise Comparison Operations
 				//AND Compare Memory with Accumulator, Immediate, 2 Bytes, 2 Cycles
 				case 0x29:
 					{
@@ -275,69 +384,6 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
-				case 0x0A:
-					{
-						ASlOperation(AddressingMode.Accumulator);
-						NumberofCyclesLeft -= 2;
-						IncrementProgramCounter(1);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
-				case 0x06:
-					{
-						ASlOperation(AddressingMode.ZeroPage);
-						NumberofCyclesLeft -= 5;
-						IncrementProgramCounter(2);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
-				case 0x16:
-					{
-						ASlOperation(AddressingMode.ZeroPageX);
-						NumberofCyclesLeft -= 6;
-						IncrementProgramCounter(2);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
-				case 0x0E:
-					{
-						ASlOperation(AddressingMode.Absolute);
-						NumberofCyclesLeft -= 6;
-						IncrementProgramCounter(3);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
-				case 0x1E:
-					{
-						ASlOperation(AddressingMode.AbsoluteX);
-						NumberofCyclesLeft -= 7;
-						IncrementProgramCounter(3);
-						break;
-					}
-				//BCC Branch if Carry is Clear, Relative, 2 Bytes, 2++ Cycles
-				case 0x90:
-					{
-
-						BranchOperation(!CarryFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-
-					}
-				//BCS Branch if Carry is Set, Relative, 2 Bytes, 2++ Cycles
-				case 0xB0:
-					{
-						BranchOperation(CarryFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-					}
-				//BEQ Branch if Zero is Set, Relative, 2 Bytes, 2++ Cycles
-				case 0xF0:
-					{
-						BranchOperation(ZeroFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-					}
 				//BIT Compare Memory with Accumulator, Zero Page , 2 Bytes 3 Cycles
 				case 0x24:
 					{
@@ -354,47 +400,9 @@ namespace Processor
 						NumberofCyclesLeft -= 4;
 						break;
 					}
-				// BMI Branch if Negative Set
-				case 0x30:
-					{
-						BranchOperation(NegativeFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-					}
-				//BNE Branch if Zero is Not Set, Relative, 2 Bytes, 2++ Cycles
-				case 0xD0:
-					{
-						BranchOperation(!ZeroFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-					}
-				// BPL Branch if Negative Clear, 2 Bytes, 2++ Cycles
-				case 0x10:
-					{
-						BranchOperation(!NegativeFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-					}
-				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
-				case 0x00:
-					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
-					}
-				// BVC Branch if Overflow Clear, 2 Bytes, 2++ Cycles
-				case 0x50:
-					{
-						BranchOperation(!OverflowFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-					}
-				// BVS Branch if Overflow Set, 2 Bytes, 2++ Cycles
-				case 0x70:
-					{
-						BranchOperation(OverflowFlag);
-						NumberofCyclesLeft -= 2;
-						break;
-					}
+				#endregion
+
+				#region Clear Flag Operations
 				//CLC Clear Carry Flag, Implied, 1 Byte, 2 Cycles
 				case 0x18:
 					{
@@ -429,6 +437,10 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 					}
+
+				#endregion
+
+				#region Compare Operations
 				//CMP Compare Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0xC9:
 					{
@@ -541,6 +553,9 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
+				#endregion
+
+				#region Increment/Decrement Operations
 				//DEC Decrement Memory by One, Zero Page, 2 Bytes, 5 Cycles
 				case 0xC6:
 					{
@@ -580,7 +595,7 @@ namespace Processor
 				//DEX Decrement X Register by One, Implied, 1 Bytes, 2 Cycles
 				case 0xCA:
 					{
-						ChangeRegisterByOne(true,true);
+						ChangeRegisterByOne(true, true);
 
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
@@ -649,6 +664,9 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 					}
+				#endregion
+
+				#region GOTO and GOSUB Operations
 				//JMP Jump to New Location, Absolute 3 Bytes, 3 Cycles
 				case 0x4C:
 					{
@@ -656,6 +674,15 @@ namespace Processor
 						NumberofCyclesLeft -= 3;
 						break;
 					}
+				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
+				case 0x00:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
+				#endregion
+
+				#region Load Value From Memory Operations
 				//LDA Load Accumulator with Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0xA9:
 					{
@@ -855,18 +882,13 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
+				#endregion
+
+				#region Set Flag Operations
 				//SEC Set Carry, Implied, 1 Bytes, 2 Cycles
 				case 0x38:
 					{
 						CarryFlag = true;
-						NumberofCyclesLeft -= 2;
-						IncrementProgramCounter(1);
-						break;
-					}
-				//SEI Set Interrupt, Implied, 1 Bytes, 2 Cycles
-				case 0x78:
-					{
-						InterruptFlag = true;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
@@ -879,6 +901,17 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 					}
+				//SEI Set Interrupt, Implied, 1 Bytes, 2 Cycles
+				case 0x78:
+					{
+						InterruptFlag = true;
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				#endregion
+
+				#region Store Value In Memory Operations
 				//STX Store Index X, Zero Page, 2 Bytes, 3 Cycles
 				case 0x86:
 					{
@@ -927,12 +960,12 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
+				#endregion
+				
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
 			}
 		}
-
-		
 
 		/// <summary>
 		/// Increments the program Counter. We always Increment by 1 less than the value that is passed in to account for the increment that happens after the current
