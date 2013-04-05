@@ -857,6 +857,94 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region DEX Decrement X by One
+
+		[TestCase(0x00, 0xFF)]
+		[TestCase(0xFF, 0xFE)]
+		public void DEX_XRegister_Has_Correct_Value(byte initialXRegisterValue, byte expectedMemoryValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, initialXRegisterValue, 0xCA }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.XRegister, Is.EqualTo(expectedMemoryValue));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0x01, true)]
+		[TestCase(0x02, false)]
+		public void DEX_Zero_Has_Correct_Value(byte initialXRegisterValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, initialXRegisterValue, 0xCA }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x80, false)]
+		[TestCase(0x81, true)]
+		[TestCase(0x00, true)]
+		public void DEX_Negative_Has_Correct_Value(byte initialXRegisterValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, initialXRegisterValue, 0xCA }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
+		#region DEY Decrement Y by One
+
+		[TestCase(0x00, 0xFF)]
+		[TestCase(0xFF, 0xFE)]
+		public void DEY_YRegister_Has_Correct_Value(byte initialYRegisterValue, byte expectedMemoryValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, initialYRegisterValue, 0x88 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.YRegister, Is.EqualTo(expectedMemoryValue));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0x01, true)]
+		[TestCase(0x02, false)]
+		public void DEY_Zero_Has_Correct_Value(byte initialYRegisterValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, initialYRegisterValue, 0x88 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x80, false)]
+		[TestCase(0x81, true)]
+		[TestCase(0x00, true)]
+		public void DEY_Negative_Has_Correct_Value(byte initialYRegisterValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, initialYRegisterValue, 0x88 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
 		#region INC Increment Memory by One
 
 		[TestCase(0x00, 0x01)]
@@ -896,6 +984,95 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
 		}
+		#endregion
+
+		#region INX Increment X by One
+
+		[TestCase(0x00, 0x01)]
+		[TestCase(0xFF, 0x00)]
+		public void INX_XRegister_Has_Correct_Value(byte initialXRegister, byte expectedMemoryValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, initialXRegister, 0xE8 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.XRegister, Is.EqualTo(expectedMemoryValue));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0xFF, true)]
+		[TestCase(0xFE, false)]
+		public void INX_Zero_Has_Correct_Value(byte initialXRegister, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, initialXRegister, 0xE8 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x78, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0x00, false)]
+		public void INX_Negative_Has_Correct_Value(byte initialXRegister, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, initialXRegister, 0xE8 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
+		#region INY Increment Y by One
+
+		[TestCase(0x00, 0x01)]
+		[TestCase(0xFF, 0x00)]
+		public void INY_YRegisgter_Has_Correct_Value(byte initialYRegister, byte expectedMemoryValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, initialYRegister, 0xC8 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.YRegister, Is.EqualTo(expectedMemoryValue));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0xFF, true)]
+		[TestCase(0xFE, false)]
+		public void INY_Zero_Has_Correct_Value(byte initialYRegister, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, initialYRegister, 0xC8 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x78, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0x00, false)]
+		public void INY_Negative_Has_Correct_Value(byte initialYRegister, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA0, initialYRegister, 0xC8 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+
 		#endregion
 
 		#region JMP - Jump to New Location
@@ -1509,8 +1686,12 @@ namespace Processor.UnitTests
 		[TestCase(0xD6, 6)] // DEC Zero Page X
 		[TestCase(0xCE, 6)] // DEC Absolute
 		[TestCase(0xDE, 7)] // DEC Absolute X
+		[TestCase(0xCA, 2)] // DEX Implied
+		[TestCase(0x88, 2)] // DEY Implied
 		[TestCase(0xE6, 5)] // INC Zero Page
 		[TestCase(0xF6, 6)] // INC Zero Page X
+		[TestCase(0xE8, 2)] // INX Implied
+		[TestCase(0xC8, 2)] // INY Implied
 		[TestCase(0xEE, 6)] // INC Absolute
 		[TestCase(0xFE, 7)] // INC Absolute X
 		[TestCase(0xE0, 2)] // CPX Immediate
@@ -1566,6 +1747,7 @@ namespace Processor.UnitTests
 		[TestCase(0xDD, true, 5)] // CMP Absolute X
 		[TestCase(0xD9, false, 5)] // CMP Absolute Y
 		[TestCase(0xDE, true, 7)] // DEC Absolute X
+		[TestCase(0xFE, true, 7)] // INC Absolute X
 		[TestCase(0xBD, true, 5)] // LDA Absolute X
 		[TestCase(0xB9, false, 5)] // LDA Absolute Y
 		[TestCase(0xBE, false, 5)] // LDX Absolute Y
@@ -1828,10 +2010,14 @@ namespace Processor.UnitTests
 		[TestCase(0xD6, 2)] // DEC Zero Page X
 		[TestCase(0xCE, 3)] // DEC Absolute
 		[TestCase(0xDE, 3)] // DEC Absolute X
+		[TestCase(0xCA, 1)] // DEX Implied
+		[TestCase(0x88, 1)] // DEY Implied
 		[TestCase(0xE6, 2)] // INC Zero Page
 		[TestCase(0xF6, 2)] // INC Zero Page X
 		[TestCase(0xEE, 3)] // INC Absolute
 		[TestCase(0xFE, 3)] // INC Absolute X
+		[TestCase(0xE8, 1)] // INX Implied
+		[TestCase(0xC8, 1)] // INY Implied
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X

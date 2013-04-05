@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 
 namespace Processor
 {
@@ -569,13 +568,31 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
-				//DEC Decrement Memory by One, Absolute X, 3 Bytes, 7 Cycles
+				//DEC Decrement Memory by One, Implied, 3 Bytes, 7 Cycles
 				case 0xDE:
 					{
 						ChangeMemoryByOne(AddressingMode.AbsoluteX, true);
 
 						NumberofCyclesLeft -= 7;
 						IncrementProgramCounter(3);
+						break;
+					}
+				//DEX Decrement X Register by One, Implied, 1 Bytes, 2 Cycles
+				case 0xCA:
+					{
+						ChangeRegisterByOne(true,true);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//DEY Decrement Y Register by One, Absolute X, 1 Bytes, 2 Cycles
+				case 0x88:
+					{
+						ChangeRegisterByOne(false, true);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
 						break;
 					}
 				//INC Increment Memory by One, Zero Page, 2 Bytes, 5 Cycles
@@ -612,6 +629,24 @@ namespace Processor
 
 						NumberofCyclesLeft -= 7;
 						IncrementProgramCounter(3);
+						break;
+					}
+				//INX Increment X Register by One, Implied, 1 Bytes, 2 Cycles
+				case 0xE8:
+					{
+						ChangeRegisterByOne(true, false);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//INY Increment Y Register by One, Absolute X, 1 Bytes, 2 Cycles
+				case 0xC8:
+					{
+						ChangeRegisterByOne(false, false);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
 						break;
 					}
 				//JMP Jump to New Location, Absolute 3 Bytes, 3 Cycles
@@ -897,6 +932,8 @@ namespace Processor
 			}
 		}
 
+		
+
 		/// <summary>
 		/// Increments the program Counter. We always Increment by 1 less than the value that is passed in to account for the increment that happens after the current
 		/// Op code is retrieved
@@ -979,7 +1016,7 @@ namespace Processor
 							address -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
 							//However, if this is an ASL or DEC operation, we do not decrease if by 1.
-							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE)
+							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE || CurrentOpCode == 0xFE)
 								return address;
 
 							NumberofCyclesLeft--;
@@ -1244,7 +1281,34 @@ namespace Processor
 
 			Memory.WriteValue(memoryLocation,memory);
 		}
-		
+
+		/// <summary>
+		/// Changes a value in either the X or Y register by 1
+		/// </summary>
+		/// <param name="useXRegister">If the operation is using the X or Y register</param>
+		/// <param name="decrement">If the operation is decrementing or incrementing the vaulue by 1 </param>
+		private void ChangeRegisterByOne(bool useXRegister, bool decrement)
+		{
+			var value = useXRegister ? XRegister : YRegister;
+
+			if (decrement)
+				value -= 1;
+			else
+				value += 1;
+
+			if (value < 0x00)
+				value += 0x100;
+			else if (value > 0xFF)
+				value -= 0x100;
+
+			SetZeroFlag(value);
+			SetNegativeFlag(value);
+
+			if (useXRegister)
+				XRegister = value;
+			else
+				YRegister = value;
+		}
 		#endregion
 		
 		#endregion
