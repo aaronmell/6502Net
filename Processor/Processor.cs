@@ -384,7 +384,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//BIT Compare Memory with Accumulator, Zero Page , 2 Bytes 3 Cycles
+				//BIT Compare Memory with Accumulator, Zero Page, 2 Bytes, 3 Cycles
 				case 0x24:
 					{
 						BitOperation(AddressingMode.ZeroPage);
@@ -392,7 +392,7 @@ namespace Processor
 						NumberofCyclesLeft -= 3;
 						break;
 					}
-				//BIT Compare Memory with Accumulator, Absolute , 2 Bytes 4 Cycles
+				//BIT Compare Memory with Accumulator, Absolute, 2 Bytes, 4 Cycles
 				case 0x2C:
 					{
 						BitOperation(AddressingMode.Absolute);
@@ -400,8 +400,72 @@ namespace Processor
 						NumberofCyclesLeft -= 4;
 						break;
 					}
+				//EOR Exclusive OR Memory with Accumulator, Immediate, 2 Bytes, 2 Cycles
+				case 0x49:
+					{
+						EorOperation(AddressingMode.Immediate);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				//EOR Exclusive OR Memory with Accumulator, Zero Page, 2 Bytes, 3 Cycles
+				case 0x45:
+					{
+						EorOperation(AddressingMode.ZeroPage);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 3;
+						break;
+					}
+					//EOR Exclusive OR Memory with Accumulator, Zero Page X, 2 Bytes, 4 Cycles
+				case 0x55:
+					{
+						EorOperation(AddressingMode.ZeroPageX);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 4;
+						break;
+					}
+					//EOR Exclusive OR Memory with Accumulator, Absolute, 3 Bytes, 4 Cycles
+				case 0x4D:
+					{
+						EorOperation(AddressingMode.Absolute);
+						IncrementProgramCounter(3);
+						NumberofCyclesLeft -= 4;
+						break;
+					}
+					//EOR Exclusive OR Memory with Accumulator, Absolute X, 3 Bytes, 4+ Cycles
+				case 0x5D:
+					{
+						EorOperation(AddressingMode.AbsoluteX);
+						IncrementProgramCounter(3);
+						NumberofCyclesLeft -= 4;
+						break;
+					}
+					//EOR Exclusive OR Memory with Accumulator, Absolute Y, 3 Bytes, 4+ Cycles
+				case 0x59:
+					{
+						EorOperation(AddressingMode.AbsoluteY);
+						IncrementProgramCounter(3);
+						NumberofCyclesLeft -= 4;
+						break;
+					}
+					//EOR Exclusive OR Memory with Accumulator, IndexedIndirect, 2 Bytes 6 Cycles
+				case 0x41:
+					{
+						EorOperation(AddressingMode.IndexedIndirect);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 6;
+						break;
+					}
+					//EOR Exclusive OR Memory with Accumulator, IndirectIndexed, 2 Bytes 5 Cycles
+				case 0x51:
+					{
+						EorOperation(AddressingMode.IndirectIndexed);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 5;
+						break;
+					}
 				#endregion
-
+				
 				#region Clear Flag Operations
 				//CLC Clear Carry Flag, Implied, 1 Byte, 2 Cycles
 				case 0x18:
@@ -1341,6 +1405,14 @@ namespace Processor
 				XRegister = value;
 			else
 				YRegister = value;
+		}
+
+		private void EorOperation(AddressingMode addressingMode)
+		{
+			Accumulator = Accumulator ^ Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
+
+			SetNegativeFlag(Accumulator);
+			SetZeroFlag(Accumulator);
 		}
 		#endregion
 		

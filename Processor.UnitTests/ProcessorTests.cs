@@ -945,6 +945,54 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region EOR Exclusive OR Compare Accumulator With Memory
+		
+		[TestCase(0x00, 0x00, 0x00)]
+		[TestCase(0xFF, 0x00, 0xFF)]
+		[TestCase(0x00, 0xFF, 0xFF)]
+		[TestCase(0x55, 0xAA, 0xFF)]
+		[TestCase(0xFF, 0xFF, 0x00)]
+		public void EOR_Accumulator_Correct(byte accumulatorValue, byte memoryValue, byte expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x49, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0xFF, 0xFF, false)]
+		[TestCase(0x80, 0x7F, true)]
+		[TestCase(0x40, 0x3F, false)]
+		[TestCase(0xFF, 0x7F, true)]
+		public void EOR_Negative_Flag_Correct(byte accumulatorValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x49, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0xFF, 0xFF, true)]
+		[TestCase(0x80, 0x7F, false)]
+		public void EOR_Zero_Flag_Correct(byte accumulatorValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x49, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		#endregion
+
 		#region INC Increment Memory by One
 
 		[TestCase(0x00, 0x01)]
@@ -1293,6 +1341,7 @@ namespace Processor.UnitTests
 		[TestCase(0x69, 0x01, 0x01, 0x02)] // ADC
 		[TestCase(0x29, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xA9, 0x04, 0x03, 0x03)] // LDA
+		[TestCase(0x49, 0x55, 0xAA, 0xFF)] // EOR
 		public void Immediate_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1308,6 +1357,7 @@ namespace Processor.UnitTests
 		[TestCase(0x65, 0x01, 0x01, 0x02)] // ADC
 		[TestCase(0x25, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xA5, 0x04, 0x03, 0x03)] // LDA
+		[TestCase(0x45, 0x55, 0xAA, 0xFF)] // EOR
 		public void ZeroPage_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1323,6 +1373,7 @@ namespace Processor.UnitTests
 		[TestCase(0x75, 0x00, 0x03, 0x03)] // ADC
 		[TestCase(0x35, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xB5, 0x04, 0x03, 0x03)] // LDA
+		[TestCase(0x55, 0x55, 0xAA, 0xFF)] // EOR
 		public void ZeroPageX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1340,6 +1391,7 @@ namespace Processor.UnitTests
 		[TestCase(0x6D, 0x00, 0x03, 0x03)] // ADC
 		[TestCase(0x2D, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xAD, 0x04, 0x03, 0x03)] // LDA
+		[TestCase(0x4D, 0x55, 0xAA, 0xFF)] // EOR
 		public void Absolute_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1355,9 +1407,11 @@ namespace Processor.UnitTests
 		[TestCase(0x7D, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x3D, 0x03, 0x03, false, 0x03)] // AND
 		[TestCase(0xBD, 0x04, 0x03, false, 0x03)] // LDA
+		[TestCase(0x5D, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x7D, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x3D, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xBD, 0x04, 0x03, true, 0x03)] // LDA
+		[TestCase(0x5D, 0x55, 0xAA, true, 0xFF)]  // EOR
 		public void AbsoluteX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1376,10 +1430,12 @@ namespace Processor.UnitTests
 
 		[TestCase(0x79, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x39, 0x03, 0x03, false, 0x03)] // AND
-		[TestCase(0xB9, 0x04, 0x03, true, 0x03)] // LDA
+		[TestCase(0xB9, 0x04, 0x03, false, 0x03)] // LDA
+		[TestCase(0x59, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x79, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x39, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xB9, 0x04, 0x03, true, 0x03)] // LDA
+		[TestCase(0x59, 0x55, 0xAA, true, 0xFF)]  // EOR
 		public void AbsoluteY_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1399,9 +1455,11 @@ namespace Processor.UnitTests
 		[TestCase(0x61, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x21, 0x03, 0x03, false, 0x03)] // AND
 		[TestCase(0xA1, 0x04, 0x03, false, 0x03)] // LDA
+		[TestCase(0x41, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x61, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x21, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xA1, 0x04, 0x03, true, 0x03)] // LDA
+		[TestCase(0x41, 0x55, 0xAA, true, 0xFF)]  // EOR
 		public void Indexed_Indirect_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1423,9 +1481,11 @@ namespace Processor.UnitTests
 		[TestCase(0x71, 0x01, 0x01, false, 0x02)] // ADC
 		[TestCase(0x31, 0x03, 0x03, false, 0x03)] // AND
 		[TestCase(0xB1, 0x04, 0x03, false, 0x03)] // LDA
+		[TestCase(0x51, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x71, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x31, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xB1, 0x04, 0x03, true, 0x03)] // LDA
+		[TestCase(0x51, 0x55, 0xAA, true, 0xFF)]  // EOR
 		public void Indirect_Indexed_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1688,6 +1748,14 @@ namespace Processor.UnitTests
 		[TestCase(0xDE, 7)] // DEC Absolute X
 		[TestCase(0xCA, 2)] // DEX Implied
 		[TestCase(0x88, 2)] // DEY Implied
+		[TestCase(0x49, 2)] // EOR Immediate
+		[TestCase(0x45, 3)] // EOR Zero Page
+		[TestCase(0x55, 4)] // EOR Zero Page X
+		[TestCase(0x4D, 4)] // EOR Absolute
+		[TestCase(0x5D, 4)] // EOR Absolute X
+		[TestCase(0x59, 4)] // EOR Absolute Y
+		[TestCase(0x41, 6)] // EOR Indrect X
+		[TestCase(0x51, 5)] // EOR Indirect Y
 		[TestCase(0xE6, 5)] // INC Zero Page
 		[TestCase(0xF6, 6)] // INC Zero Page X
 		[TestCase(0xE8, 2)] // INX Implied
@@ -1739,14 +1807,16 @@ namespace Processor.UnitTests
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
 		}
 
-		[TestCase(0x07d, true, 5)] // ADC Absolute X
+		[TestCase(0x07D, true, 5)] // ADC Absolute X
 		[TestCase(0x079, false, 5)] // ADC Absolute Y
-		[TestCase(0x03d, true, 5)] // AND Absolute X
+		[TestCase(0x03D, true, 5)] // AND Absolute X
 		[TestCase(0x039, false, 5)] // AND Absolute Y
 		[TestCase(0x1E, true, 7)] // ASL Absolute X
 		[TestCase(0xDD, true, 5)] // CMP Absolute X
 		[TestCase(0xD9, false, 5)] // CMP Absolute Y
 		[TestCase(0xDE, true, 7)] // DEC Absolute X
+		[TestCase(0x05D, true, 5)] // EOR Absolute X
+		[TestCase(0x059, false, 5)] // EOR Absolute Y
 		[TestCase(0xFE, true, 7)] // INC Absolute X
 		[TestCase(0xBD, true, 5)] // LDA Absolute X
 		[TestCase(0xB9, false, 5)] // LDA Absolute Y
@@ -1773,6 +1843,7 @@ namespace Processor.UnitTests
 		[TestCase(0x031, 6)] // AND Indirect Y
 		[TestCase(0xB1, 6)] // LDA Indirect Y
 		[TestCase(0xD1, 6)] // CMP Indirect Y
+		[TestCase(0x051, 6)] // EOR Indirect Y
 		public void NumberOfCyclesRemaining_Correct_When_In_IndirectIndexed_And_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -2012,6 +2083,14 @@ namespace Processor.UnitTests
 		[TestCase(0xDE, 3)] // DEC Absolute X
 		[TestCase(0xCA, 1)] // DEX Implied
 		[TestCase(0x88, 1)] // DEY Implied
+		[TestCase(0x49, 2)] // EOR Immediate
+		[TestCase(0x45, 2)] // EOR ZeroPage
+		[TestCase(0x55, 2)] // EOR Zero Page X
+		[TestCase(0x4D, 3)] // EOR Absolute
+		[TestCase(0x5D, 3)] // EOR Absolute X
+		[TestCase(0x59, 3)] // EOR Absolute Y
+		[TestCase(0x41, 2)] // EOR Indirect X
+		[TestCase(0x51, 2)] // EOR Indirect Y
 		[TestCase(0xE6, 2)] // INC Zero Page
 		[TestCase(0xF6, 2)] // INC Zero Page X
 		[TestCase(0xEE, 3)] // INC Absolute
