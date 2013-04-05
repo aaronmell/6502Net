@@ -213,7 +213,7 @@ namespace Processor
 						break;
 					}
 				#endregion
-				
+
 				#region Shift Operations
 				//ASL Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
 				case 0x0A:
@@ -256,7 +256,7 @@ namespace Processor
 						break;
 					}
 				#endregion
-				
+
 				#region Branch Operations
 				//BCC Branch if Carry is Clear, Relative, 2 Bytes, 2++ Cycles
 				case 0x90:
@@ -416,7 +416,7 @@ namespace Processor
 						NumberofCyclesLeft -= 3;
 						break;
 					}
-					//EOR Exclusive OR Memory with Accumulator, Zero Page X, 2 Bytes, 4 Cycles
+				//EOR Exclusive OR Memory with Accumulator, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x55:
 					{
 						EorOperation(AddressingMode.ZeroPageX);
@@ -424,7 +424,7 @@ namespace Processor
 						NumberofCyclesLeft -= 4;
 						break;
 					}
-					//EOR Exclusive OR Memory with Accumulator, Absolute, 3 Bytes, 4 Cycles
+				//EOR Exclusive OR Memory with Accumulator, Absolute, 3 Bytes, 4 Cycles
 				case 0x4D:
 					{
 						EorOperation(AddressingMode.Absolute);
@@ -432,7 +432,7 @@ namespace Processor
 						NumberofCyclesLeft -= 4;
 						break;
 					}
-					//EOR Exclusive OR Memory with Accumulator, Absolute X, 3 Bytes, 4+ Cycles
+				//EOR Exclusive OR Memory with Accumulator, Absolute X, 3 Bytes, 4+ Cycles
 				case 0x5D:
 					{
 						EorOperation(AddressingMode.AbsoluteX);
@@ -440,7 +440,7 @@ namespace Processor
 						NumberofCyclesLeft -= 4;
 						break;
 					}
-					//EOR Exclusive OR Memory with Accumulator, Absolute Y, 3 Bytes, 4+ Cycles
+				//EOR Exclusive OR Memory with Accumulator, Absolute Y, 3 Bytes, 4+ Cycles
 				case 0x59:
 					{
 						EorOperation(AddressingMode.AbsoluteY);
@@ -448,7 +448,7 @@ namespace Processor
 						NumberofCyclesLeft -= 4;
 						break;
 					}
-					//EOR Exclusive OR Memory with Accumulator, IndexedIndirect, 2 Bytes 6 Cycles
+				//EOR Exclusive OR Memory with Accumulator, IndexedIndirect, 2 Bytes 6 Cycles
 				case 0x41:
 					{
 						EorOperation(AddressingMode.IndexedIndirect);
@@ -456,7 +456,7 @@ namespace Processor
 						NumberofCyclesLeft -= 6;
 						break;
 					}
-					//EOR Exclusive OR Memory with Accumulator, IndirectIndexed, 2 Bytes 5 Cycles
+				//EOR Exclusive OR Memory with Accumulator, IndirectIndexed, 2 Bytes 5 Cycles
 				case 0x51:
 					{
 						EorOperation(AddressingMode.IndirectIndexed);
@@ -465,7 +465,7 @@ namespace Processor
 						break;
 					}
 				#endregion
-				
+
 				#region Clear Flag Operations
 				//CLC Clear Carry Flag, Implied, 1 Byte, 2 Cycles
 				case 0x18:
@@ -745,15 +745,18 @@ namespace Processor
 						NumberofCyclesLeft -= 5;
 						break;
 					}
+				//JSR Jump to SubRoutine, Absolute, 3 Bytes, 6 Cycles
+				case 0x20:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
 				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
 				case 0x00:
 					{
 						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
 						throw new NotImplementedException();
 					}
-
-
-
 				#endregion
 
 				#region Load Value From Memory Operations
@@ -1035,7 +1038,7 @@ namespace Processor
 						break;
 					}
 				#endregion
-				
+
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
 			}
