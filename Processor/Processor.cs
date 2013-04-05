@@ -578,6 +578,42 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
+				//INC Increment Memory by One, Zero Page, 2 Bytes, 5 Cycles
+				case 0xE6:
+					{
+						ChangeMemoryByOne(AddressingMode.ZeroPage, false);
+
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//INC Increment Memory by One, Zero Page X, 2 Bytes, 6 Cycles
+				case 0xF6:
+					{
+						ChangeMemoryByOne(AddressingMode.ZeroPageX, false);
+
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//INC Increment Memory by One, Absolute, 3 Bytes, 6 Cycles
+				case 0xEE:
+					{
+						ChangeMemoryByOne(AddressingMode.Absolute, false);
+
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//INC Increment Memory by One, Absolute X, 3 Bytes, 7 Cycles
+				case 0xFE:
+					{
+						ChangeMemoryByOne(AddressingMode.AbsoluteX, false);
+
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
+						break;
+					}
 				//JMP Jump to New Location, Absolute 3 Bytes, 3 Cycles
 				case 0x4C:
 					{

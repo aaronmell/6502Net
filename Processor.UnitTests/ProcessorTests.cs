@@ -857,6 +857,47 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region INC Increment Memory by One
+
+		[TestCase(0x00, 0x01)]
+		[TestCase(0xFF, 0x00)]
+		public void INC_Memory_Has_Correct_Value(byte initalMemoryValue, byte expectedMemoryValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xE6, 0x02, initalMemoryValue }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.Memory.ReadValue(0x02), Is.EqualTo(expectedMemoryValue));
+		}
+
+		[TestCase(0x00, false)]
+		[TestCase(0xFF, true)]
+		[TestCase(0xFE, false)]
+		public void INC_Zero_Has_Correct_Value(byte initalMemoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xE6, 0x02, initalMemoryValue }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x78, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0x00, false)]
+		public void INC_Negative_Has_Correct_Value(byte initalMemoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xE6, 0x02, initalMemoryValue }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
 		#region JMP - Jump to New Location
 
 		[Test]
@@ -1400,7 +1441,9 @@ namespace Processor.UnitTests
 
 		#region Decrement/Increment Address Tests
 		[TestCase(0xC6,0xFF, 0xFE)] //DEC Zero Page
-		[TestCase(0xC6, 0xFF, 0xFE)] //DEC Zero Page X
+		[TestCase(0xD6, 0xFF, 0xFE)] //DEC Zero Page X
+		[TestCase(0xE6, 0xFF, 0x00)] //INC Zero Page
+		[TestCase(0xF6, 0xFF, 0x00)] //INC Zero Page X
 		public void Zero_Page_DEC_INC_Has_Correct_Result(byte operation, byte memoryValue, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1413,6 +1456,8 @@ namespace Processor.UnitTests
 
 		[TestCase(0xCE, 0xFF, 0xFE)] //DEC Zero Page
 		[TestCase(0xDE, 0xFF, 0xFE)] //DEC Zero Page X
+		[TestCase(0xEE, 0xFF, 0x00)] //INC Zero Page
+		[TestCase(0xFE, 0xFF, 0x00)] //INC Zero Page X
 		public void Absolute_DEC_INC_Has_Correct_Result(byte operation, byte memoryValue, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1464,6 +1509,10 @@ namespace Processor.UnitTests
 		[TestCase(0xD6, 6)] // DEC Zero Page X
 		[TestCase(0xCE, 6)] // DEC Absolute
 		[TestCase(0xDE, 7)] // DEC Absolute X
+		[TestCase(0xE6, 5)] // INC Zero Page
+		[TestCase(0xF6, 6)] // INC Zero Page X
+		[TestCase(0xEE, 6)] // INC Absolute
+		[TestCase(0xFE, 7)] // INC Absolute X
 		[TestCase(0xE0, 2)] // CPX Immediate
 		[TestCase(0xE4, 3)] // CPX ZeroPage
 		[TestCase(0xEC, 4)] // CPX Absolute
@@ -1779,6 +1828,10 @@ namespace Processor.UnitTests
 		[TestCase(0xD6, 2)] // DEC Zero Page X
 		[TestCase(0xCE, 3)] // DEC Absolute
 		[TestCase(0xDE, 3)] // DEC Absolute X
+		[TestCase(0xE6, 2)] // INC Zero Page
+		[TestCase(0xF6, 2)] // INC Zero Page X
+		[TestCase(0xEE, 3)] // INC Absolute
+		[TestCase(0xFE, 3)] // INC Absolute X
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 2)] // LDA Zero Page
 		[TestCase(0xB5, 2)] // LDA Zero Page X
