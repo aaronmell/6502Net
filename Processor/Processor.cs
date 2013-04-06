@@ -212,6 +212,74 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
+
+
+
+
+				//SBC Subtract with Borrow, Immediate, 2 Bytes, 2 Cycles
+				case 0xE9:
+					{
+						SubtractWithBorrowOperation(AddressingMode.Immediate);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 2;
+						break;
+					}
+				//SBC Subtract with Borrow, Zero Page, 2 Bytes, 3 Cycles
+				case 0xE5:
+					{
+						SubtractWithBorrowOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//SBC Subtract with Borrow, Zero Page X, 2 Bytes, 4 Cycles
+				case 0xF5:
+					{
+						SubtractWithBorrowOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//SBC Subtract with Borrow, Absolute, 3 Bytes, 4 Cycles
+				case 0xED:
+					{
+						SubtractWithBorrowOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//SBC Subtract with Borrow, Absolute X, 3 Bytes, 4+ Cycles
+				case 0xFD:
+					{
+						SubtractWithBorrowOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//SBC Subtract with Borrow, Absolute Y, 3 Bytes, 4+ Cycles
+				case 0xF9:
+					{
+						SubtractWithBorrowOperation(AddressingMode.AbsoluteY);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//SBC Subtract with Borrow, Indexed Indirect, 2 Bytes, 6 Cycles
+				case 0xE1:
+					{
+						SubtractWithBorrowOperation(AddressingMode.IndexedIndirect);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//SBC Subtract with Borrow, Indexed Indirect, 2 Bytes, 5+ Cycles
+				case 0xF1:
+					{
+						SubtractWithBorrowOperation(AddressingMode.IndirectIndexed);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
 				#endregion
 				
 				#region Branch Operations
@@ -585,7 +653,7 @@ namespace Processor
 				//CMP Compare Accumulator with Memory, Indirect Y, 2 Bytes, 5 Cycles
 				case 0xD1:
 					{
-						CompareOperation(AddressingMode.IndexedIndirect, Accumulator);
+						CompareOperation(AddressingMode.IndirectIndexed, Accumulator);
 						NumberofCyclesLeft -= 5;
 						IncrementProgramCounter(2);
 						break;
@@ -1291,7 +1359,7 @@ namespace Processor
 		/// <param name="accumulator">The Value in the accumulator before the operation</param>
 		/// <param name="memory">The value that came from memory</param>
 		/// <param name="result">The result of the operation between the accumulator and memory</param>
-		private void SetOverflow(int accumulator , int memory, int result)
+		private void SetAddOverflow(int accumulator , int memory, int result)
 		{
 			
 			OverflowFlag = ( ( accumulator ^ result ) & ( memory ^ result ) & 0x80 ) != 0;
@@ -1355,8 +1423,8 @@ namespace Processor
 						{
 							address -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
-							//However, if this is an ASL, LSR, DEC, or INC operation, we do not decrease if by 1.
-							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE || CurrentOpCode == 0xFE || CurrentOpCode == 0x5E)
+							//However, if this is an ASL, LSR, DEC, INC, ROR or ROL operation, we do not decrease it by 1.
+							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE || CurrentOpCode == 0xFE || CurrentOpCode == 0x5E || CurrentOpCode == 0x3E || CurrentOpCode == 0x7E)
 								return address;
 
 							NumberofCyclesLeft--;
@@ -1470,7 +1538,7 @@ namespace Processor
 			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
 			var newValue = memoryValue + Accumulator + (CarryFlag ? 1 : 0);
 
-			SetOverflow(Accumulator, memoryValue, newValue);
+			SetAddOverflow(Accumulator, memoryValue, newValue);
 
 			if (Decimal)
 			{
@@ -1500,7 +1568,7 @@ namespace Processor
 			SetZeroFlag(newValue);
 			SetNegativeFlag(newValue);
 
-			Accumulator = newValue;
+			Accumulator = newValue;	
 		}
 
 		/// <summary>
@@ -1759,6 +1827,34 @@ namespace Processor
 			{
 				Memory.WriteValue(memoryAddress, (byte)value);
 			}
+		}
+
+		private void SubtractWithBorrowOperation(AddressingMode addressingMode)
+		{
+			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
+			var newValue = Accumulator - memoryValue - (CarryFlag ? 1 : 0);
+
+			CarryFlag = newValue >= 0;
+
+			if (Decimal)
+			{
+				OverflowFlag = ( newValue > 99 || newValue < 0 );
+
+				if (newValue < 0)
+					newValue += 100;
+			}
+			else
+			{
+				OverflowFlag = ( newValue > 127 || newValue < -128 );
+
+				if (newValue < 0)
+					newValue += 256;
+			}
+
+			SetNegativeFlag(newValue);
+			SetZeroFlag(newValue);
+
+			Accumulator = newValue;
 		}
 		#endregion
 		

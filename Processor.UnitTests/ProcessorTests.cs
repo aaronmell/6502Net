@@ -1515,6 +1515,173 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region SBC Subtraction With Borrow
+
+		[TestCase(0, 0, false, 0)]
+		[TestCase(0, 1, false, 0xFF)]
+		[TestCase(1, 1, false, 0)]
+		[TestCase(0xFF, 0xFF, false, 0)]
+		[TestCase(0, 0, true, 0xFF)]
+		[TestCase(2, 1, true, 0)]
+		[TestCase(255, 255, true, 255)]
+		public void SBC_Accumulator_Correct_When_Not_In_BDC_Mode(byte accumlatorIntialValue, byte amountToSubtract, bool CarryFlagSet, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			if (CarryFlagSet)
+			{
+				processor.LoadProgram(0, new byte[] { 0x38, 0xA9, accumlatorIntialValue, 0xE9, amountToSubtract }, 0x00);
+				processor.NextStep();
+			}
+			else
+				processor.LoadProgram(0, new byte[] { 0xA9, accumlatorIntialValue, 0xE9, amountToSubtract }, 0x00);
+
+			processor.NextStep();
+			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
+
+			processor.NextStep();
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0, 0, false, 0)]
+		[TestCase(0, 1, false, 0x63)]
+		[TestCase(1, 1, false, 0)]
+		[TestCase(0, 0, true, 0x63)]
+		[TestCase(2, 1, true, 0)]
+		public void SBC_Accumulator_Correct_When_In_BDC_Mode(byte accumlatorIntialValue, byte amountToAdd,
+																	   bool setCarryFlag, byte expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			if (setCarryFlag)
+			{
+				processor.LoadProgram(0, new byte[] { 0x38, 0xF8, 0xA9, accumlatorIntialValue, 0xE9, amountToAdd }, 0x00);
+				processor.NextStep();
+			}
+			else
+				processor.LoadProgram(0, new byte[] { 0xF8, 0xA9, accumlatorIntialValue, 0xE9, amountToAdd }, 0x00);
+
+			processor.NextStep();
+			processor.NextStep();
+			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
+
+			processor.NextStep();
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
+		}
+
+
+		[TestCase(0xFF, 1, false, true)]
+		[TestCase(0xFF, 0, false, true)]
+		[TestCase(0x80, 0, false, true)]
+		[TestCase(0x80, 0, true, false)]
+		[TestCase(0x81, 1, false, true)]
+		[TestCase(0x81, 1, true, false)]
+		[TestCase(0, 0x80, false, false)]
+		[TestCase(0, 0x80, true, true)]
+		[TestCase(1, 0x80, true, false)]
+		[TestCase(1, 0x7F, false, false)]
+		public void SBC_Overflow_Correct_When_Not_In_BDC_Mode(byte accumlatorIntialValue, byte amountToSubtact, bool setCarryFlag,
+																	 bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			if (setCarryFlag)
+			{
+				processor.LoadProgram(0, new byte[] { 0x38, 0xA9, accumlatorIntialValue, 0xE9, amountToSubtact }, 0x00);
+				processor.NextStep();
+			}
+			else
+				processor.LoadProgram(0, new byte[] { 0xA9, accumlatorIntialValue, 0xE9, amountToSubtact }, 0x00);
+
+			processor.NextStep();
+			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
+
+			processor.NextStep();
+			Assert.That(processor.OverflowFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(99, 1, false, false)]
+		[TestCase(99, 0, false, false)]
+		[TestCase(0, 1, false, true)]
+		[TestCase(1, 1, true, true)]
+		[TestCase(2, 1, true, false)]
+		[TestCase(1, 1, false, false)]
+		public void SBC_Overflow_Correct_When_In_BDC_Mode(byte accumlatorIntialValue, byte amountToSubtract, bool setCarryFlag,
+																	 bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			if (setCarryFlag)
+			{
+				processor.LoadProgram(0, new byte[] { 0x38, 0xF8, 0xA9, accumlatorIntialValue, 0xE9, amountToSubtract }, 0x00);
+				processor.NextStep();
+			}
+			else
+				processor.LoadProgram(0, new byte[] { 0xF8, 0xA9, accumlatorIntialValue, 0xE9, amountToSubtract }, 0x00);
+
+			
+
+			processor.NextStep();
+			processor.NextStep();
+			Assert.That(processor.Accumulator, Is.EqualTo(accumlatorIntialValue));
+
+			processor.NextStep();
+			Assert.That(processor.OverflowFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0, 0, true)]
+		[TestCase(0, 1, false)]
+		[TestCase(1, 0, true)]
+		[TestCase(2, 1, true)]
+		public void SBC_Carry_Correct(byte accumlatorIntialValue, byte amountToSubtract, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorIntialValue, 0xE9, amountToSubtract }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0, 0, true)]
+		[TestCase(0, 1, false)]
+		[TestCase(1, 0, false)]
+		[TestCase(1, 1, true)]
+		public void SBC_Zero_Correct(byte accumlatorIntialValue, byte amountToSubtract, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorIntialValue, 0xE9, amountToSubtract }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x80, 0x01, false)]
+		[TestCase(0x81, 0x01, true)]
+		[TestCase(0x00, 0x01, true)]
+		[TestCase(0x01, 0x01, false)]
+		public void SBC_Negative_Correct(byte accumlatorIntialValue, byte amountToSubtract, bool expectedValue)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorIntialValue, 0xE9, amountToSubtract }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
+		}
+		#endregion
+
 		#region SEC - Set Carry Flag
 
 		[Test]
@@ -1899,8 +2066,8 @@ namespace Processor.UnitTests
 			Assert.That(processor.CarryFlag, Is.EqualTo(true));
 		}
 
-		[TestCase(0xD1, 0xFF, 0x00, true)] 
-		[TestCase(0xD1, 0xFF, 0x00, false)] 
+		[TestCase(0xC1, 0xFF, 0x00, true)] 
+		[TestCase(0xC1, 0xFF, 0x00, false)] 
 		public void Indexed_Indirect_Mode_CMP_Operation_Has_Correct_Result(byte operation, byte accumulatorValue, byte memoryValue, bool addressWraps)
 		{
 			var processor = new Processor();
@@ -2079,6 +2246,14 @@ namespace Processor.UnitTests
 		[TestCase(0x76, 6)] // ROR Zero Page X
 		[TestCase(0x6E, 6)] // ROR Absolute
 		[TestCase(0x7E, 7)] // ROR Absolute X
+		[TestCase(0xE9, 2)] // SBC Immediate
+		[TestCase(0xE5, 3)] // SBC Zero Page
+		[TestCase(0xF5, 4)] // SBC Zero Page X
+		[TestCase(0xED, 4)] // SBC Absolute
+		[TestCase(0xFD, 4)] // SBC Absolute X
+		[TestCase(0xF9, 4)] // SBC Absolute Y
+		[TestCase(0xE1, 6)] // SBC Indrect X
+		[TestCase(0xF1, 5)] // SBC Indirect Y
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
 		[TestCase(0x78, 2)] // SEI Implied
@@ -2117,6 +2292,10 @@ namespace Processor.UnitTests
 		[TestCase(0x5E, true, 7)] // LSR Absolute X
 		[TestCase(0x1D, true, 5)] // ORA Absolute X
 		[TestCase(0x19, false, 5)] // ORA Absolute Y
+		[TestCase(0x3E, true, 7)] // ROL Absolute X
+		[TestCase(0x7E, true,  7)] // ROR Absolute X
+		[TestCase(0xFD, true, 5)] // SBC Absolute X
+		[TestCase(0xF9, false, 5)] // SBC Absolute Y
 		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte operation, bool isAbsoluteX, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -2138,13 +2317,14 @@ namespace Processor.UnitTests
 		[TestCase(0x031, 6)] // AND Indirect Y
 		[TestCase(0xB1, 6)] // LDA Indirect Y
 		[TestCase(0xD1, 6)] // CMP Indirect Y
-		[TestCase(0x051, 6)] // EOR Indirect Y
+		[TestCase(0x51, 6)] // EOR Indirect Y
 		[TestCase(0x11, 6)] // ORA Indirect Y
+		[TestCase(0xF1, 6)] // SBC Indirect Y
 		public void NumberOfCyclesRemaining_Correct_When_In_IndirectIndexed_And_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA0, 0x04, 0x71, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA0, 0x04, operation, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
 			processor.NextStep();
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
 			var startingNumberOfCycles = processor.NumberofCyclesLeft;
@@ -2435,6 +2615,14 @@ namespace Processor.UnitTests
 		[TestCase(0x76, 2)] // ROR Zero Page X
 		[TestCase(0x6E, 3)] // ROR Absolute
 		[TestCase(0x7E, 3)] // ROR Absolute X
+		[TestCase(0xE9, 2)] // SBC Immediate
+		[TestCase(0xE5, 2)] // SBC Zero Page
+		[TestCase(0xF5, 2)] // SBC Zero Page X
+		[TestCase(0xED, 3)] // SBC Absolute
+		[TestCase(0xFD, 3)] // SBC Absolute X
+		[TestCase(0xF9, 3)] // SBC Absolute Y
+		[TestCase(0xE1, 2)] // SBC Indrect X
+		[TestCase(0xF1, 2)] // SBC Indirect Y
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
 		[TestCase(0x78, 1)] // SEI Implied
