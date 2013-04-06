@@ -1083,6 +1083,18 @@ namespace Processor
 						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
 						throw new NotImplementedException();
 					}
+				//TSX Transfer Stack to X Register, 1 Bytes, 2 Cycles
+				case 0xBA:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
+				//TXS Transfer X Register to Stack, 1 Bytes, 2 Cycles
+				case 0x9A:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
 				#endregion
 
 				#region Set Flag Operations
@@ -1395,7 +1407,7 @@ namespace Processor
 						IncrementProgramCounter(1);
 						break;
 					}
-				//TAX Transfer Accumulator to Y Register, 1 Bytes, 2 Cycles
+				//TAY Transfer Accumulator to Y Register, 1 Bytes, 2 Cycles
 				case 0xA8:
 					{
 						YRegister = Accumulator;
@@ -1432,6 +1444,7 @@ namespace Processor
 						break;
 					}
 				#endregion
+				
 				//NOP Operation, Implied, 1 Byte, 2 Cycles
 				case 0xEA:
 					{
