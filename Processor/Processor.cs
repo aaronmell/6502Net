@@ -213,90 +213,7 @@ namespace Processor
 						break;
 					}
 				#endregion
-
-				#region Shift Operations
-				//ASL Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
-				case 0x0A:
-					{
-						AslOperation(AddressingMode.Accumulator);
-						NumberofCyclesLeft -= 2;
-						IncrementProgramCounter(1);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
-				case 0x06:
-					{
-						AslOperation(AddressingMode.ZeroPage);
-						NumberofCyclesLeft -= 5;
-						IncrementProgramCounter(2);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
-				case 0x16:
-					{
-						AslOperation(AddressingMode.ZeroPageX);
-						NumberofCyclesLeft -= 6;
-						IncrementProgramCounter(2);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
-				case 0x0E:
-					{
-						AslOperation(AddressingMode.Absolute);
-						NumberofCyclesLeft -= 6;
-						IncrementProgramCounter(3);
-						break;
-					}
-				//ASL Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
-				case 0x1E:
-					{
-						AslOperation(AddressingMode.AbsoluteX);
-						NumberofCyclesLeft -= 7;
-						IncrementProgramCounter(3);
-						break;
-					}
-				//LSR Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
-				case 0x4A:
-					{
-						LsrOperation(AddressingMode.Accumulator);
-						NumberofCyclesLeft -= 2;
-						IncrementProgramCounter(1);
-						break;
-					}
-				//LSR Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
-				case 0x46:
-					{
-						LsrOperation(AddressingMode.ZeroPage);
-						NumberofCyclesLeft -= 5;
-						IncrementProgramCounter(2);
-						break;
-					}
-				//LSR Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
-				case 0x56:
-					{
-						LsrOperation(AddressingMode.ZeroPageX);
-						NumberofCyclesLeft -= 6;
-						IncrementProgramCounter(2);
-						break;
-					}
-				//LSR Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
-				case 0x4E:
-					{
-						LsrOperation(AddressingMode.Absolute);
-						NumberofCyclesLeft -= 6;
-						IncrementProgramCounter(3);
-						break;
-					}
-				//LSR Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
-				case 0x5E:
-					{
-						LsrOperation(AddressingMode.AbsoluteX);
-						NumberofCyclesLeft -= 7;
-						IncrementProgramCounter(3);
-						break;
-					}
-				#endregion
-
+				
 				#region Branch Operations
 				//BCC Branch if Carry is Clear, Relative, 2 Bytes, 2++ Cycles
 				case 0x90:
@@ -1065,6 +982,33 @@ namespace Processor
 					}
 				#endregion
 
+				#region Push/Pull Stack
+				//PHA Push Accumulator onto Stack, Implied, 1 Byte, 3 Cycles
+				case 0x48:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
+				//PHP Push Flags onto Stack, Implied, 1 Byte, 3 Cycles
+				case 0x08:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
+				//PLA Pull Accumulator from Stack, Implied, 1 Byte, 4 Cycles
+				case 0x68:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
+				//PLP Pull Flags from Stack, Implied, 1 Byte, 4 Cycles
+				case 0x28:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
+				#endregion
+
 				#region Set Flag Operations
 				//SEC Set Carry, Implied, 1 Bytes, 2 Cycles
 				case 0x38:
@@ -1088,6 +1032,129 @@ namespace Processor
 						InterruptFlag = true;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
+						break;
+					}
+				#endregion
+
+				#region Shift/Rotate Operations
+				//ASL Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
+				case 0x0A:
+					{
+						AslOperation(AddressingMode.Accumulator);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
+				case 0x06:
+					{
+						AslOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
+				case 0x16:
+					{
+						AslOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
+				case 0x0E:
+					{
+						AslOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ASL Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
+				case 0x1E:
+					{
+						AslOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
+				case 0x4A:
+					{
+						LsrOperation(AddressingMode.Accumulator);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
+				case 0x46:
+					{
+						LsrOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
+				case 0x56:
+					{
+						LsrOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
+				case 0x4E:
+					{
+						LsrOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//LSR Shift Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
+				case 0x5E:
+					{
+						LsrOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ROL Rotate Left 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
+				case 0x2A:
+					{
+						RolOperation(AddressingMode.Accumulator);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//ROL Rotate Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
+				case 0x26:
+					{
+						RolOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ROL Rotate Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
+				case 0x36:
+					{
+						RolOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ROL Rotate Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
+				case 0x2E:
+					{
+						RolOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ROL Rotate Left 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
+				case 0x3E:
+					{
+						RolOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
 						break;
 					}
 				#endregion
@@ -1415,10 +1482,8 @@ namespace Processor
 			//If the 7th bit is set, then we have a carry
 			CarryFlag = ((value & 0x80) != 0);
 
-			value = (value << 1);
-
-			if (value > 255)
-				value -= 256;
+			//The And here ensures that if the value is greater than 255 it wraps properly.
+			value = (value << 1) & 0xFE;
 
 			SetNegativeFlag(value);
 			SetZeroFlag(value);
@@ -1555,7 +1620,7 @@ namespace Processor
 
 			//If the Zero bit is set, we have a carry
 			CarryFlag = ( value & 0x01 ) != 0;
-
+			
 			value = (value >> 1);
 
 			SetZeroFlag(value);
@@ -1574,6 +1639,39 @@ namespace Processor
 			
 			SetNegativeFlag(Accumulator);
 			SetZeroFlag(Accumulator);
+		}
+
+		private void RolOperation(AddressingMode addressingMode)
+		{
+			int value;
+			var memoryAddress = 0;
+			if (addressingMode == AddressingMode.Accumulator)
+				value = Accumulator;
+			else
+			{
+				memoryAddress = GetAddressByAddressingMode(addressingMode);
+				value = Memory.ReadValue(memoryAddress);
+			}
+
+			//Store the carry flag before shifting it
+			var newCarry = (0x80 & value) != 0;
+
+			//The And here ensures that if the value is greater than 255 it wraps properly.
+			value = (value << 1) & 0xFE;
+
+			if (CarryFlag)
+				value = value | 0x01;
+
+			CarryFlag = newCarry;
+			SetZeroFlag(value);
+			SetNegativeFlag(value);
+			
+			if (addressingMode == AddressingMode.Accumulator)
+				Accumulator = value;
+			else
+			{
+				Memory.WriteValue(memoryAddress, (byte)value);
+			}
 		}
 		#endregion
 		

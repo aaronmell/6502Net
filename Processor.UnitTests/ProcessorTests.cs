@@ -1267,7 +1267,7 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA5, accumulatorValue, 0x4A }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x4A }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -1366,6 +1366,73 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
 		}
+		#endregion
+
+		#region ROL Rotate Left
+
+		[TestCase(0x40, true)]
+		[TestCase(0x3F, false)]
+		[TestCase(0x80, false)]
+		public void ROL_Negative_Set_Correctly(byte accumulatorValue, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x2A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		public void ROL_Zero_Set_Correctly(bool carryFlagSet, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			var carryOperation = carryFlagSet ? 0x38 : 0x18;
+
+			processor.LoadProgram(0, new byte[] { (byte)carryOperation, 0x2A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x80, true)]
+		[TestCase(0x7F, false)]
+		public void ROL_Carry_Flag_Set_Correctly(byte accumulatorValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x2A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.CarryFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x2A, 0x55, 0xAA, 0x00)] // ROL Accumulator
+		[TestCase(0x2A, 0x55, 0xAA, 0x00)] // ROL Accumulator
+		[TestCase(0x26, 0x55, 0xAA, 0x01)] // ROL Zero Page
+		[TestCase(0x36, 0x55, 0xAA, 0x01)] // ROL Zero Page X
+		[TestCase(0x2E, 0x55, 0xAA, 0x01)] // ROL Absolute
+		[TestCase(0x3E, 0x55, 0xAA, 0x01)] // ROL Absolute X
+		public void ROL_Correct_Value_Stored(byte operation, byte valueToRoll, byte expectedValue, byte expectedLocation)
+		{
+			var processor = new Processor();
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
+
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToRoll, operation, expectedLocation }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(operation == 0x2A
+				? processor.Accumulator
+				: processor.Memory.ReadValue(expectedLocation),
+						Is.EqualTo(expectedValue));
+		}
+
 		#endregion
 
 		#region SEC - Set Carry Flag
@@ -1922,6 +1989,11 @@ namespace Processor.UnitTests
 		[TestCase(0x19, 4)] // ORA Absolute Y
 		[TestCase(0x01, 6)] // ORA Indirect X
 		[TestCase(0x11, 5)] // ORA Indirect Y
+		[TestCase(0x2A, 2)] // ROL Accumulator
+		[TestCase(0x26, 5)] // ROL Zero Page
+		[TestCase(0x36, 6)] // ROL Zero Page X
+		[TestCase(0x2E, 6)] // ROL Absolute
+		[TestCase(0x3E, 7)] // ROL Absolute X
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
 		[TestCase(0x78, 2)] // SEI Implied
@@ -2268,6 +2340,11 @@ namespace Processor.UnitTests
 		[TestCase(0x19, 3)] // ORA Absolute Y
 		[TestCase(0x01, 2)] // ORA Indirect X
 		[TestCase(0x11, 2)] // ORA Indirect Y
+		[TestCase(0x2A, 1)] // ROL Accumulator
+		[TestCase(0x26, 2)] // ROL Zero Page
+		[TestCase(0x36, 2)] // ROL Zero Page X
+		[TestCase(0x2E, 3)] // ROL Absolute
+		[TestCase(0x3E, 3)] // ROL Absolute X
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
 		[TestCase(0x78, 1)] // SEI Implied
