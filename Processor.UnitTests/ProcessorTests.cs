@@ -1775,6 +1775,126 @@ namespace Processor.UnitTests
 
 		#endregion
 
+		#region TAX, TAY, TSX, TSY Tests
+		
+		[TestCase(0xAA, RegisterMode.Accumulator, RegisterMode.XRegister)]
+		[TestCase(0xA8, RegisterMode.Accumulator, RegisterMode.YRegister)]
+		[TestCase(0x8A, RegisterMode.XRegister, RegisterMode.Accumulator)]
+		[TestCase(0x98, RegisterMode.YRegister, RegisterMode.Accumulator)]
+		public void Transfer_Correct_Value_Set(byte operation, RegisterMode transferFrom, RegisterMode transferTo)
+		{
+			var processor = new Processor();
+			byte loadOperation;
+
+			switch (transferFrom)
+			{
+				case RegisterMode.Accumulator:
+					loadOperation = 0xA9;
+					break;
+				case RegisterMode.XRegister:
+					loadOperation = 0xA2;
+					break;
+				default:
+					loadOperation = 0xA0;
+					break;
+			}
+
+			processor.LoadProgram(0, new[] { loadOperation, (byte)0x03, operation }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+
+			switch (transferTo)
+			{
+
+				case RegisterMode.Accumulator:
+					Assert.That(processor.Accumulator, Is.EqualTo(0x03));
+					break;
+				case RegisterMode.XRegister:
+					Assert.That(processor.XRegister, Is.EqualTo(0x03));
+					break;
+				default:
+					Assert.That(processor.YRegister, Is.EqualTo(0x03));
+					break;
+			}
+		}
+
+		[TestCase(0xAA, 0x80, RegisterMode.Accumulator, true)]
+		[TestCase(0xA8, 0x80, RegisterMode.Accumulator, true)]
+		[TestCase(0x8A, 0x80, RegisterMode.XRegister, true)]
+		[TestCase(0x98, 0x80, RegisterMode.YRegister, true)]
+		[TestCase(0xAA, 0xFF, RegisterMode.Accumulator, true)]
+		[TestCase(0xA8, 0xFF, RegisterMode.Accumulator, true)]
+		[TestCase(0x8A, 0xFF, RegisterMode.XRegister, true)]
+		[TestCase(0x98, 0xFF, RegisterMode.YRegister, true)]
+		[TestCase(0xAA, 0x7F, RegisterMode.Accumulator, false)]
+		[TestCase(0xA8, 0x7F, RegisterMode.Accumulator, false)]
+		[TestCase(0x8A, 0x7F, RegisterMode.XRegister, false)]
+		[TestCase(0x98, 0x7F, RegisterMode.YRegister, false)]
+		[TestCase(0xAA, 0x00, RegisterMode.Accumulator, false)]
+		[TestCase(0xA8, 0x00, RegisterMode.Accumulator, false)]
+		[TestCase(0x8A, 0x00, RegisterMode.XRegister, false)]
+		[TestCase(0x98, 0x00, RegisterMode.YRegister, false)]
+		public void Transfer_Negative_Value_Set(byte operation, byte value, RegisterMode transferFrom, bool expectedResult)
+		{
+			var processor = new Processor();
+			byte loadOperation;
+
+			switch (transferFrom)
+			{
+				case RegisterMode.Accumulator:
+					loadOperation = 0xA9;
+					break;
+				case RegisterMode.XRegister:
+					loadOperation = 0xA2;
+					break;
+				default:
+					loadOperation = 0xA0;
+					break;
+			}
+
+			processor.LoadProgram(0, new[] { loadOperation, value, operation }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		
+		[TestCase(0xAA, 0xFF, RegisterMode.Accumulator, false)]
+		[TestCase(0xA8, 0xFF, RegisterMode.Accumulator, false)]
+		[TestCase(0x8A, 0xFF, RegisterMode.XRegister, false)]
+		[TestCase(0x98, 0xFF, RegisterMode.YRegister, false)]
+		[TestCase(0xAA, 0x00, RegisterMode.Accumulator, true)]
+		[TestCase(0xA8, 0x00, RegisterMode.Accumulator, true)]
+		[TestCase(0x8A, 0x00, RegisterMode.XRegister, true)]
+		[TestCase(0x98, 0x00, RegisterMode.YRegister, true)]
+		public void Transfer_Zero_Value_Set(byte operation, byte value, RegisterMode transferFrom, bool expectedResult)
+		{
+			var processor = new Processor();
+			byte loadOperation;
+
+			switch (transferFrom)
+			{
+				case RegisterMode.Accumulator:
+					loadOperation = 0xA9;
+					break;
+				case RegisterMode.XRegister:
+					loadOperation = 0xA2;
+					break;
+				default:
+					loadOperation = 0xA0;
+					break;
+			}
+
+			processor.LoadProgram(0, new[] { loadOperation, value, operation }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		#endregion
+
 		#region Accumulator Address Tests
 		[TestCase(0x69, 0x01, 0x01, 0x02)] // ADC
 		[TestCase(0x29, 0x03, 0x03, 0x03)] // AND
@@ -2363,6 +2483,10 @@ namespace Processor.UnitTests
 		[TestCase(0x84, 3)] // STY Zero Page
 		[TestCase(0x94, 4)] // STY Zero Page X
 		[TestCase(0x8C, 4)] // STY Absolute
+		[TestCase(0xAA, 2)] // TAX Implied
+		[TestCase(0xA8, 2)] // TAY Implied
+		[TestCase(0x8A, 2)] // TXA Implied
+		[TestCase(0x98, 2)] // TYA Implied
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -2742,6 +2866,10 @@ namespace Processor.UnitTests
 		[TestCase(0x84, 2)] // STY Zero Page
 		[TestCase(0x94, 2)] // STY Zero Page X
 		[TestCase(0x8C, 3)] // STY Absolute
+		[TestCase(0xAA, 1)] // TAX Implied
+		[TestCase(0xA8, 1)] // TAY Implied
+		[TestCase(0x8A, 1)] // TXA Implied
+		[TestCase(0x98, 1)] // TYA Implied
 		public void Program_Counter_Correct(byte operation, int expectedProgramCounter)
 		{
 			var processor = new Processor();

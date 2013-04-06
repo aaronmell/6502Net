@@ -1382,6 +1382,56 @@ namespace Processor
 					}
 				#endregion
 
+				#region Transfer Operations
+				//TAX Transfer Accumulator to X Register, Implied, 1 Bytes, 2 Cycles
+				case 0xAA:
+					{
+						XRegister = Accumulator;
+
+						SetNegativeFlag(XRegister);
+						SetZeroFlag(XRegister);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//TAX Transfer Accumulator to Y Register, 1 Bytes, 2 Cycles
+				case 0xA8:
+					{
+						YRegister = Accumulator;
+
+						SetNegativeFlag(YRegister);
+						SetZeroFlag(YRegister);
+						
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//TXA Transfer X Register to Accumulator, Implied, 1 Bytes, 2 Cycles
+				case 0x8A:
+					{
+						Accumulator = XRegister;
+
+						SetNegativeFlag(Accumulator);
+						SetZeroFlag(Accumulator);
+						
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//TYA Transfer Y Register to Accumulator, Implied, 1 Bytes, 2 Cycles
+				case 0x98:
+					{
+						Accumulator = YRegister;
+
+						SetNegativeFlag(Accumulator);
+						SetZeroFlag(Accumulator);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				#endregion
 				//NOP Operation, Implied, 1 Byte, 2 Cycles
 				case 0xEA:
 					{
