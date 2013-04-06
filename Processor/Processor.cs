@@ -368,19 +368,19 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//AND Compare Memory with Accumulator, Zero Page, 2 Bytes, 3 Cycles
+				//AND Compare Memory with Accumulator, Zero Page, 2 Bytes, 2 Cycles
 				case 0x25:
 					{
 						AndOperation(AddressingMode.ZeroPage);
-						NumberofCyclesLeft -= 3;
+						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(2);
 						break;
 					}
-				//AND Compare Memory with Accumulator, Zero PageX, 2 Bytes, 4 Cycles
+				//AND Compare Memory with Accumulator, Zero PageX, 2 Bytes, 3 Cycles
 				case 0x35:
 					{
 						AndOperation(AddressingMode.ZeroPageX);
-						NumberofCyclesLeft -= 4;
+						NumberofCyclesLeft -= 3;
 						IncrementProgramCounter(2);
 						break;
 					}
@@ -502,6 +502,70 @@ namespace Processor
 						EorOperation(AddressingMode.IndirectIndexed);
 						IncrementProgramCounter(2);
 						NumberofCyclesLeft -= 5;
+						break;
+					}
+				//ORA Compare Memory with Accumulator, Immediate, 2 Bytes, 2 Cycles
+				case 0x09:
+					{
+						OrOperation(AddressingMode.Immediate);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ORA Compare Memory with Accumulator, Zero Page, 2 Bytes, 2 Cycles
+				case 0x05:
+					{
+						OrOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ORA Compare Memory with Accumulator, Zero PageX, 2 Bytes, 3 Cycles
+				case 0x15:
+					{
+						OrOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ORA Compare Memory with Accumulator, Absolute,  3 Bytes, 4 Cycles
+				case 0x0D:
+					{
+						OrOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ORA Compare Memory with Accumulator, AbsolueteX 3 Bytes, 4+ Cycles
+				case 0x1D:
+					{
+						OrOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ORA Compare Memory with Accumulator, AbsoluteY, 3 Bytes, 4+ Cycles
+				case 0x19:
+					{
+						OrOperation(AddressingMode.AbsoluteY);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ORA Compare Memory with Accumulator, IndexedIndirect, 2 Bytes, 6 Cycles
+				case 0x01:
+					{
+						OrOperation(AddressingMode.IndexedIndirect);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ORA Compare Memory with Accumulator, IndirectIndexed, 2 Bytes, 5 Cycles
+				case 0x11:
+					{
+						OrOperation(AddressingMode.IndirectIndexed);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
 						break;
 					}
 				#endregion
@@ -1469,7 +1533,7 @@ namespace Processor
 
 		private void EorOperation(AddressingMode addressingMode)
 		{
-			Accumulator = Accumulator ^ Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
+			Accumulator = Accumulator ^ Memory.ReadValue(GetAddressByAddressingMode(addressingMode));	
 
 			SetNegativeFlag(Accumulator);
 			SetZeroFlag(Accumulator);
@@ -1502,6 +1566,14 @@ namespace Processor
 			{
 				Memory.WriteValue(memoryAddress, (byte)value);
 			}
+		}
+
+		private void OrOperation(AddressingMode addressingMode)
+		{
+			Accumulator = Accumulator | Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
+			
+			SetNegativeFlag(Accumulator);
+			SetZeroFlag(Accumulator);
 		}
 		#endregion
 		

@@ -1263,11 +1263,11 @@ namespace Processor.UnitTests
 		#region LSR Logical Shift Right
 		[TestCase(0xFF)]
 		[TestCase(0xFE)]
-		public void LSR_Negative_Set_Correctly(byte accumlatorValue)
+		public void LSR_Negative_Set_Correctly(byte accumulatorValue)
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA5, accumlatorValue, 0x4A }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA5, accumulatorValue, 0x4A }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -1276,11 +1276,11 @@ namespace Processor.UnitTests
 
 		[TestCase(0x1, true)]
 		[TestCase(0x2, false)]
-		public void LSR_Zero_Set_Correctly(byte accumlatorValue, bool expectedResult)
+		public void LSR_Zero_Set_Correctly(byte accumulatorValue, bool expectedResult)
 		{
 			var processor = new Processor();
-		
-			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorValue, 0x4A }, 0x00);
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x4A }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -1289,11 +1289,11 @@ namespace Processor.UnitTests
 
 		[TestCase(0x1, true)]
 		[TestCase(0x2, false)]
-		public void LSR_Carry_Flag_Set_Correctly(byte accumlatorValue, bool expectedResult)
+		public void LSR_Carry_Flag_Set_Correctly(byte accumulatorValue, bool expectedResult)
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA9, accumlatorValue, 0x4A }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x4A }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -1319,6 +1319,52 @@ namespace Processor.UnitTests
 				? processor.Accumulator
 				: processor.Memory.ReadValue(expectedLocation),
 						Is.EqualTo(expectedValue));
+		}
+		#endregion
+
+		#region ORA Bitwise OR Compare Memory with Accumulator
+
+		[TestCase(0x00, 0x00, 0x00)]
+		[TestCase(0xFF, 0xFF, 0xFF)]
+		[TestCase(0x55, 0xAA, 0xFF)]
+		[TestCase(0xAA, 0x55, 0xFF)]
+		public void ORA_Accumulator_Correct(byte accumulatorValue, byte memoryValue, byte expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x09, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Accumulator, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x00, 0x00, true)]
+		[TestCase(0xFF, 0xFF, false)]
+		[TestCase(0x00, 0x01, false)]
+		public void ORA_Zero_Flag_Correct(byte accumulatorValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x09, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x7F, 0x80, true)]
+		[TestCase(0x79, 0x00, false)]
+		[TestCase(0xFF, 0xFF, true)]
+		public void ORA_Negative_Flag_Correct(byte accumulatorValue, byte memoryValue, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorValue, 0x09, memoryValue }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
 		}
 		#endregion
 
@@ -1404,6 +1450,7 @@ namespace Processor.UnitTests
 		[TestCase(0x29, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xA9, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x49, 0x55, 0xAA, 0xFF)] // EOR
+		[TestCase(0x09, 0x55, 0xAA, 0xFF)] // ORA
 		public void Immediate_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1420,6 +1467,7 @@ namespace Processor.UnitTests
 		[TestCase(0x25, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xA5, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x45, 0x55, 0xAA, 0xFF)] // EOR
+		[TestCase(0x05, 0x55, 0xAA, 0xFF)] // ORA
 		public void ZeroPage_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1436,6 +1484,7 @@ namespace Processor.UnitTests
 		[TestCase(0x35, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xB5, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x55, 0x55, 0xAA, 0xFF)] // EOR
+		[TestCase(0x15, 0x55, 0xAA, 0xFF)] // ORA
 		public void ZeroPageX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1454,6 +1503,7 @@ namespace Processor.UnitTests
 		[TestCase(0x2D, 0x03, 0x03, 0x03)] // AND
 		[TestCase(0xAD, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x4D, 0x55, 0xAA, 0xFF)] // EOR
+		[TestCase(0x0D, 0x55, 0xAA, 0xFF)] // ORA
 		public void Absolute_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1470,10 +1520,12 @@ namespace Processor.UnitTests
 		[TestCase(0x3D, 0x03, 0x03, false, 0x03)] // AND
 		[TestCase(0xBD, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x5D, 0x55, 0xAA, false, 0xFF)]  // EOR
+		[TestCase(0x1D, 0x55, 0xAA, false, 0xFF)] // ORA
 		[TestCase(0x7D, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x3D, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xBD, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x5D, 0x55, 0xAA, true, 0xFF)]  // EOR
+		[TestCase(0x1D, 0x55, 0xAA, true, 0xFF)] // ORA
 		public void AbsoluteX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1494,10 +1546,12 @@ namespace Processor.UnitTests
 		[TestCase(0x39, 0x03, 0x03, false, 0x03)] // AND
 		[TestCase(0xB9, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x59, 0x55, 0xAA, false, 0xFF)]  // EOR
+		[TestCase(0x19, 0x55, 0xAA, false, 0xFF)] // ORA
 		[TestCase(0x79, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x39, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xB9, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x59, 0x55, 0xAA, true, 0xFF)]  // EOR
+		[TestCase(0x19, 0x55, 0xAA, true, 0xFF)] // ORA
 		public void AbsoluteY_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1518,10 +1572,12 @@ namespace Processor.UnitTests
 		[TestCase(0x21, 0x03, 0x03, false, 0x03)] // AND
 		[TestCase(0xA1, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x41, 0x55, 0xAA, false, 0xFF)]  // EOR
+		[TestCase(0x01, 0x55, 0xAA, false, 0xFF)] // ORA
 		[TestCase(0x61, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x21, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xA1, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x41, 0x55, 0xAA, true, 0xFF)]  // EOR
+		[TestCase(0x01, 0x55, 0xAA, true, 0xFF)] // ORA
 		public void Indexed_Indirect_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1544,10 +1600,12 @@ namespace Processor.UnitTests
 		[TestCase(0x31, 0x03, 0x03, false, 0x03)] // AND
 		[TestCase(0xB1, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x51, 0x55, 0xAA, false, 0xFF)]  // EOR
+		[TestCase(0x11, 0x55, 0xAA, false, 0xFF)] // ORA
 		[TestCase(0x71, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x31, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xB1, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x51, 0x55, 0xAA, true, 0xFF)]  // EOR
+		[TestCase(0x11, 0x55, 0xAA, true, 0xFF)] // ORA
 		public void Indirect_Indexed_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1778,8 +1836,8 @@ namespace Processor.UnitTests
 		[TestCase(0x61, 6)] // ADC Indrect X
 		[TestCase(0x71, 5)] // ADC Indirect Y
 		[TestCase(0x29, 2)] // AND Immediate
-		[TestCase(0x25, 3)] // AND Zero Page
-		[TestCase(0x35, 4)] // AND Zero Page X
+		[TestCase(0x25, 2)] // AND Zero Page
+		[TestCase(0x35, 3)] // AND Zero Page X
 		[TestCase(0x2D, 4)] // AND Absolute
 		[TestCase(0x3D, 4)] // AND Absolute X
 		[TestCase(0x39, 4)] // AND Absolute Y
@@ -1804,6 +1862,12 @@ namespace Processor.UnitTests
 		[TestCase(0xD9, 4)] // CMP Absolute Y
 		[TestCase(0xC1, 6)] // CMP Indirect X
 		[TestCase(0xD1, 5)] // CMP Indirect Y
+		[TestCase(0xE0, 2)] // CPX Immediate
+		[TestCase(0xE4, 3)] // CPX ZeroPage
+		[TestCase(0xEC, 4)] // CPX Absolute
+		[TestCase(0xC0, 2)] // CPY Immediate
+		[TestCase(0xC4, 3)] // CPY ZeroPage
+		[TestCase(0xCC, 4)] // CPY Absolute
 		[TestCase(0xC6, 5)] // DEC Zero Page
 		[TestCase(0xD6, 6)] // DEC Zero Page X
 		[TestCase(0xCE, 6)] // DEC Absolute
@@ -1824,12 +1888,6 @@ namespace Processor.UnitTests
 		[TestCase(0xC8, 2)] // INY Implied
 		[TestCase(0xEE, 6)] // INC Absolute
 		[TestCase(0xFE, 7)] // INC Absolute X
-		[TestCase(0xE0, 2)] // CPX Immediate
-		[TestCase(0xE4, 3)] // CPX ZeroPage
-		[TestCase(0xEC, 4)] // CPX Absolute
-		[TestCase(0xC0, 2)] // CPY Immediate
-		[TestCase(0xC4, 3)] // CPY ZeroPage
-		[TestCase(0xCC, 4)] // CPY Absolute
 		[TestCase(0x4C, 3)] // JMP Absolute
 		[TestCase(0x6C, 5)] // JMP Indirect
 		[TestCase(0xA9, 2)] // LDA Immediate
@@ -1856,6 +1914,14 @@ namespace Processor.UnitTests
 		[TestCase(0x4E, 6)] // LSR Absolute
 		[TestCase(0x5E, 7)] // LSR Absolute X
 		[TestCase(0xEA, 2)] // NOP Implied
+		[TestCase(0x09, 2)] // ORA Immediate
+		[TestCase(0x05, 2)] // ORA Zero Page
+		[TestCase(0x15, 3)] // ORA Zero Page X
+		[TestCase(0x0D, 4)] // ORA Absolute
+		[TestCase(0x1D, 4)] // ORA Absolute X
+		[TestCase(0x19, 4)] // ORA Absolute Y
+		[TestCase(0x01, 6)] // ORA Indirect X
+		[TestCase(0x11, 5)] // ORA Indirect Y
 		[TestCase(0x38, 2)] // SEC Implied
 		[TestCase(0xF8, 2)] // SED Implied
 		[TestCase(0x78, 2)] // SEI Implied
@@ -1892,6 +1958,8 @@ namespace Processor.UnitTests
 		[TestCase(0xBE, false, 5)] // LDX Absolute Y
 		[TestCase(0xBC, true, 5)] // LDY Absolute X
 		[TestCase(0x5E, true, 7)] // LSR Absolute X
+		[TestCase(0x1D, true, 5)] // ORA Absolute X
+		[TestCase(0x19, false, 5)] // ORA Absolute Y
 		public void NumberOfCyclesRemaining_Correct_When_In_AbsoluteX_Or_AbsoluteY_And_Wrap(byte operation, bool isAbsoluteX, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -1914,6 +1982,7 @@ namespace Processor.UnitTests
 		[TestCase(0xB1, 6)] // LDA Indirect Y
 		[TestCase(0xD1, 6)] // CMP Indirect Y
 		[TestCase(0x051, 6)] // EOR Indirect Y
+		[TestCase(0x11, 6)] // ORA Indirect Y
 		public void NumberOfCyclesRemaining_Correct_When_In_IndirectIndexed_And_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
@@ -2191,6 +2260,14 @@ namespace Processor.UnitTests
 		[TestCase(0x4E, 3)] // LSR Absolute
 		[TestCase(0x5E, 3)] // LSR Absolute X
 		[TestCase(0xEA, 1)] // NOP Implied
+		[TestCase(0x09, 2)] // ORA Immediate
+		[TestCase(0x05, 2)] // ORA Zero Page
+		[TestCase(0x15, 2)] // ORA Zero Page X
+		[TestCase(0x0D, 3)] // ORA Absolute
+		[TestCase(0x1D, 3)] // ORA Absolute X
+		[TestCase(0x19, 3)] // ORA Absolute Y
+		[TestCase(0x01, 2)] // ORA Indirect X
+		[TestCase(0x11, 2)] // ORA Indirect Y
 		[TestCase(0x38, 1)] // SEC Implied
 		[TestCase(0xF8, 1)] // SED Implied
 		[TestCase(0x78, 1)] // SEI Implied
