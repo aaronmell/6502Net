@@ -1157,6 +1157,46 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
+				//ROR Rotate Right 1 Bit Memory or Accumulator, Accumulator, 1 Bytes, 2 Cycles
+				case 0x6A:
+					{
+						RorOperation(AddressingMode.Accumulator);
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
+					}
+				//ROR Rotate Right 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
+				case 0x66:
+					{
+						RorOperation(AddressingMode.ZeroPage);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ROR Rotate Right 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
+				case 0x76:
+					{
+						RorOperation(AddressingMode.ZeroPageX);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//ROR Rotate Right 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
+				case 0x6E:
+					{
+						RorOperation(AddressingMode.Absolute);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//ROR Rotate Right 1 Bit Memory or Accumulator, AbsoluteX, 3 Bytes, 7 Cycles
+				case 0x7E:
+					{
+						RorOperation(AddressingMode.AbsoluteX);
+						NumberofCyclesLeft -= 7;
+						IncrementProgramCounter(3);
+						break;
+					}
 				#endregion
 
 				#region Store Value In Memory Operations
@@ -1663,9 +1703,44 @@ namespace Processor
 				value = value | 0x01;
 
 			CarryFlag = newCarry;
+
 			SetZeroFlag(value);
 			SetNegativeFlag(value);
 			
+			if (addressingMode == AddressingMode.Accumulator)
+				Accumulator = value;
+			else
+			{
+				Memory.WriteValue(memoryAddress, (byte)value);
+			}
+		}
+
+		private void RorOperation(AddressingMode addressingMode)
+		{
+			int value;
+			var memoryAddress = 0;
+			if (addressingMode == AddressingMode.Accumulator)
+				value = Accumulator;
+			else
+			{
+				memoryAddress = GetAddressByAddressingMode(addressingMode);
+				value = Memory.ReadValue(memoryAddress);
+			}
+
+			//Store the carry flag before shifting it
+			var newCarry = (0x01 & value) != 0;
+
+			value = (value >> 1);
+
+			//If the carry flag is set then 0x
+			if (CarryFlag)
+				value = value | 0x80;
+
+			CarryFlag = newCarry;
+
+			SetZeroFlag(value);
+			SetNegativeFlag(value);
+
 			if (addressingMode == AddressingMode.Accumulator)
 				Accumulator = value;
 			else
