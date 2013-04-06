@@ -778,6 +778,18 @@ namespace Processor
 						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
 						throw new NotImplementedException();
 					}
+				//RTI Return From Interrupt, Implied, 1 Byte, 6 Cycles
+				case 0x40:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
+				//RTS Return From Subroutine, Implied, 1 Byte, 6 Cycles
+				case 0x60:
+					{
+						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
+						throw new NotImplementedException();
+					}
 				#endregion
 
 				#region Load Value From Memory Operations
