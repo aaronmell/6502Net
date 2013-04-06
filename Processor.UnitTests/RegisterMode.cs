@@ -1,9 +1,9 @@
 ﻿namespace Processor.UnitTests
 {
 	/// <summary>
-	/// An enum helper, used when testing addressing modes for comparison operations
+	/// An enum helper, used when testing addressing modes for Comparison and Store operations
 	/// </summary>
-	public enum ComparisonMode
+	public enum RegisterMode
 	{
 		/// <summary>
 		/// CMP Operation

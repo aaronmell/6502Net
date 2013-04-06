@@ -148,7 +148,7 @@ namespace Processor
 			switch (CurrentOpCode)
 			{
 				#region Add / Subtract Operations
-				//ADC Add With Carry, Immediate, 2 Bytes, 2 Cycles
+				//STA Store Accumulator In Memory, Immediate, 2 Bytes, 2 Cycles
 				case 0x69:
 					{
 						AddWithCarryOperation(AddressingMode.Immediate);
@@ -156,7 +156,7 @@ namespace Processor
 						NumberofCyclesLeft -= 2;
 						break;
 					}
-				//ADC Add With Carry, Zero Page, 2 Bytes, 3 Cycles
+				//STA Store Accumulator In Memory, Zero Page, 2 Bytes, 3 Cycles
 				case 0x65:
 					{
 						AddWithCarryOperation(AddressingMode.ZeroPage);
@@ -164,7 +164,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//ADC Add With Carry, Zero Page X, 2 Bytes, 4 Cycles
+				//STA Store Accumulator In Memory, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x75:
 					{
 						AddWithCarryOperation(AddressingMode.ZeroPageX);
@@ -172,7 +172,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//ADC Add With Carry, Absolute, 3 Bytes, 4 Cycles
+				//STA Store Accumulator In Memory, Absolute, 3 Bytes, 4 Cycles
 				case 0x6D:
 					{
 						AddWithCarryOperation(AddressingMode.Absolute);
@@ -180,7 +180,7 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
-				//ADC Add With Carry, Absolute X, 3 Bytes, 4+ Cycles
+				//STA Store Accumulator In Memory, Absolute X, 3 Bytes, 4+ Cycles
 				case 0x7D:
 					{
 						AddWithCarryOperation(AddressingMode.AbsoluteX);
@@ -188,7 +188,7 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
-				//ADC Add With Carry, Absolute Y, 3 Bytes, 4+ Cycles
+				//STA Store Accumulator In Memory, Absolute Y, 3 Bytes, 4+ Cycles
 				case 0x79:
 					{
 						AddWithCarryOperation(AddressingMode.AbsoluteY);
@@ -196,7 +196,7 @@ namespace Processor
 						IncrementProgramCounter(3);
 						break;
 					}
-				//ADC Add With Carry, Indexed Indirect, 2 Bytes, 6 Cycles
+				//STA Store Accumulator In Memory, Indexed Indirect, 2 Bytes, 6 Cycles
 				case 0x61:
 					{
 						AddWithCarryOperation(AddressingMode.IndexedIndirect);
@@ -204,7 +204,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//ADC Add With Carry, Indexed Indirect, 2 Bytes, 5+ Cycles
+				//STA Store Accumulator In Memory, Indexed Indirect, 2 Bytes, 5+ Cycles
 				case 0x71:
 					{
 						AddWithCarryOperation(AddressingMode.IndirectIndexed);
@@ -212,10 +212,6 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-
-
-
-
 				//SBC Subtract with Borrow, Immediate, 2 Bytes, 2 Cycles
 				case 0xE9:
 					{
@@ -1280,6 +1276,62 @@ namespace Processor
 				#endregion
 
 				#region Store Value In Memory Operations
+				//STA Store Accumulator In Memory, Zero Page, 2 Bytes, 3 Cycles
+				case 0x85:
+					{
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPage), (byte)Accumulator);
+						IncrementProgramCounter(2);
+						NumberofCyclesLeft -= 3;
+						break;
+					}
+				//STA Store Accumulator In Memory, Zero Page X, 2 Bytes, 4 Cycles
+				case 0x95:
+					{
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX), (byte)Accumulator);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//STA Store Accumulator In Memory, Absolute, 3 Bytes, 4 Cycles
+				case 0x8D:
+					{
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.Absolute), (byte)Accumulator);
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//STA Store Accumulator In Memory, Absolute X, 3 Bytes, 5 Cycles
+				case 0x9D:
+					{
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.AbsoluteX), (byte)Accumulator);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//STA Store Accumulator In Memory, Absolute Y, 3 Bytes, 5 Cycles
+				case 0x99:
+					{
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.AbsoluteY), (byte)Accumulator);
+						NumberofCyclesLeft -= 5;
+						IncrementProgramCounter(3);
+						break;
+					}
+				//STA Store Accumulator In Memory, Indexed Indirect, 2 Bytes, 6 Cycles
+				case 0x81:
+					{
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.IndexedIndirect), (byte)Accumulator);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
+				//STA Store Accumulator In Memory, Indirect Indexed, 2 Bytes, 6 Cycles
+				case 0x91:
+					{
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.IndirectIndexed), (byte)Accumulator);
+						NumberofCyclesLeft -= 6;
+						IncrementProgramCounter(2);
+						break;
+					}
 				//STX Store Index X, Zero Page, 2 Bytes, 3 Cycles
 				case 0x86:
 					{
@@ -1323,7 +1375,7 @@ namespace Processor
 				//STY Store Index Y, Absolute, 2 Bytes, 4 Cycles
 				case 0x8C:
 					{
-						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY), (byte)YRegister);
+						Memory.WriteValue(GetAddressByAddressingMode(AddressingMode.Absolute), (byte)YRegister);
 						NumberofCyclesLeft -= 4;
 						IncrementProgramCounter(3);
 						break;
@@ -1423,11 +1475,25 @@ namespace Processor
 						{
 							address -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1.
-							//However, if this is an ASL, LSR, DEC, INC, ROR or ROL operation, we do not decrease it by 1.
-							if (CurrentOpCode == 0x1E || CurrentOpCode == 0xDE || CurrentOpCode == 0xFE || CurrentOpCode == 0x5E || CurrentOpCode == 0x3E || CurrentOpCode == 0x7E)
-								return address;
-
-							NumberofCyclesLeft--;
+							//However, if this is an ASL, LSR, DEC, INC, ROR, ROL or STA operation, we do not decrease it by 1.
+							switch (CurrentOpCode)
+							{
+								case 0x1E:
+								case 0xDE:
+								case 0xFE:
+								case 0x5E:
+								case 0x3E:
+								case 0x7E:
+								case 0x9D:
+									{
+										return address;
+									}
+								default:
+									{
+										NumberofCyclesLeft--;
+										break;
+									}
+							}
 						}
 						return address;
 					}
@@ -1446,8 +1512,9 @@ namespace Processor
 						if (address > 0xFFFF)
 						{
 							address -= 0x10000;
-							//We crossed a page boundry, so decrease the number of cycles by 1.
-							NumberofCyclesLeft--;
+							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
+							if (CurrentOpCode != 0x99)
+								NumberofCyclesLeft--;
 						}
 
 						return address;
@@ -1479,8 +1546,10 @@ namespace Processor
 						if (finalAddress > 0xFFFF)
 						{
 							finalAddress -= 0x10000;
-							//We crossed a page boundry, so decrease the number of cycles by 1.
-							NumberofCyclesLeft--;
+							
+							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
+							if (CurrentOpCode != 0x91)
+								NumberofCyclesLeft--;
 						}
 						return finalAddress;
 					}
@@ -1501,7 +1570,7 @@ namespace Processor
 				case (AddressingMode.ZeroPageY):
 					{
 						address = Memory.ReadValue(ProgramCounter);
-						return address + XRegister;
+						return address + YRegister;
 					}
 				default:
 					throw new InvalidOperationException(string.Format("The Address Mode '{0}' does not require an address", addressingMode));

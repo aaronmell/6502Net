@@ -45,7 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ComparisonMode.cs" />
+    <Compile Include="RegisterMode.cs" />
     <Compile Include="MemoryTests.cs" />
     <Compile Include="ProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

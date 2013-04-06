@@ -56,7 +56,6 @@
     <Compile Include="Processor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ram.cs" />
-    <Compile Include="StatusRegisters.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
