@@ -47,6 +47,16 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0x00, new byte[] { 0xFF}, 0x00);
 			processor.NextStep();
 		}
+		
+		[Test]
+		public void Stack_Pointer_Initializes_To_Default_Value_After_Reset()
+		{
+			var processor = new Processor();
+			processor.Reset();
+
+			Assert.That(processor.StackPointer, Is.EqualTo(0x1FD));
+		}
+
 		#endregion
 
 		#region ADC - Add with Carry Tests
@@ -348,8 +358,6 @@ namespace Processor.UnitTests
 
 		[TestCase(0, 0x00, 2)]
 		[TestCase(0, 1, 3)]
-		[TestCase(0xFFFC, 1, 0xFFFF)]
-		[TestCase(0xFFFD, 1, 0)]
 		[TestCase(0, 0x80, 2)]
 		[TestCase(0, 0x83, 0xFFFF)]
 		[TestCase(0, 0x82, 0)]
@@ -368,8 +376,6 @@ namespace Processor.UnitTests
 		#region BCS - Branch on Carry Set
 		[TestCase(0, 0x00, 3)]
 		[TestCase(0, 1, 4)]
-		[TestCase(0xFFFB, 1, 0xFFFF)]
-		[TestCase(0xFFFC, 1, 0)]
 		[TestCase(0, 0x81, 2)]
 		[TestCase(0, 0x84, 0xFFFF)]
 		[TestCase(0, 0x83, 0)]
@@ -390,8 +396,6 @@ namespace Processor.UnitTests
 
 		[TestCase(0, 0x00, 4)]
 		[TestCase(0, 1, 5)]
-		[TestCase(0xFFFA, 1, 0xFFFF)]
-		[TestCase(0xFFFB, 1, 0)]
 		[TestCase(0, 0x82, 2)]
 		[TestCase(0, 0x85, 0xFFFF)]
 		[TestCase(0, 0x84, 0)]
@@ -501,8 +505,6 @@ namespace Processor.UnitTests
 		#region BMI - Branch if Negative Set
 		[TestCase(0, 0x00, 4)]
 		[TestCase(0, 1, 5)]
-		[TestCase(0xFFFA, 1, 0xFFFF)]
-		[TestCase(0xFFFB, 1, 0)]
 		[TestCase(0, 0x82, 2)]
 		[TestCase(0, 0x85, 0xFFFF)]
 		[TestCase(0, 0x84, 0)]
@@ -523,8 +525,6 @@ namespace Processor.UnitTests
 
 		[TestCase(0, 0x00, 4)]
 		[TestCase(0, 1, 5)]
-		[TestCase(0xFFFA, 1, 0xFFFF)]
-		[TestCase(0xFFFB, 1, 0)]
 		[TestCase(0, 0x82, 2)]
 		[TestCase(0, 0x85, 0xFFFF)]
 		[TestCase(0, 0x84, 0)]
@@ -545,8 +545,6 @@ namespace Processor.UnitTests
 		#region BPL - Branch if Negative Clear
 		[TestCase(0, 0x00, 4)]
 		[TestCase(0, 1, 5)]
-		[TestCase(0xFFFA, 1, 0xFFFF)]
-		[TestCase(0xFFFB, 1, 0)]
 		[TestCase(0, 0x82, 2)]
 		[TestCase(0, 0x85, 0xFFFF)]
 		[TestCase(0, 0x84, 0)]
@@ -566,8 +564,6 @@ namespace Processor.UnitTests
 		#region BVC Branch if Overflow Clear
 		[TestCase(0, 0x00, 2)]
 		[TestCase(0, 1, 3)]
-		[TestCase(0xFFFC, 1, 0xFFFF)]
-		[TestCase(0xFFFD, 1, 0)]
 		[TestCase(0, 0x80, 2)]
 		[TestCase(0, 0x83, 0xFFFF)]
 		[TestCase(0, 0x82, 0)]
@@ -586,8 +582,6 @@ namespace Processor.UnitTests
 		#region BVS Branch if Overflow Set
 		[TestCase(0, 0x00, 6)]
 		[TestCase(0, 1, 7)]
-		[TestCase(0xFFF8, 1, 0xFFFF)]
-		[TestCase(0xFFF9, 1, 0)]
 		[TestCase(0, 0x84, 2)]
 		[TestCase(0, 0x87, 0xFFFF)]
 		[TestCase(0, 0x86, 0)]
@@ -2490,9 +2484,9 @@ namespace Processor.UnitTests
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
-
 			processor.LoadProgram(0, new byte[] { operation, 0x02, 0x03 }, 0x00);
+			
+			var startingNumberOfCycles = processor.NumberofCyclesLeft;
 			processor.NextStep();
 
 			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
@@ -2591,8 +2585,8 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 
 			var carryOperation = isCarrySet ? 0x38 : 0x18;
-			var initialAddress = wrapRight ? 0xFFFB : 0x00;
-			var amountToMove = wrapRight ? 0x04 : 0x84;
+			var initialAddress = wrapRight ? 0xFFF0 : 0x00;
+			var amountToMove = wrapRight ? 0x0F : 0x84;
 
 			processor.LoadProgram(initialAddress, new byte[] { (byte)carryOperation, operation, (byte)amountToMove, 0x00 }, initialAddress);
 			processor.NextStep();
@@ -2635,8 +2629,8 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 
 			var newAccumulatorValue = isZeroSet ? 0x00 : 0x01;
-			var initialAddress = wrapRight ? 0xFFFB : 0x00;
-			var amountToMove = wrapRight ? 0x04 : 0x84;
+			var initialAddress = wrapRight ? 0xFFF0 : 0x00;
+			var amountToMove = wrapRight ? 0x0D : 0x84;
 
 			processor.LoadProgram(initialAddress, new byte[] { 0xA9, (byte)newAccumulatorValue, operation, (byte)amountToMove, 0x00 }, initialAddress);
 			processor.NextStep();
@@ -2679,8 +2673,8 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 
 			var newAccumulatorValue = isNegativeSet ? 0x80 : 0x79;
-			var initialAddress = wrapRight ? 0xFFFB : 0x00;
-			var amountToMove = wrapRight ? 0x04 : 0x84;
+			var initialAddress = wrapRight ? 0xFFF0 : 0x00;
+			var amountToMove = wrapRight ? 0x0D : 0x84;
 
 			processor.LoadProgram(initialAddress, new byte[] { 0xA9, (byte)newAccumulatorValue, operation, (byte)amountToMove, 0x00 }, initialAddress);
 			processor.NextStep();
@@ -2723,8 +2717,8 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 
 			var newAccumulatorValue = isOverflowSet ? 0x7F : 0x00;
-			var initialAddress = wrapRight ? 0xFFF9 : 0x00;
-			var amountToMove = wrapRight ? 0x04 : 0x86;
+			var initialAddress = wrapRight ? 0xFFF0 : 0x00;
+			var amountToMove = wrapRight ? 0x0B : 0x86;
 
 			processor.LoadProgram(initialAddress, new byte[] { 0xA9, (byte)newAccumulatorValue, 0x69, 0x01, operation, (byte)amountToMove, 0x00 }, initialAddress);
 			processor.NextStep();

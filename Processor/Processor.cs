@@ -8,6 +8,7 @@ namespace Processor
 	public class Processor
 	{
 		private int _programCounter;
+		private int _stackPointer;
 
 		//All of the properties here are public and read only to facilitate ease of debugging and testing.
 		#region Properties
@@ -46,7 +47,19 @@ namespace Processor
 		/// <summary>
 		/// Points to the Current Position of the Stack
 		/// </summary>
-		public int StackPointer { get; private set; }
+		public int StackPointer
+		{
+			get { return _stackPointer; }
+			private set
+			{
+				if (value > 0x1FF)
+					_stackPointer = value - 0x100;
+				else if (value < 0x100)
+					_stackPointer = value + 0x100;
+				else
+					_stackPointer = value;
+			}
+		}
 		/// <summary>
 		/// The number of cycles before the next interrupt
 		/// </summary>
@@ -103,10 +116,26 @@ namespace Processor
 		public Processor()
 		{
 			Memory = new Ram(0x10000);
-			StackPointer = 0xFF;
+
+			StackPointer = 0x100;
+		}
+
+		/// <summary>
+		/// Initializes the processor to its default state.
+		/// </summary>
+		public void Reset()
+		{
+			StackPointer = 0x1FD;
+
+			//Set the Program Counter to the Reset Vector Address.
+			ProgramCounter = 0xFFFC;
+			//Reset the Program Counter to the Address contained in the Reset Vector
+			ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
 
 			InterruptPeriod = 20;
 			NumberofCyclesLeft = InterruptPeriod;
+
+			InterruptFlag = true;
 		}
 
 		/// <summary>
@@ -132,7 +161,15 @@ namespace Processor
 		public void LoadProgram(int offset, byte[] program, int initialProgramCounter)
 		{
 			Memory.LoadProgram(offset, program);
-			ProgramCounter = initialProgramCounter;
+
+			var bytes = BitConverter.GetBytes(initialProgramCounter);
+
+			//Write the initialProgram Counter to the reset vector
+			Memory.WriteValue(0xFFFC,bytes[0]);
+			Memory.WriteValue(0xFFFD, bytes[1]);
+			
+			//Reset the CPU
+			Reset();
 		}
 		#endregion
 
