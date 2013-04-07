@@ -1368,6 +1368,41 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region PHA Push Accumulator Onto Stack
+
+		[Test]
+		public void PHA_Stack_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x03, 0x48 }, 0x00);
+
+			var stackLocation = processor.StackPointer;
+			
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.Memory.ReadValue(stackLocation), Is.EqualTo(0x03));
+		}
+
+		//TODO Add Tests for Wrapping
+		[Test]
+		public void PHA_Stack_Pointer_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x03, 0x48 }, 0x00);
+
+			var stackLocation = processor.StackPointer;
+
+			processor.NextStep();
+			processor.NextStep();
+
+
+			Assert.That(processor.StackPointer, Is.EqualTo(stackLocation - 1));
+		}
+		#endregion
+
 		#region ROL Rotate Left
 
 		[TestCase(0x40, true)]
@@ -2443,6 +2478,7 @@ namespace Processor.UnitTests
 		[TestCase(0x19, 4)] // ORA Absolute Y
 		[TestCase(0x01, 6)] // ORA Indirect X
 		[TestCase(0x11, 5)] // ORA Indirect Y
+		[TestCase(0x48, 3)] // PHA Implied
 		[TestCase(0x2A, 2)] // ROL Accumulator
 		[TestCase(0x26, 5)] // ROL Zero Page
 		[TestCase(0x36, 6)] // ROL Zero Page X
@@ -2826,6 +2862,7 @@ namespace Processor.UnitTests
 		[TestCase(0x19, 3)] // ORA Absolute Y
 		[TestCase(0x01, 2)] // ORA Indirect X
 		[TestCase(0x11, 2)] // ORA Indirect Y
+		[TestCase(0x48, 1)] // PHA Implied
 		[TestCase(0x2A, 1)] // ROL Accumulator
 		[TestCase(0x26, 2)] // ROL Zero Page
 		[TestCase(0x36, 2)] // ROL Zero Page X

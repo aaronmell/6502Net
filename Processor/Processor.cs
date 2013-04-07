@@ -1099,8 +1099,13 @@ namespace Processor
 				//PHA Push Accumulator onto Stack, Implied, 1 Byte, 3 Cycles
 				case 0x48:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						Memory.WriteValue(StackPointer, (byte)Accumulator);
+						StackPointer--;
+
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(1);
+						break;
+
 					}
 				//PHP Push Flags onto Stack, Implied, 1 Byte, 3 Cycles
 				case 0x08:
