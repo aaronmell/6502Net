@@ -52,9 +52,9 @@ namespace Processor
 			get { return _stackPointer; }
 			private set
 			{
-				if (value > 0x1FF)
+				if (value > 0xFF)
 					_stackPointer = value - 0x100;
-				else if (value < 0x100)
+				else if (value < 0x00)
 					_stackPointer = value + 0x100;
 				else
 					_stackPointer = value;
@@ -1016,7 +1016,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//LDX Load X with memory, Absolute, 2 Bytes, 4 Cycles
+				//LDX Load X with memory, Absolute, 3 Bytes, 4 Cycles
 				case 0xAE:
 					{
 						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
@@ -1024,10 +1024,10 @@ namespace Processor
 						SetNegativeFlag(XRegister);
 
 						NumberofCyclesLeft -= 4;
-						IncrementProgramCounter(2);
+						IncrementProgramCounter(3);
 						break;
 					}
-				//LDX Load X with memory, Absolute Y, 2 Bytes, 4+ Cycles
+				//LDX Load X with memory, Absolute Y, 3 Bytes, 4+ Cycles
 				case 0xBE:
 					{
 						XRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteY));
@@ -1035,7 +1035,7 @@ namespace Processor
 						SetNegativeFlag(XRegister);
 
 						NumberofCyclesLeft -= 4;
-						IncrementProgramCounter(2);
+						IncrementProgramCounter(3);
 						break;
 					}
 				//LDY Load Y with memory, Immediate, 2 Bytes, 2 Cycles
@@ -1071,7 +1071,7 @@ namespace Processor
 						IncrementProgramCounter(2);
 						break;
 					}
-				//LDY Load Y with memory, Absolute, 2 Bytes, 4 Cycles
+				//LDY Load Y with memory, Absolute, 3 Bytes, 4 Cycles
 				case 0xAC:
 					{
 						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.Absolute));
@@ -1079,10 +1079,10 @@ namespace Processor
 						SetNegativeFlag(YRegister);
 
 						NumberofCyclesLeft -= 4;
-						IncrementProgramCounter(2);
+						IncrementProgramCounter(3);
 						break;
 					}
-				//LDY Load Y with memory, Absolue X, 2 Bytes, 4+ Cycles
+				//LDY Load Y with memory, Absolue X, 3 Bytes, 4+ Cycles
 				case 0xBC:
 					{
 						YRegister = Memory.ReadValue(GetAddressByAddressingMode(AddressingMode.AbsoluteX));
@@ -1090,7 +1090,7 @@ namespace Processor
 						SetNegativeFlag(YRegister);
 
 						NumberofCyclesLeft -= 4;
-						IncrementProgramCounter(2);
+						IncrementProgramCounter(3);
 						break;
 					}
 				#endregion
@@ -1099,7 +1099,7 @@ namespace Processor
 				//PHA Push Accumulator onto Stack, Implied, 1 Byte, 3 Cycles
 				case 0x48:
 					{
-						Memory.WriteValue(StackPointer, (byte)Accumulator);
+						PokeStack((byte)Accumulator);
 						StackPointer--;
 
 						NumberofCyclesLeft -= 3;
@@ -1125,17 +1125,26 @@ namespace Processor
 						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
 						throw new NotImplementedException();
 					}
-				//TSX Transfer Stack to X Register, 1 Bytes, 2 Cycles
+				//TSX Transfer Stack Pointer to X Register, 1 Bytes, 2 Cycles
 				case 0xBA:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						XRegister = StackPointer;
+
+						SetNegativeFlag(XRegister);
+						SetZeroFlag(XRegister);
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
 					}
-				//TXS Transfer X Register to Stack, 1 Bytes, 2 Cycles
+				//TXS Transfer X Register to Stack Pointer, 1 Bytes, 2 Cycles
 				case 0x9A:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						StackPointer = (byte)XRegister;
+
+						NumberofCyclesLeft -= 2;
+						IncrementProgramCounter(1);
+						break;
 					}
 				#endregion
 
@@ -1701,6 +1710,28 @@ namespace Processor
 			ProgramCounter = newProgramCounter;
 
 		}
+
+		/// <summary>
+		/// Returns a the value from the stack without changing the position of the stack pointer
+		/// </summary>
+		
+		/// <returns>The value at the current Stack Pointer</returns>
+		private byte PeekStack()
+		{
+			//The stack lives at 0x100-0x1FF, but the value is only a byte so it needs to be translated
+			return Memory.ReadValue(StackPointer + 0x100);
+		}
+
+		/// <summary>
+		/// Write a value directly to the stack without modifying the Stack Pointer
+		/// </summary>
+		/// <param name="value">The value to be written to the stack</param>
+		private void PokeStack(byte value)
+		{
+			//The stack lives at 0x100-0x1FF, but the value is only a byte so it needs to be translated
+			Memory.WriteValue(StackPointer + 0x100, value);
+		}
+
 		#region Op Code Operations
 		/// <summary>
 		/// The ADC - Add Memory to Accumulator with Carry Operation

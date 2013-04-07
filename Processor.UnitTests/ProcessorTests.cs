@@ -54,9 +54,8 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			processor.Reset();
 
-			Assert.That(processor.StackPointer, Is.EqualTo(0x1FD));
+			Assert.That(processor.StackPointer, Is.EqualTo(0xFD));
 		}
-
 		#endregion
 
 		#region ADC - Add with Carry Tests
@@ -1382,10 +1381,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(stackLocation), Is.EqualTo(0x03));
+			//Accounting for the Offest in memory
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(0x03));
 		}
-
-		//TODO Add Tests for Wrapping
+		
 		[Test]
 		public void PHA_Stack_Pointer_Has_Correct_Value()
 		{
@@ -1394,12 +1393,24 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xA9, 0x03, 0x48 }, 0x00);
 
 			var stackLocation = processor.StackPointer;
-
 			processor.NextStep();
 			processor.NextStep();
 
-
+			//A Push will decrement the Pointer by 1
 			Assert.That(processor.StackPointer, Is.EqualTo(stackLocation - 1));
+		}
+
+		[Test]
+		public void PHA_Stack_Pointer_Has_Correct_Value_When_Wrapping()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x9A, 0x48 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+
+			Assert.That(processor.StackPointer, Is.EqualTo(0xFF));
 		}
 		#endregion
 
@@ -1922,6 +1933,67 @@ namespace Processor.UnitTests
 			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
 		}
 
+		#endregion
+
+		#region TSX Transfer Stack Pointer to X Register
+
+		[Test]
+		public void TSX_XRegister_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xBA }, 0x00);
+
+			var stackPointer = processor.StackPointer;
+			processor.NextStep();
+
+			Assert.That(processor.XRegister, Is.EqualTo(stackPointer));
+		}
+		
+		[TestCase(0x00, false)]
+		[TestCase(0x7F, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0xFF, true)]
+		public void TSX_Negative_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] {  0xA2, valueToLoad, 0x9A, 0xBA }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x00, true)]
+		[TestCase(0x01, false)]
+		[TestCase(0xFF, false)]
+		public void TSX_Zero_Set_Correctly(byte valueToLoad, bool expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, valueToLoad, 0x9A, 0xBA }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
+		}
+		#endregion
+		#region TXS Transfer X Register to Stack Pointer
+
+		[Test]
+		public void TXS_Stack_Pointer_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0xA2, 0xAA, 0x9A }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.StackPointer, Is.EqualTo(0xAA));
+		}
 		#endregion
 
 		#region Accumulator Address Tests
@@ -2515,7 +2587,9 @@ namespace Processor.UnitTests
 		[TestCase(0x8C, 4)] // STY Absolute
 		[TestCase(0xAA, 2)] // TAX Implied
 		[TestCase(0xA8, 2)] // TAY Implied
+		[TestCase(0xBA, 2)] // TSX Implied
 		[TestCase(0x8A, 2)] // TXA Implied
+		[TestCase(0x9A, 2)] // TXS Implied
 		[TestCase(0x98, 2)] // TYA Implied
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
@@ -2841,13 +2915,13 @@ namespace Processor.UnitTests
 		[TestCase(0xA2, 2)] // LDX Immediate
 		[TestCase(0xA6, 2)] // LDX Zero Page
 		[TestCase(0xB6, 2)] // LDX Zero Page Y
-		[TestCase(0xAE, 2)] // LDX Absolute
-		[TestCase(0xBE, 2)] // LDX Absolute Y
+		[TestCase(0xAE, 3)] // LDX Absolute
+		[TestCase(0xBE, 3)] // LDX Absolute Y
 		[TestCase(0xA0, 2)] // LDY Immediate
 		[TestCase(0xA4, 2)] // LDY Zero Page
 		[TestCase(0xB4, 2)] // LDY Zero Page Y
-		[TestCase(0xAC, 2)] // LDY Absolute
-		[TestCase(0xBC, 2)] // LDY Absolute Y
+		[TestCase(0xAC, 3)] // LDY Absolute
+		[TestCase(0xBC, 3)] // LDY Absolute Y
 		[TestCase(0x4A, 1)] // LSR Accumulator
 		[TestCase(0x46, 2)] // LSR Zero Page
 		[TestCase(0x56, 2)] // LSR Zero Page X
@@ -2899,7 +2973,9 @@ namespace Processor.UnitTests
 		[TestCase(0x8C, 3)] // STY Absolute
 		[TestCase(0xAA, 1)] // TAX Implied
 		[TestCase(0xA8, 1)] // TAY Implied
+		[TestCase(0xBA, 1)] // TSX Implied
 		[TestCase(0x8A, 1)] // TXA Implied
+		[TestCase(0x9A, 1)] // TXS Implied
 		[TestCase(0x98, 1)] // TYA Implied
 		public void Program_Counter_Correct(byte operation, int expectedProgramCounter)
 		{
