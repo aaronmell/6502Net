@@ -1,3 +1,4 @@
-This is my implementation of a 6502 CPU Emulator
+This is my implementation of a 6502 CPU simulator.
 
-The current goal is to fully implement an Iterative Emulator of the 6502 Processor.
+The current goal is to fully implement an iterative simulator of the 6502 Processor.
+
