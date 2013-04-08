@@ -89,7 +89,7 @@ namespace Processor
 		/// <summary>
 		/// If true, the CPU is in decimal mode.
 		/// </summary>
-		public bool Decimal { get; private set; }
+		public bool DecimalFlag { get; private set; }
 		/// <summary>
 		/// It true when a BRK instruction is executed
 		/// </summary>
@@ -600,7 +600,7 @@ namespace Processor
 				//CLD Clear Decimal Flag, Implied, 1 Byte, 2 Cycles
 				case 0xD8:
 					{
-						Decimal = false;
+						DecimalFlag = false;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
@@ -1110,8 +1110,12 @@ namespace Processor
 				//PHP Push Flags onto Stack, Implied, 1 Byte, 3 Cycles
 				case 0x08:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						PushFlagsOperation();
+						StackPointer--;
+
+						NumberofCyclesLeft -= 3;
+						IncrementProgramCounter(1);
+						break;
 					}
 				//PLA Pull Accumulator from Stack, Implied, 1 Byte, 4 Cycles
 				case 0x68:
@@ -1160,7 +1164,7 @@ namespace Processor
 				//SED Set Interrupt, Implied, 1 Bytes, 2 Cycles
 				case 0xF8:
 					{
-						Decimal = true;
+						DecimalFlag = true;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
@@ -1508,6 +1512,14 @@ namespace Processor
 			}
 		}
 
+		private void PushFlagsOperation()
+		{
+			var amount = (CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (InterruptFlag ? 0x04 : 0) +
+						 (DecimalFlag ? 0x08 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0);
+
+			PokeStack((byte)amount);
+		}
+
 		/// <summary>
 		/// Increments the program Counter. We always Increment by 1 less than the value that is passed in to account for the increment that happens after the current
 		/// Op code is retrieved
@@ -1745,7 +1757,7 @@ namespace Processor
 
 			SetAddOverflow(Accumulator, memoryValue, newValue);
 
-			if (Decimal)
+			if (DecimalFlag)
 			{
 				if (newValue > 99)
 				{
@@ -2041,7 +2053,7 @@ namespace Processor
 
 			CarryFlag = newValue >= 0;
 
-			if (Decimal)
+			if (DecimalFlag)
 			{
 				OverflowFlag = ( newValue > 99 || newValue < 0 );
 

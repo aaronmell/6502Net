@@ -15,7 +15,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.CarryFlag, Is.False);
 			Assert.That(processor.ZeroFlag, Is.False);
 			Assert.That(processor.InterruptFlag, Is.False);
-			Assert.That(processor.Decimal, Is.False);
+			Assert.That(processor.DecimalFlag, Is.False);
 			Assert.That(processor.IsSoftwareInterrupt, Is.False);
 			Assert.That(processor.OverflowFlag, Is.False);
 			Assert.That(processor.NegativeFlag, Is.False);
@@ -624,7 +624,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Decimal, Is.EqualTo(false));
+			Assert.That(processor.DecimalFlag, Is.EqualTo(false));
 		}
 
 		#endregion
@@ -1414,6 +1414,46 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region PSH 
+		[TestCase(0x038,0x01)] //SEC Carry Flag Test
+		[TestCase(0x0F8,0x08)] //SED Decimal Flag Test
+		[TestCase(0x078, 0x04)] //SEI Interrupt Flag Test
+		public void PSH_Stack_Set_Flag_Operations_Correctly(byte operation, byte expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x58, operation, 0x08}, 0x00);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x01,0x80,0x80)] //Negative
+		[TestCase(0x01, 0x7F, 0xC0)] //Overflow + Negative
+		[TestCase(0x00, 0x00, 0x02)] //Zero
+		public void PSH_Stack_Non_Set_Flag_Operations_Correctly( byte accumulatorValue, byte memoryValue, byte expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x58, 0xA9, accumulatorValue, 0x69, memoryValue, 0x08 }, 0x00);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
+		}
+
+		#endregion
+
 		#region ROL Rotate Left
 
 		[TestCase(0x40, true)]
@@ -1747,7 +1787,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xF8 }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Decimal, Is.EqualTo(true));
+			Assert.That(processor.DecimalFlag, Is.EqualTo(true));
 		}
 
 		#endregion
@@ -1981,6 +2021,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedValue));
 		}
 		#endregion
+		
 		#region TXS Transfer X Register to Stack Pointer
 
 		[Test]
@@ -2551,6 +2592,7 @@ namespace Processor.UnitTests
 		[TestCase(0x01, 6)] // ORA Indirect X
 		[TestCase(0x11, 5)] // ORA Indirect Y
 		[TestCase(0x48, 3)] // PHA Implied
+		[TestCase(0x08, 3)] // PHP Implied
 		[TestCase(0x2A, 2)] // ROL Accumulator
 		[TestCase(0x26, 5)] // ROL Zero Page
 		[TestCase(0x36, 6)] // ROL Zero Page X
@@ -2937,6 +2979,7 @@ namespace Processor.UnitTests
 		[TestCase(0x01, 2)] // ORA Indirect X
 		[TestCase(0x11, 2)] // ORA Indirect Y
 		[TestCase(0x48, 1)] // PHA Implied
+		[TestCase(0x08, 1)] // PHP Implied
 		[TestCase(0x2A, 1)] // ROL Accumulator
 		[TestCase(0x26, 2)] // ROL Zero Page
 		[TestCase(0x36, 2)] // ROL Zero Page X
