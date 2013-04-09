@@ -1120,14 +1120,25 @@ namespace Processor
 				//PLA Pull Accumulator from Stack, Implied, 1 Byte, 4 Cycles
 				case 0x68:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						StackPointer++;
+						Accumulator = PeekStack();
+						
+						SetNegativeFlag(Accumulator);
+						SetZeroFlag(Accumulator);
+
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(1);
+						break;
 					}
 				//PLP Pull Flags from Stack, Implied, 1 Byte, 4 Cycles
 				case 0x28:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						StackPointer++;
+						PullFlagsOperation();
+						
+						NumberofCyclesLeft -= 4;
+						IncrementProgramCounter(1);
+						break;
 					}
 				//TSX Transfer Stack Pointer to X Register, 1 Bytes, 2 Cycles
 				case 0xBA:
@@ -1510,14 +1521,6 @@ namespace Processor
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
 			}
-		}
-
-		private void PushFlagsOperation()
-		{
-			var amount = (CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (InterruptFlag ? 0x04 : 0) +
-						 (DecimalFlag ? 0x08 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0);
-
-			PokeStack((byte)amount);
 		}
 
 		/// <summary>
@@ -2073,8 +2076,28 @@ namespace Processor
 
 			Accumulator = newValue;
 		}
+
+		private void PushFlagsOperation()
+		{
+			var amount = (CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (InterruptFlag ? 0x04 : 0) +
+						 (DecimalFlag ? 8 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0);
+
+			PokeStack((byte)amount);
+		}
+
+		private void PullFlagsOperation()
+		{
+			var flags = PeekStack();
+			CarryFlag = (flags & 0x01) != 0;
+			ZeroFlag = (flags & 0x02) != 0;
+			InterruptFlag = (flags & 0x04) != 0;
+			DecimalFlag = (flags & 0x08) != 0;
+			OverflowFlag = (flags & 0x40) != 0;
+			NegativeFlag = (flags & 0x80) != 0;
+
+		}
 		#endregion
-		
+
 		#endregion
 	}
 }

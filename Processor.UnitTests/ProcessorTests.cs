@@ -1414,11 +1414,11 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region PSH 
+		#region PHP Push Flags Onto Stack 
 		[TestCase(0x038,0x01)] //SEC Carry Flag Test
 		[TestCase(0x0F8,0x08)] //SED Decimal Flag Test
 		[TestCase(0x078, 0x04)] //SEI Interrupt Flag Test
-		public void PSH_Stack_Set_Flag_Operations_Correctly(byte operation, byte expectedValue)
+		public void PHP_Stack_Set_Flag_Operations_Correctly(byte operation, byte expectedValue)
 		{
 			var processor = new Processor();
 
@@ -1436,7 +1436,7 @@ namespace Processor.UnitTests
 		[TestCase(0x01,0x80,0x80)] //Negative
 		[TestCase(0x01, 0x7F, 0xC0)] //Overflow + Negative
 		[TestCase(0x00, 0x00, 0x02)] //Zero
-		public void PSH_Stack_Non_Set_Flag_Operations_Correctly( byte accumulatorValue, byte memoryValue, byte expectedValue)
+		public void PHP_Stack_Non_Set_Flag_Operations_Correctly( byte accumulatorValue, byte memoryValue, byte expectedValue)
 		{
 			var processor = new Processor();
 
@@ -1450,6 +1450,167 @@ namespace Processor.UnitTests
 
 			//Accounting for the Offest in memory
 			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void PHP_Stack_Pointer_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x08 }, 0x00);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+
+			//A Push will decrement the Pointer by 1
+			Assert.That(processor.StackPointer, Is.EqualTo(stackLocation - 1));
+		}
+
+		#endregion
+
+		#region PLA Pull From Stack to Accumulator
+
+		[Test]
+		public void PLA_Accumulator_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x03, 0x48, 0xA9, 0x00, 0x68 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.Accumulator, Is.EqualTo(0x03));
+		}
+
+		[TestCase(0x00, true)]
+		[TestCase(0x01, false)]
+		[TestCase(0xFF, false)]
+		public void PLA_Zero_Flag_Has_Correct_Value(byte valueToLoad, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToLoad, 0x48, 0x68 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+			
+			//Accounting for the Offest in memory
+			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
+		}
+
+		[TestCase(0x7F, false)]
+		[TestCase(0x80, true)]
+		[TestCase(0xFF, true)]
+		public void PLA_Negative_Flag_Has_Correct_Value(byte valueToLoad, bool expectedResult)
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, valueToLoad, 0x48, 0x68 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
+		}
+		#endregion
+
+		#region PLP Pull From Stack to Flags
+
+		[Test]
+		public void PLP_Carry_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x01, 0x48, 0x28 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));	
+		}
+
+		[Test]
+		public void PLP_Zero_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x02, 0x48, 0x28 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.ZeroFlag, Is.EqualTo(true));	
+		}
+
+		[Test]
+		public void PLP_Decimal_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x08, 0x48, 0x28 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.DecimalFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void PLP_Interrupt_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x04, 0x48, 0x28 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.InterruptFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void PLP_Overflow_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x40, 0x48, 0x28 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.OverflowFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void PLP_Negative_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Read From stack
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x80, 0x48, 0x28 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
 		}
 
 		#endregion
@@ -2593,6 +2754,8 @@ namespace Processor.UnitTests
 		[TestCase(0x11, 5)] // ORA Indirect Y
 		[TestCase(0x48, 3)] // PHA Implied
 		[TestCase(0x08, 3)] // PHP Implied
+		[TestCase(0x68, 4)] // PLA Implied
+		[TestCase(0x28, 4)] // PLP Implied
 		[TestCase(0x2A, 2)] // ROL Accumulator
 		[TestCase(0x26, 5)] // ROL Zero Page
 		[TestCase(0x36, 6)] // ROL Zero Page X
@@ -2980,6 +3143,8 @@ namespace Processor.UnitTests
 		[TestCase(0x11, 2)] // ORA Indirect Y
 		[TestCase(0x48, 1)] // PHA Implied
 		[TestCase(0x08, 1)] // PHP Implied
+		[TestCase(0x68, 1)] // PLA Implied
+		[TestCase(0x28, 1)] // PLP Implied
 		[TestCase(0x2A, 1)] // ROL Accumulator
 		[TestCase(0x26, 2)] // ROL Zero Page
 		[TestCase(0x36, 2)] // ROL Zero Page X
