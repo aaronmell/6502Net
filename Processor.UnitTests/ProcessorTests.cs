@@ -1130,12 +1130,11 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region Jump to SubRoutine
+		#region JSR - Jump to SubRoutine
 
 		[Test]
 		public void JSR_Stack_Loads_Correct_Value()
 		{
-
 			var processor = new Processor();
 
 			processor.LoadProgram(0xBBAA, new byte[] { 0x20, 0xCC, 0xCC }, 0xBBAA);
@@ -1800,6 +1799,35 @@ namespace Processor.UnitTests
 						Is.EqualTo(expectedValue));
 		}
 
+		#endregion
+
+		#region RTS Return from SubRoutine
+
+		[Test]
+		public void RTS_Program_Counter_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0x00, new byte[] { 0x20, 0x04, 0x00, 0x00, 0x60 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0x03));
+		}
+
+		[Test]
+		public void RTS_Stack_Pointer_Has_Correct_Value()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0xBBAA, new byte[] { 0x60}, 0xBBAA);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+
+
+			Assert.That(processor.StackPointer, Is.EqualTo(stackLocation + 2));
+		}
 		#endregion
 
 		#region SBC Subtraction With Borrow
@@ -2813,6 +2841,7 @@ namespace Processor.UnitTests
 		[TestCase(0x76, 6)] // ROR Zero Page X
 		[TestCase(0x6E, 6)] // ROR Absolute
 		[TestCase(0x7E, 7)] // ROR Absolute X
+		[TestCase(0x60, 6)] // RTS Implied
 		[TestCase(0xE9, 2)] // SBC Immediate
 		[TestCase(0xE5, 3)] // SBC Zero Page
 		[TestCase(0xF5, 4)] // SBC Zero Page X
