@@ -1145,7 +1145,7 @@ namespace Processor.UnitTests
 			
 		
 			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(0xBB));
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 1), Is.EqualTo(0xAD));
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 1), Is.EqualTo(0xAC));
 		}
 
 		[Test]
@@ -3321,7 +3321,6 @@ namespace Processor.UnitTests
 
 			processor.NextStep();
 			Assert.That(processor.ProgramCounter, Is.EqualTo(currentProgramCounter + expectedOutput));
-
 		}
 
 		[Test]

@@ -1664,14 +1664,14 @@ namespace Processor
 							address -= 0x100;
 
 						//Now get the final Address. The is not a zero page address either.
-						var finalAddress = Memory.ReadValue(address) + (256 * Memory.ReadValue(address + 1));
+						var finalAddress = Memory.ReadValue(address) + (Memory.ReadValue(address + 1) << 8);
 						return finalAddress;
 					}
 				case AddressingMode.IndirectIndexed:
 					{
 						address = Memory.ReadValue(ProgramCounter);
 
-						var finalAddress = Memory.ReadValue(address) + (256 * Memory.ReadValue(address + 1)) + YRegister;
+						var finalAddress = Memory.ReadValue(address) + (Memory.ReadValue(address + 1) << 8) + YRegister;
 
 						//This address wraps if its greater than 0xFFFF
 						if (finalAddress > 0xFFFF)
@@ -2101,12 +2101,13 @@ namespace Processor
 
 		private void JumpToSubRoutineOperation()
 		{
-			//Put the high value on the stack, this should be the address after our operation
-			PokeStack((byte)((ProgramCounter + 2 & 0xFF00) / 256));
+			//Put the high value on the stack, this should be the address after our operation -1
+			//The RTS operation increments the PC by 1 which is why we don't move 2
+			PokeStack((byte)(((ProgramCounter + 1) >> 8) & 0xFF));
 
 			StackPointer--;
 
-			PokeStack((byte)(ProgramCounter + 2 & 0xFF));
+			PokeStack((byte)((ProgramCounter + 1) & 0xFF));
 
 			StackPointer--;
 
