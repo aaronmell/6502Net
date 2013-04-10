@@ -1130,6 +1130,52 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region Jump to SubRoutine
+
+		[Test]
+		public void JSR_Stack_Loads_Correct_Value()
+		{
+
+			var processor = new Processor();
+
+			processor.LoadProgram(0xBBAA, new byte[] { 0x20, 0xCC, 0xCC }, 0xBBAA);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+			
+		
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(0xBB));
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 1), Is.EqualTo(0xAD));
+		}
+
+		[Test]
+		public void JSR_Program_Counter_Correct()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0xBBAA, new byte[] { 0x20, 0xCC, 0xCC }, 0xBBAA);
+			processor.NextStep();
+
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0xCCCC));
+		}
+
+
+		[Test]
+		public void JSR_Stack_Pointer_Correct()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0xBBAA, new byte[] { 0x20, 0xCC, 0xCC }, 0xBBAA);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+
+
+			Assert.That(processor.StackPointer, Is.EqualTo(stackLocation - 2));
+		}
+		#endregion
+
 		#region LDA - Load Accumulator with Memory
 
 		[Test]
@@ -2720,6 +2766,7 @@ namespace Processor.UnitTests
 		[TestCase(0xFE, 7)] // INC Absolute X
 		[TestCase(0x4C, 3)] // JMP Absolute
 		[TestCase(0x6C, 5)] // JMP Indirect
+		[TestCase(0x20, 6)] // JSR Absolute
 		[TestCase(0xA9, 2)] // LDA Immediate
 		[TestCase(0xA5, 3)] // LDA Zero Page
 		[TestCase(0xB5, 4)] // LDA Zero Page X

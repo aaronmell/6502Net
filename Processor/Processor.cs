@@ -870,8 +870,10 @@ namespace Processor
 				//JSR Jump to SubRoutine, Absolute, 3 Bytes, 6 Cycles
 				case 0x20:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						JumpToSubRoutineOperation();
+						
+						NumberofCyclesLeft -= 6;
+						break;
 					}
 				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
 				case 0x00:
@@ -2094,6 +2096,21 @@ namespace Processor
 			DecimalFlag = (flags & 0x08) != 0;
 			OverflowFlag = (flags & 0x40) != 0;
 			NegativeFlag = (flags & 0x80) != 0;
+
+		}
+
+		private void JumpToSubRoutineOperation()
+		{
+			//Put the high value on the stack, this should be the address after our operation
+			PokeStack((byte)((ProgramCounter + 2 & 0xFF00) / 256));
+
+			StackPointer--;
+
+			PokeStack((byte)(ProgramCounter + 2 & 0xFF));
+
+			StackPointer--;
+
+			ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
 
 		}
 		#endregion
