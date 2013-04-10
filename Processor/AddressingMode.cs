@@ -7,13 +7,14 @@
 	{
 		/// <summary>
 		/// In this mode a full address is given to operation on IE: Memory byte[] { 0x60, 0x00, 0xFF } 
-		/// would perform an ADC operation and Add the value at ADDRESS 0xFF00 to the accumulator
+		/// would perform an ADC operation and Add the value at ADDRESS 0xFF00 to the accumulator.
+		/// The address is always LSB first
 		/// </summary>
 		Absolute = 1,
 		/// <summary>
 		/// In this mode a full address is given to operation on IE: Memory byte[] { 0x7D, 0x00, 0xFF } The full value would then be added to the X Register.
 		/// If the X register was 0x01 then the address would be 0xFF01. and the value stored there would have an ADC operation performed on it and the value would
-		/// be added to the accumulator
+		/// be added to the accumulator.
 		/// </summary>
 		AbsoluteX = 2,
 		/// <summary>
@@ -23,12 +24,11 @@
 		/// </summary>
 		AbsoluteY = 3,
 		/// <summary>
-		/// In this mode the instruction operates on the accumulator. No operands are needed.
-		/// 
+		/// In this mode the instruction operates on the accumulator. No operands are needed. 
 		/// </summary>
 		Accumulator = 4,
 		/// <summary>
-		/// In this mode, the value to operate on is directly specified. IE: Memory byte[] { 0x69, 0x01 } 
+		/// In this mode, the value to operate on immediately follows the instruction. IE: Memory byte[] { 0x69, 0x01 } 
 		/// would perform an ADC operation and Add 0x01 directly to the accumulator
 		/// </summary>
 		Immediate = 5,
@@ -57,26 +57,26 @@
 		/// </summary>
 		IndirectIndexed = 8,
 		/// <summary>
-		/// Only Used by JMP in this mode the Actual JMP Adress is contained in the Address the OP specifies, hence indirect.
+		/// JMP is the only operation that uses this mode. In this mode an absolute address is specified that points to the location of the absolute address we want to jump to.
 		/// </summary>
-		Indirect = 8,
+		Indirect = 9,
 		/// <summary>
-		/// This Mode Changes the PC. It basically allows the program to change the location of the PC by 127 in either direction.
+		/// This Mode Changes the PC. It allows the program to change the location of the PC by 127 in either direction.
 		/// </summary>
-		Relative = 9,
+		Relative = 10,
 		/// <summary>
-		/// In this mode, an address of the value to operate on is specified. IE: Memory byte[] { 0x69, 0x02, 0x01 } 
+		/// In this mode, a zero page address of the value to operate on is specified. This mode can only operation on values between 0x0 and 0xFF, or those that sit on the zero page of memory. IE: Memory byte[] { 0x69, 0x02, 0x01 } 
 		/// would perform an ADC operation and Add 0x01 directly to the Accumulator
 		/// </summary>
-		ZeroPage = 10,
+		ZeroPage = 11,
 		/// <summary>
-		/// In this mode, an address of the value to operate on is specified, however the value of the X register is added to the address IE: Memory byte[] { 0x86, 0x02, 0x01, 0x67, 0x04, 0x01 } 
+		/// In this mode, a zero page address of the value to operate on is specified, however the value of the X register is added to the address IE: Memory byte[] { 0x86, 0x02, 0x01, 0x67, 0x04, 0x01 } 
 		/// In this example we store a value of 0x01 into the X register, then we would perform an ADC operation using the addres of 0x04+0x01=0x05 and Add the result of 0x01 directly to the Accumulator
 		/// </summary>
-		ZeroPageX = 11,
+		ZeroPageX = 12,
 		/// <summary>
 		/// This works the same as ZeroPageX except it uses the Y register instead of the X register.
 		/// </summary>
-		ZeroPageY = 12,
+		ZeroPageY = 13,
 	}
 }

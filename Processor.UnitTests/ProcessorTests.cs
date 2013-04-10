@@ -14,7 +14,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.CarryFlag, Is.False);
 			Assert.That(processor.ZeroFlag, Is.False);
-			Assert.That(processor.InterruptFlag, Is.False);
+			Assert.That(processor.DisableInterruptFlag, Is.False);
 			Assert.That(processor.DecimalFlag, Is.False);
 			Assert.That(processor.OverflowFlag, Is.False);
 			Assert.That(processor.NegativeFlag, Is.False);
@@ -519,7 +519,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region BNE Branch On Result Not Zero
+		#region BNE - Branch On Result Not Zero
 
 		[TestCase(0, 0x00, 4)]
 		[TestCase(0, 1, 5)]
@@ -644,7 +644,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region BVC Branch if Overflow Clear
+		#region BVC - Branch if Overflow Clear
 		[TestCase(0, 0x00, 2)]
 		[TestCase(0, 1, 3)]
 		[TestCase(0, 0x80, 2)]
@@ -662,7 +662,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region BVS Branch if Overflow Set
+		#region BVS - Branch if Overflow Set
 		[TestCase(0, 0x00, 6)]
 		[TestCase(0, 1, 7)]
 		[TestCase(0, 0x84, 2)]
@@ -723,7 +723,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0x58 }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.InterruptFlag, Is.EqualTo(false));
+			Assert.That(processor.DisableInterruptFlag, Is.EqualTo(false));
 		}
 
 		#endregion
@@ -743,7 +743,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region CMP Compare Memory With Accumulator
+		#region CMP - Compare Memory With Accumulator
 
 		[TestCase(0x00, 0x00, true)]
 		[TestCase(0xFF, 0x00, false)]
@@ -795,7 +795,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region CPX Compare Memory With X Register
+		#region CPX - Compare Memory With X Register
 		[TestCase(0x00, 0x00, true)]
 		[TestCase(0xFF, 0x00, false)]
 		[TestCase(0x00, 0xFF, false)]
@@ -844,7 +844,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region CPY Compare Memory With X Register
+		#region CPY - Compare Memory With X Register
 		[TestCase(0x00, 0x00, true)]
 		[TestCase(0xFF, 0x00, false)]
 		[TestCase(0x00, 0xFF, false)]
@@ -893,7 +893,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region DEC Decrement Memory by One
+		#region DEC - Decrement Memory by One
 		
 		[TestCase(0x00,0xFF)]
 		[TestCase(0xFF, 0xFE)]
@@ -934,7 +934,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region DEX Decrement X by One
+		#region DEX - Decrement X by One
 
 		[TestCase(0x00, 0xFF)]
 		[TestCase(0xFF, 0xFE)]
@@ -978,7 +978,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region DEY Decrement Y by One
+		#region DEY - Decrement Y by One
 
 		[TestCase(0x00, 0xFF)]
 		[TestCase(0xFF, 0xFE)]
@@ -1022,7 +1022,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region EOR Exclusive OR Compare Accumulator With Memory
+		#region EOR - Exclusive OR Compare Accumulator With Memory
 		
 		[TestCase(0x00, 0x00, 0x00)]
 		[TestCase(0xFF, 0x00, 0xFF)]
@@ -1070,7 +1070,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region INC Increment Memory by One
+		#region INC - Increment Memory by One
 
 		[TestCase(0x00, 0x01)]
 		[TestCase(0xFF, 0x00)]
@@ -1111,7 +1111,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region INX Increment X by One
+		#region INX - Increment X by One
 
 		[TestCase(0x00, 0x01)]
 		[TestCase(0xFF, 0x00)]
@@ -1155,7 +1155,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region INY Increment Y by One
+		#region INY - Increment Y by One
 
 		[TestCase(0x00, 0x01)]
 		[TestCase(0xFF, 0x00)]
@@ -1208,6 +1208,17 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 
 			processor.LoadProgram(0, new byte[] { 0x4C, 0x08, 0x00 }, 0x00);
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0x08));
+		}
+
+		[Test]
+		public void JMP_Program_Counter_Set_Correctly_After_Indirect_Jump()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x6C, 0x03, 0x00, 0x08, 0x00 }, 0x00);
 			processor.NextStep();
 
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0x08));
@@ -1382,7 +1393,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region LSR Logical Shift Right
+		#region LSR - Logical Shift Right
 
 		[TestCase(0xFF, false, false)]
 		[TestCase(0xFE, false, false)]
@@ -1450,7 +1461,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region ORA Bitwise OR Compare Memory with Accumulator
+		#region ORA - Bitwise OR Compare Memory with Accumulator
 
 		[TestCase(0x00, 0x00, 0x00)]
 		[TestCase(0xFF, 0xFF, 0xFF)]
@@ -1496,7 +1507,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region PHA Push Accumulator Onto Stack
+		#region PHA - Push Accumulator Onto Stack
 
 		[Test]
 		public void PHA_Stack_Has_Correct_Value()
@@ -1543,7 +1554,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region PHP Push Flags Onto Stack 
+		#region PHP - Push Flags Onto Stack 
 		[TestCase(0x038,0x11)] //SEC Carry Flag Test
 		[TestCase(0x0F8,0x18)] //SED Decimal Flag Test
 		[TestCase(0x078, 0x14)] //SEI Interrupt Flag Test
@@ -1597,7 +1608,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region PLA Pull From Stack to Accumulator
+		#region PLA - Pull From Stack to Accumulator
 
 		[Test]
 		public void PLA_Accumulator_Has_Correct_Value()
@@ -1650,7 +1661,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region PLP Pull From Stack to Flags
+		#region PLP - Pull From Stack to Flags
 
 		[Test]
 		public void PLP_Carry_Flag_Set_Correctly()
@@ -1709,7 +1720,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Accounting for the Offest in memory
-			Assert.That(processor.InterruptFlag, Is.EqualTo(true));
+			Assert.That(processor.DisableInterruptFlag, Is.EqualTo(true));
 		}
 
 		[Test]
@@ -1744,7 +1755,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region ROL Rotate Left
+		#region ROL - Rotate Left
 
 		[TestCase(0x40, true)]
 		[TestCase(0x3F, false)]
@@ -1811,7 +1822,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region ROR Rotate Left
+		#region ROR - Rotate Left
 
 		[TestCase(0xFF, false, false)]
 		[TestCase(0xFE, false, false)]
@@ -1885,7 +1896,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region RTI Return from Interrupt
+		#region RTI - Return from Interrupt
 
 		[Test]
 		public void RTI_Program_Counter_Correct()
@@ -1959,7 +1970,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Accounting for the Offest in memory
-			Assert.That(processor.InterruptFlag, Is.EqualTo(true));
+			Assert.That(processor.DisableInterruptFlag, Is.EqualTo(true));
 		}
 
 		[Test]
@@ -1993,7 +2004,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region RTS Return from SubRoutine
+		#region RTS - Return from SubRoutine
 
 		[Test]
 		public void RTS_Program_Counter_Has_Correct_Value()
@@ -2022,7 +2033,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
-		#region SBC Subtraction With Borrow
+		#region SBC - Subtraction With Borrow
 
 		[TestCase(0, 0, false, 0)]
 		[TestCase(0, 1, false, 0xFF)]
@@ -2229,12 +2240,12 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0x78 }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.InterruptFlag, Is.EqualTo(true));
+			Assert.That(processor.DisableInterruptFlag, Is.EqualTo(true));
 		}
 
 		#endregion
 
-		#region STA Store Accumulator In Memory
+		#region STA - Store Accumulator In Memory
 
 		[Test]
 		public void STA_Memory_Has_Correct_Value()
@@ -2250,7 +2261,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region STX Set Memory To X
+		#region STX - Set Memory To X
 
 		[Test]
 		public void STX_Memory_Has_Correct_Value()
@@ -2266,7 +2277,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region STY Set Memory To Y
+		#region STY - Set Memory To Y
 
 		[Test]
 		public void STY_Memory_Has_Correct_Value()
@@ -2402,7 +2413,7 @@ namespace Processor.UnitTests
 
 		#endregion
 
-		#region TSX Transfer Stack Pointer to X Register
+		#region TSX - Transfer Stack Pointer to X Register
 
 		[Test]
 		public void TSX_XRegister_Set_Correctly()
@@ -2449,7 +2460,7 @@ namespace Processor.UnitTests
 		}
 		#endregion
 		
-		#region TXS Transfer X Register to Stack Pointer
+		#region TXS - Transfer X Register to Stack Pointer
 
 		[Test]
 		public void TXS_Stack_Pointer_Set_Correctly()

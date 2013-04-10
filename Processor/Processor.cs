@@ -13,7 +13,8 @@ namespace Processor
 		//All of the properties here are public and read only to facilitate ease of debugging and testing.
 		#region Properties
 		/// <summary>
-		/// The Accumulator
+		/// The Accumulator. This value is implemented as an integer intead of a byte.
+		/// This is done so we can detect wrapping of the value and set the correct number of cycles.
 		/// </summary>
 		public int Accumulator { get; private set; }
 		/// <summary>
@@ -21,7 +22,7 @@ namespace Processor
 		/// </summary>
 		public int XRegister { get; private set; }
 		/// <summary>
-		/// The Y Index Register this is used for 
+		/// The Y Index Register
 		/// </summary>
 		public int YRegister { get; private set; }
 		/// <summary>
@@ -30,6 +31,7 @@ namespace Processor
 		public int CurrentOpCode { get; private set; }
 		/// <summary>
 		/// Points to the Current Address of the instruction being executed by the system. 
+		/// The PC wraps when the value is greater than 65535, or less than 0. 
 		/// </summary>
 		public int ProgramCounter
 		{
@@ -45,7 +47,8 @@ namespace Processor
 			}
 		}
 		/// <summary>
-		/// Points to the Current Position of the Stack
+		/// Points to the Current Position of the Stack.
+		/// This value is a 00-FF value but is offset to point to the location in memory where the stack resides.
 		/// </summary>
 		public int StackPointer
 		{
@@ -61,7 +64,7 @@ namespace Processor
 			}
 		}
 		/// <summary>
-		/// The number of cycles before the next interrupt
+		/// The number of cycles before the next interrupt.
 		/// </summary>
 		public int InterruptPeriod { get; private set; }
 		/// <summary>
@@ -74,20 +77,23 @@ namespace Processor
 		public Ram Memory { get; private set; }
 		//Status Registers
 		/// <summary>
-		/// This is the carry flag. when adding, if there is a carry, then this bit is enabled. 
-		/// In subtraction this is reversed and set to false if a borrow is required.
+		/// This is the carry flag. when adding, if the result is greater than 255 or 99 in BCD Mode, then this bit is enabled. 
+		/// In subtraction this is reversed and set to false if a borrow is required IE the result is less than 0
 		/// </summary>
 		public bool CarryFlag { get; private set; }
 		/// <summary>
-		/// Is true if the operation produced a zero result
+		/// Is true if one of the registers is set to zero.
 		/// </summary>
 		public bool ZeroFlag { get; private set; }
 		/// <summary>
-		/// Interrupts are disabled if this is true
+		/// This determines if Interrupts are currently disabled.
+		/// This flag is turned on during a reset to prevent an interrupt from occuring during startup/Initialization.
+		/// If this flag is true, then the IRQ pin is ignored.
 		/// </summary>
-		public bool InterruptFlag { get; private set; }
+		public bool DisableInterruptFlag { get; private set; }
 		/// <summary>
-		/// If true, the CPU is in decimal mode.
+		/// Binary Coded Decimal Mode is set/cleared via this flag.
+		/// when this mode is in effect, a byte represents a number from 0-99. 
 		/// </summary>
 		public bool DecimalFlag { get; private set; }
 		/// <summary>
@@ -100,6 +106,7 @@ namespace Processor
 		public bool OverflowFlag { get; private set; }
 		/// <summary>
 		/// Set to true if the result of an operation is negative in ADC and SBC operations. 
+		/// Remember that 128-256 represent negative numbers when doing signed math.
 		/// In shift operations the sign holds the carry.
 		/// </summary>
 		public bool NegativeFlag { get; private set; }
@@ -131,7 +138,7 @@ namespace Processor
 			InterruptPeriod = 20;
 			NumberofCyclesLeft = InterruptPeriod;
 
-			InterruptFlag = true;
+			DisableInterruptFlag = true;
 		}
 
 		/// <summary>
@@ -605,7 +612,7 @@ namespace Processor
 				//CLI Clear Interrupt Flag, Implied, 1 Byte, 2 Cycles
 				case 0x58:
 					{
-						InterruptFlag = false;
+						DisableInterruptFlag = false;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
@@ -859,7 +866,10 @@ namespace Processor
 				//JMP Jump to New Location, Indirect 3 Bytes, 5 Cycles
 				case 0x6C:
 					{
-						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Indirect);
+						
+						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+
 						NumberofCyclesLeft -= 5;
 						break;
 					}
@@ -874,7 +884,7 @@ namespace Processor
 				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
 				case 0x00:
 					{
-						JumpToBreakOperation();
+						BreakOperation();
 
 						NumberofCyclesLeft -= 7;
 						break;
@@ -1187,7 +1197,7 @@ namespace Processor
 				//SEI Set Interrupt, Implied, 1 Bytes, 2 Cycles
 				case 0x78:
 					{
-						InterruptFlag = true;
+						DisableInterruptFlag = true;
 						NumberofCyclesLeft -= 2;
 						IncrementProgramCounter(1);
 						break;
@@ -1679,7 +1689,7 @@ namespace Processor
 						if (finalAddress > 0xFFFF)
 						{
 							finalAddress -= 0x10000;
-							
+
 							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
 							if (CurrentOpCode != 0x91)
 								NumberofCyclesLeft--;
@@ -1758,11 +1768,10 @@ namespace Processor
 		/// <returns></returns>
 		private byte ConvertFlagsToByte(bool setBreak)
 		{
-			return (byte)((CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (InterruptFlag ? 0x04 : 0) +
+			return (byte)((CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (DisableInterruptFlag ? 0x04 : 0) +
 						 (DecimalFlag ? 8 : 0) + (setBreak ? 0x10 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0));
 		}
-
-
+		
 		#region Op Code Operations
 		/// <summary>
 		/// The ADC - Add Memory to Accumulator with Carry Operation
@@ -1952,6 +1961,10 @@ namespace Processor
 				YRegister = value;
 		}
 
+		/// <summary>
+		/// The EOR Operation, Performs an Exclusive OR Operation against the Accumulator and a value in memory
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
 		private void EorOperation(AddressingMode addressingMode)
 		{
 			Accumulator = Accumulator ^ Memory.ReadValue(GetAddressByAddressingMode(addressingMode));	
@@ -1960,6 +1973,10 @@ namespace Processor
 			SetZeroFlag(Accumulator);
 		}
 
+		/// <summary>
+		/// The LSR Operation. Performs a Left shift operation on a value in memory
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
 		private void LsrOperation(AddressingMode addressingMode)
 		{
 			int value;
@@ -1989,6 +2006,10 @@ namespace Processor
 			}
 		}
 
+		/// <summary>
+		/// The Or Operation. Performs an Or Operation with the accumulator and a value in memory
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
 		private void OrOperation(AddressingMode addressingMode)
 		{
 			Accumulator = Accumulator | Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
@@ -1997,6 +2018,10 @@ namespace Processor
 			SetZeroFlag(Accumulator);
 		}
 
+		/// <summary>
+		/// The ROL operation. Performs a rotate left operation on a value in memory.
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
 		private void RolOperation(AddressingMode addressingMode)
 		{
 			int value;
@@ -2031,6 +2056,10 @@ namespace Processor
 			}
 		}
 
+		/// <summary>
+		/// The ROR operation. Performs a rotate right operation on a value in memory.
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
 		private void RorOperation(AddressingMode addressingMode)
 		{
 			int value;
@@ -2065,6 +2094,10 @@ namespace Processor
 			}
 		}
 
+		/// <summary>
+		/// The SBC operation. Performs a subtract with carry operation on the accumulator and a value in memory.
+		/// </summary>
+		/// <param name="addressingMode">The addressing mode to use</param>
 		private void SubtractWithBorrowOperation(AddressingMode addressingMode)
 		{
 			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
@@ -2093,23 +2126,32 @@ namespace Processor
 			Accumulator = newValue;
 		}
 
+		/// <summary>
+		/// The PSP Operation. Pushes the Status Flags to the stack
+		/// </summary>
 		private void PushFlagsOperation()
 		{
 			PokeStack(ConvertFlagsToByte(true));
 		}
 
+		/// <summary>
+		/// The PLP Operation. Pull the status flags off the stack on sets the flags accordingly.
+		/// </summary>
 		private void PullFlagsOperation()
 		{
 			var flags = PeekStack();
 			CarryFlag = (flags & 0x01) != 0;
 			ZeroFlag = (flags & 0x02) != 0;
-			InterruptFlag = (flags & 0x04) != 0;
+			DisableInterruptFlag = (flags & 0x04) != 0;
 			DecimalFlag = (flags & 0x08) != 0;
 			OverflowFlag = (flags & 0x40) != 0;
 			NegativeFlag = (flags & 0x80) != 0;
 
 		}
 
+		/// <summary>
+		/// The JSR routine. Jumps to a subroutine. 
+		/// </summary>
 		private void JumpToSubRoutineOperation()
 		{
 			//Put the high value on the stack, this should be the address after our operation -1
@@ -2126,6 +2168,9 @@ namespace Processor
 
 		}
 
+		/// <summary>
+		/// The RTS routine. Called when returning from a subroutine.
+		/// </summary>
 		private void ReturnFromSubRoutineOperation()
 		{
 			StackPointer++;
@@ -2139,7 +2184,10 @@ namespace Processor
 			ProgramCounter = ( highBit | lowBit ) + 1;
 		}
 
-		private void JumpToBreakOperation()
+		/// <summary>
+		/// The BRK routine. Called when a BRK occurs.
+		/// </summary>
+		private void BreakOperation()
 		{
 			//Put the high value on the stack
 			//When we RTI the address will be incremented by one, and the address after a break will not be used.
@@ -2159,6 +2207,11 @@ namespace Processor
 			ProgramCounter = (Memory.ReadValue(0xFFFF) << 8) | Memory.ReadValue(0xFFFE);
 		}
 
+		/// <summary>
+		/// The RTI routine. Called when returning from a BRK opertion.
+		/// Note: when called after a BRK operation the Program Counter is not set to the location after the BRK,
+		/// it is set +1
+		/// </summary>
 		private void ReturnFromInterruptOperation()
 		{
 			StackPointer++;
