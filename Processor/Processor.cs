@@ -886,8 +886,10 @@ namespace Processor
 				//RTI Return From Interrupt, Implied, 1 Byte, 6 Cycles
 				case 0x40:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						ReturnFromInterruptOperation();
+
+						NumberofCyclesLeft -= 6;
+						break;
 					}
 				//RTS Return From Subroutine, Implied, 1 Byte, 6 Cycles
 				case 0x60:
@@ -1528,7 +1530,7 @@ namespace Processor
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
 			}
 		}
-
+		
 		/// <summary>
 		/// Increments the program Counter. We always Increment by 1 less than the value that is passed in to account for the increment that happens after the current
 		/// Op code is retrieved
@@ -1756,12 +1758,14 @@ namespace Processor
 		/// <summary>
 		/// Coverts the Flags into its byte representation.
 		/// </summary>
+		/// <param name="setBreak">Determines if the break flag should be set during conversion. IRQ does not set the flag on the stack, but PHP and BRK do</param>
 		/// <returns></returns>
-		private byte ConvertFlagsToByte()
+		private byte ConvertFlagsToByte(bool setBreak)
 		{
 			return (byte)((CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (InterruptFlag ? 0x04 : 0) +
-						 (DecimalFlag ? 8 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0));
+						 (DecimalFlag ? 8 : 0) + (setBreak ? 0x10 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0));
 		}
+
 
 		#region Op Code Operations
 		/// <summary>
@@ -2095,7 +2099,7 @@ namespace Processor
 
 		private void PushFlagsOperation()
 		{
-			PokeStack(ConvertFlagsToByte());
+			PokeStack(ConvertFlagsToByte(true));
 		}
 
 		private void PullFlagsOperation()
@@ -2152,11 +2156,28 @@ namespace Processor
 
 			StackPointer--;
 
-			PokeStack((byte)(ConvertFlagsToByte() | 0x10));
+			PokeStack((byte)(ConvertFlagsToByte(true) | 0x10));
 
 			StackPointer--;
 
 			ProgramCounter = (Memory.ReadValue(0xFFFF) << 8) | Memory.ReadValue(0xFFFE);
+		}
+
+		private void ReturnFromInterruptOperation()
+		{
+			StackPointer++;
+			
+			PullFlagsOperation();
+
+			StackPointer++;
+
+			var lowBit = PeekStack();
+
+			StackPointer++;
+
+			var highBit = PeekStack() << 8;
+
+			ProgramCounter = (highBit | lowBit);
 		}
 		#endregion
 

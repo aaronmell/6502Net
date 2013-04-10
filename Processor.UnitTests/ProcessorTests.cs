@@ -1545,9 +1545,9 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region PHP Push Flags Onto Stack 
-		[TestCase(0x038,0x01)] //SEC Carry Flag Test
-		[TestCase(0x0F8,0x08)] //SED Decimal Flag Test
-		[TestCase(0x078, 0x04)] //SEI Interrupt Flag Test
+		[TestCase(0x038,0x11)] //SEC Carry Flag Test
+		[TestCase(0x0F8,0x18)] //SED Decimal Flag Test
+		[TestCase(0x078, 0x14)] //SEI Interrupt Flag Test
 		public void PHP_Stack_Set_Flag_Operations_Correctly(byte operation, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1563,9 +1563,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0x01,0x80,0x80)] //Negative
-		[TestCase(0x01, 0x7F, 0xC0)] //Overflow + Negative
-		[TestCase(0x00, 0x00, 0x02)] //Zero
+		[TestCase(0x01,0x80,0x90)] //Negative
+		[TestCase(0x01, 0x7F, 0xD0)] //Overflow + Negative
+		[TestCase(0x00, 0x00, 0x12)] //Zero
 		public void PHP_Stack_Non_Set_Flag_Operations_Correctly( byte accumulatorValue, byte memoryValue, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1884,6 +1884,114 @@ namespace Processor.UnitTests
 						Is.EqualTo(expectedValue));
 		}
 
+		#endregion
+
+		#region RTI Return from Interrupt
+
+		[Test]
+		public void RTI_Program_Counter_Correct()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0xABCD, new byte[] { 0x00 }, 0xABCD);
+			//The Reset Vector Points to 0x0000 by default, so load the RTI instruction there.
+			processor.Memory.WriteValue(0x00, 0x40);
+			
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0xABCF));
+		}
+
+		[Test]
+		public void RTI_Carry_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Return from Interrupt
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x01, 0x48, 0x40 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.CarryFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void RTI_Zero_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Return from Interrupt
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x02, 0x48, 0x40 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.ZeroFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void RTI_Decimal_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Return from Interrupt
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x08, 0x48, 0x40 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.DecimalFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void RTI_Interrupt_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Return from Interrupt
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x04, 0x48, 0x40 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.InterruptFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void RTI_Overflow_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Return from Interrupt
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x40, 0x48, 0x40 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.OverflowFlag, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void RTI_Negative_Flag_Set_Correctly()
+		{
+			var processor = new Processor();
+
+			//Load Accumulator and Transfer to Stack, Clear Accumulator, and Return from Interrupt
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x80, 0x48, 0x40 }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.NegativeFlag, Is.EqualTo(true));
+		}
 		#endregion
 
 		#region RTS Return from SubRoutine
@@ -2839,7 +2947,7 @@ namespace Processor.UnitTests
 		[TestCase(0x1E, 7)] // ASL Absolute X
 		[TestCase(0x24, 3)] // BIT Zero Page
 		[TestCase(0x2C, 4)] // BIT Absolute
-		[TestCase(0x00, 6)] // BRK Implied
+		[TestCase(0x00, 7)] // BRK Implied
 		[TestCase(0x18, 2)] // CLC Implied
 		[TestCase(0xD8, 2)] // CLD Implied
 		[TestCase(0x58, 2)] // CLI Implied
@@ -2927,6 +3035,7 @@ namespace Processor.UnitTests
 		[TestCase(0x76, 6)] // ROR Zero Page X
 		[TestCase(0x6E, 6)] // ROR Absolute
 		[TestCase(0x7E, 7)] // ROR Absolute X
+		[TestCase(0x40, 6)] // RTI Implied
 		[TestCase(0x60, 6)] // RTS Implied
 		[TestCase(0xE9, 2)] // SBC Immediate
 		[TestCase(0xE5, 3)] // SBC Zero Page
