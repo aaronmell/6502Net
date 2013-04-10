@@ -878,8 +878,10 @@ namespace Processor
 				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
 				case 0x00:
 					{
-						//I am skipping this one for now. I am not quite sure how the Stack works, so I will come back to this one when I get a better handle on it.
-						throw new NotImplementedException();
+						JumpToBreakOperation();
+
+						NumberofCyclesLeft -= 7;
+						break;
 					}
 				//RTI Return From Interrupt, Implied, 1 Byte, 6 Cycles
 				case 0x40:
@@ -1751,6 +1753,16 @@ namespace Processor
 			Memory.WriteValue(StackPointer + 0x100, value);
 		}
 
+		/// <summary>
+		/// Coverts the Flags into its byte representation.
+		/// </summary>
+		/// <returns></returns>
+		private byte ConvertFlagsToByte()
+		{
+			return (byte)((CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (InterruptFlag ? 0x04 : 0) +
+						 (DecimalFlag ? 8 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0));
+		}
+
 		#region Op Code Operations
 		/// <summary>
 		/// The ADC - Add Memory to Accumulator with Carry Operation
@@ -2083,10 +2095,7 @@ namespace Processor
 
 		private void PushFlagsOperation()
 		{
-			var amount = (CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (InterruptFlag ? 0x04 : 0) +
-						 (DecimalFlag ? 8 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0);
-
-			PokeStack((byte)amount);
+			PokeStack(ConvertFlagsToByte());
 		}
 
 		private void PullFlagsOperation()
@@ -2128,6 +2137,26 @@ namespace Processor
 			var highBit = PeekStack() << 8;
 
 			ProgramCounter = ( highBit | lowBit ) + 1;
+		}
+
+		private void JumpToBreakOperation()
+		{
+			//Put the high value on the stack
+			//When we RTI the address will be incremented by one, and the address after a break will not be used.
+			PokeStack((byte)(((ProgramCounter + 1) >> 8) & 0xFF));
+
+			StackPointer--;
+
+			//Put the low value on the stack
+			PokeStack((byte)((ProgramCounter + 1) & 0xFF));
+
+			StackPointer--;
+
+			PokeStack((byte)(ConvertFlagsToByte() | 0x10));
+
+			StackPointer--;
+
+			ProgramCounter = (Memory.ReadValue(0xFFFF) << 8) | Memory.ReadValue(0xFFFE);
 		}
 		#endregion
 

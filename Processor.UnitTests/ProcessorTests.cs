@@ -560,6 +560,91 @@ namespace Processor.UnitTests
 		}
 		#endregion
 
+		#region BRK - Simulate Interrupt Request (IRQ)
+
+		[Test]
+		public void BRK_Program_Counter_Set_To_Address_At_Break_Vector_Address()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x00 }, 0x00);
+
+			//Manually Write the Break Address
+			processor.Memory.WriteValue(0xFFFE, 0xBC);
+			processor.Memory.WriteValue(0xFFFF, 0xCD);
+			
+			processor.NextStep();
+		
+			Assert.That(processor.ProgramCounter, Is.EqualTo(0xCDBC));
+		}
+
+		[Test]
+		public void BRK_Program_Counter_Stack_Correct()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0xABCD, new byte[] { 0x00 }, 0xABCD);
+			
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(0xAB));
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 1), Is.EqualTo(0xCF));
+		}
+
+		[Test]
+		public void BRK_Stack_Pointer_Correct()
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0xABCD, new byte[] { 0x00 }, 0xABCD);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+
+			Assert.That(processor.StackPointer, Is.EqualTo(stackLocation - 3));
+		}
+
+		[TestCase(0x038, 0x11)] //SEC Carry Flag Test
+		[TestCase(0x0F8, 0x18)] //SED Decimal Flag Test
+		[TestCase(0x078, 0x14)] //SEI Interrupt Flag Test
+		public void BRK_Stack_Set_Flag_Operations_Correctly(byte operation, byte expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x58, operation, 0x00 }, 0x00);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 2), Is.EqualTo(expectedValue));
+		}
+
+		[TestCase(0x01, 0x80, 0x90)] //Negative
+		[TestCase(0x01, 0x7F, 0xD0)] //Overflow + Negative
+		[TestCase(0x00, 0x00, 0x12)] //Zero
+		public void BRK_Stack_Non_Set_Flag_Operations_Correctly(byte accumulatorValue, byte memoryValue, byte expectedValue)
+		{
+			var processor = new Processor();
+
+			processor.LoadProgram(0, new byte[] { 0x58, 0xA9, accumulatorValue, 0x69, memoryValue, 0x00 }, 0x00);
+
+			var stackLocation = processor.StackPointer;
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+			processor.NextStep();
+
+			//Accounting for the Offest in memory
+			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 2), Is.EqualTo(expectedValue));
+		}
+
+
+		#endregion
+
 		#region BVC Branch if Overflow Clear
 		[TestCase(0, 0x00, 2)]
 		[TestCase(0, 1, 3)]
@@ -2754,6 +2839,7 @@ namespace Processor.UnitTests
 		[TestCase(0x1E, 7)] // ASL Absolute X
 		[TestCase(0x24, 3)] // BIT Zero Page
 		[TestCase(0x2C, 4)] // BIT Absolute
+		[TestCase(0x00, 6)] // BRK Implied
 		[TestCase(0x18, 2)] // CLC Implied
 		[TestCase(0xD8, 2)] // CLD Implied
 		[TestCase(0x58, 2)] // CLI Implied
