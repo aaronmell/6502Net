@@ -16,7 +16,6 @@ namespace Processor.UnitTests
 			Assert.That(processor.ZeroFlag, Is.False);
 			Assert.That(processor.InterruptFlag, Is.False);
 			Assert.That(processor.DecimalFlag, Is.False);
-			Assert.That(processor.IsSoftwareInterrupt, Is.False);
 			Assert.That(processor.OverflowFlag, Is.False);
 			Assert.That(processor.NegativeFlag, Is.False);
 		}

@@ -91,10 +91,6 @@ namespace Processor
 		/// </summary>
 		public bool DecimalFlag { get; private set; }
 		/// <summary>
-		/// It true when a BRK instruction is executed
-		/// </summary>
-		public bool IsSoftwareInterrupt { get; private set; }
-		/// <summary>
 		/// This property is set when an overflow occurs. An overflow happens if the high bit(7) changes during the operation. Remember that values from 128-256 are negative values
 		/// as the high bit is set to 1.
 		/// Examples:
