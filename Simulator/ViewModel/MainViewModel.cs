@@ -1,4 +1,5 @@
 using GalaSoft.MvvmLight;
+using Proc= Processor.Processor;
 
 namespace Simulator.ViewModel
 {
@@ -16,5 +17,12 @@ namespace Simulator.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+		public Proc Proc { get; set; }
+
+		public MainViewModel()
+		{
+			Proc = new Proc();
+			Proc.Reset();
+		}
 	}
 }

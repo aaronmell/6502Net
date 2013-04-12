@@ -1,20 +1,22 @@
 ﻿<Window x:Class="Simulator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="1080" Width="1960">
+        Title="6502 Simulator" Height="1080" Width="1960"
+		xmlns:ViewModel="clr-namespace:Simulator.ViewModel"
+		DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowState="Maximized">
     <Grid>
 		<ListView Height="247" HorizontalAlignment="Left" Margin="49,753,0,0" Name="OutPutLog" VerticalAlignment="Top" Width="1261" />
 		<ListView Height="752" HorizontalAlignment="Left" Margin="1354,92,0,0" Name="MemoryMap" VerticalAlignment="Top" Width="505" />
 		<ListBox Height="574" HorizontalAlignment="Left" Margin="49,92,0,0" Name="CodeView" VerticalAlignment="Top" Width="1261" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,79,0" Name="YRegister" VerticalAlignment="Top" Width="60" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,184,0" Name="XRegister" VerticalAlignment="Top" Width="60" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,79,0" Name="Accumulator" VerticalAlignment="Top" Width="60" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,184,0" Name="StackPoineter" VerticalAlignment="Top" Width="60" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,79,0" Name="YRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.YRegister, StringFormat=X,  Mode=OneWay}"/>
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,184,0" Name="XRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.XRegister, StringFormat=X,  Mode=OneWay}" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,79,0" Name="Accumulator" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.Accumulator, StringFormat=X,  Mode=OneWay}" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,184,0" Name="StackPointer" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.StackPointer, StringFormat=X,  Mode=OneWay}"/>
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,963,235,0" Name="XRegisterText" Text="X" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,963,131,0" Name="YRegisterText" Text="Y" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,897,227,0" Name="StackPointerRegisterText" Text="SP" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,897,130,0" Name="AText" Text="A" VerticalAlignment="Top" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,289,0" Name="ProgramCounter" VerticalAlignment="Top" Width="134" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,289,0" Name="ProgramCounter" VerticalAlignment="Top" Width="134" Text="{Binding Path=Proc.ProgramCounter, StringFormat=X,  Mode=OneWay}" />
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,289,0" Name="CurrentInstruction" VerticalAlignment="Top" Width="134" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,897,306,0" Name="CurrentInstructionText" Text="Current Instruction" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,961,405,0" Name="ProgramCounterText" Text="PC" VerticalAlignment="Top" />
@@ -26,19 +28,20 @@
 		<ComboBox Height="23" HorizontalAlignment="Left" Margin="519,708,0,0" Name="HaltOptions" VerticalAlignment="Top" Width="120" />
 		<Button Content="Pause" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="267,707,0,0" Name="Pause" VerticalAlignment="Top" Width="75" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,689,1372,0" Name="HaltOnText" Text="Halt On" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1187,715,0,0" Name="CarryFlag" VerticalAlignment="Top" />
+
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1187,715,0,0" Name="CarryFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1187,695,0,0" Name="CarryFlagText" Text="C" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1149,715,0,0" Name="ZeroFlag" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1149,715,0,0" Name="ZeroFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.ZeroFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="1149,695,0,0" Name="ZeroFlagText" Text="Z" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1111,715,0,0" Name="InterrupFlag" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1111,715,0,0" Name="InterrupFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DisableInterruptFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="1111,695,0,0" Name="InterruptFlagText" Text="I" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1072,715,0,0" Name="BcdFlag" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1072,715,0,0" Name="BcdFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DecimalFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1072,695,0,0" Name="BcdFlagText" Text="D" VerticalAlignment="Top" />
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1034,715,0,0" Name="BreakFlag" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1034,695,0,0" Name="BreakFlagText" Text="B" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="996,715,0,0" Name="OverflowFlag" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="996,715,0,0" Name="OverflowFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.OverflowFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="996,695,0,0" Name="OverflowFlagText" Text="V" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="958,715,0,0" Name="NegativeFlag" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="958,715,0,0" Name="NegativeFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.NegativeFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="958,695,0,0" Name="NegativeFlagText" Text="N" VerticalAlignment="Top" />
 	</Grid>
 </Window>
