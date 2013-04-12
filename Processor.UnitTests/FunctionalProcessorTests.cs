@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using NUnit.Framework;
 
@@ -8,13 +7,15 @@ namespace Processor.UnitTests
 	[TestFixture]
 	public class FunctionalProcessorTests
 	{
-		public byte[] _kdTestProgram;
+		public byte[] KdTestProgram;
 
 		[Test]
+// ReSharper disable InconsistentNaming
 		public void KD_Runs_Successfully()
+// ReSharper restore InconsistentNaming
 		{
 			var processor = new Processor();
-			processor.LoadProgram(0x1000,_kdTestProgram, 0x1000);
+			processor.LoadProgram(0x1000,KdTestProgram, 0x1000);
 
 			while (true)
 			{
@@ -33,13 +34,15 @@ namespace Processor.UnitTests
 								processor.XRegister,
 								processor.YRegister);
 			}
+// ReSharper disable FunctionNeverReturns
 		}
+// ReSharper restore FunctionNeverReturns
 
 
 		[SetUp]
-		public void Setup_Programs()
+		public void SetupPrograms()
 		{
-			_kdTestProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "KlausDormann_Test.bin"));
+			KdTestProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "KlausDormann_Test.bin"));
 		}
 	}
 
