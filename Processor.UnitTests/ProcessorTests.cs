@@ -354,11 +354,10 @@ namespace Processor.UnitTests
 
 		#region BCC - Branch On Carry Clear
 
-		[TestCase(0, 0x00, 2)]
-		[TestCase(0, 1, 3)]
-		[TestCase(0, 0x80, 2)]
-		[TestCase(0, 0x83, 0xFFFF)]
-		[TestCase(0, 0x82, 0)]
+		[TestCase(0, 1, 2)]
+		[TestCase(0x80, 0x80, 2)]
+		[TestCase(0, 0xFD, 0xFFFF)]
+		[TestCase(0x7D, 0x80, 0xFFFF)]
 		public void BCC_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -372,11 +371,10 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BCS - Branch on Carry Set
-		[TestCase(0, 0x00, 3)]
-		[TestCase(0, 1, 4)]
-		[TestCase(0, 0x81, 2)]
-		[TestCase(0, 0x84, 0xFFFF)]
-		[TestCase(0, 0x83, 0)]
+		[TestCase(0, 1, 3)]
+		[TestCase(0x80, 0x80, 3)]
+		[TestCase(0, 0xFC, 0xFFFF)]
+		[TestCase(0x7C, 0x80, 0xFFFF)]
 		public void BCS_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -391,12 +389,10 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BEQ - Branch on Zero Set
-
-		[TestCase(0, 0x00, 4)]
-		[TestCase(0, 1, 5)]
-		[TestCase(0, 0x82, 2)]
-		[TestCase(0, 0x85, 0xFFFF)]
-		[TestCase(0, 0x84, 0)]
+		[TestCase(0, 1, 4)]
+		[TestCase(0x80, 0x80, 4)]
+		[TestCase(0, 0xFB, 0xFFFF)]
+		[TestCase(0x7B, 0x80, 0xFFFF)]
 		public void BEQ_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -501,11 +497,10 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BMI - Branch if Negative Set
-		[TestCase(0, 0x00, 4)]
-		[TestCase(0, 1, 5)]
-		[TestCase(0, 0x82, 2)]
-		[TestCase(0, 0x85, 0xFFFF)]
-		[TestCase(0, 0x84, 0)]
+		[TestCase(0, 1, 4)]
+		[TestCase(0x80, 0x80, 4)]
+		[TestCase(0, 0xFB, 0xFFFF)]
+		[TestCase(0x7B, 0x80, 0xFFFF)]
 		public void BMI_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -521,11 +516,10 @@ namespace Processor.UnitTests
 
 		#region BNE - Branch On Result Not Zero
 
-		[TestCase(0, 0x00, 4)]
-		[TestCase(0, 1, 5)]
-		[TestCase(0, 0x82, 2)]
-		[TestCase(0, 0x85, 0xFFFF)]
-		[TestCase(0, 0x84, 0)]
+		[TestCase(0, 1, 4)]
+		[TestCase(0x80, 0x80, 4)]
+		[TestCase(0, 0xFB, 0xFFFF)]
+		[TestCase(0x7B, 0x80, 0xFFFF)]
 		public void BNE_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -541,11 +535,10 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BPL - Branch if Negative Clear
-		[TestCase(0, 0x00, 4)]
-		[TestCase(0, 1, 5)]
-		[TestCase(0, 0x82, 2)]
-		[TestCase(0, 0x85, 0xFFFF)]
-		[TestCase(0, 0x84, 0)]
+		[TestCase(0, 1, 4)]
+		[TestCase(0x80, 0x80, 4)]
+		[TestCase(0, 0xFB, 0xFFFF)]
+		[TestCase(0x7B, 0x80, 0xFFFF)]
 		public void BPL_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -645,11 +638,10 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BVC - Branch if Overflow Clear
-		[TestCase(0, 0x00, 2)]
-		[TestCase(0, 1, 3)]
-		[TestCase(0, 0x80, 2)]
-		[TestCase(0, 0x83, 0xFFFF)]
-		[TestCase(0, 0x82, 0)]
+		[TestCase(0, 1, 2)]
+		[TestCase(0x80, 0x80, 2)]
+		[TestCase(0, 0xFD, 0xFFFF)]
+		[TestCase(0x7D, 0x80, 0xFFFF)]
 		public void BVC_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -663,11 +655,10 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BVS - Branch if Overflow Set
-		[TestCase(0, 0x00, 6)]
-		[TestCase(0, 1, 7)]
-		[TestCase(0, 0x84, 2)]
-		[TestCase(0, 0x87, 0xFFFF)]
-		[TestCase(0, 0x86, 0)]
+		[TestCase(0, 1, 6)]
+		[TestCase(0x80, 0x80, 6)]
+		[TestCase(0, 0xF9, 0xFFFF)]
+		[TestCase(0x79, 0x80, 0xFFFF)]
 		public void BVS_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();
@@ -3478,8 +3469,8 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedProgramCounter));
 		}
 
-		[TestCase(0xB0, true, 2)]  //BCC
-		[TestCase(0x90, false, 2)] //BCS
+		[TestCase(0x90, true, 2)]  //BCC
+		[TestCase(0xB0, false, 2)] //BCS
 		public void Branch_On_Carry_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool carrySet, byte expectedOutput)
 		{
 			var processor = new Processor();
@@ -3487,8 +3478,8 @@ namespace Processor.UnitTests
 
 			processor.LoadProgram(0,
 			                      carrySet
-					                      ? new byte[] {0x38, operation }
-				                      : new byte[] {0x18, operation }, 0x00);
+					                      ? new byte[] {0x38, operation, 0x48 }
+				                      : new byte[] {0x18, operation, 0x48 }, 0x00);
 
 			processor.NextStep();
 			var currentProgramCounter = processor.ProgramCounter;
@@ -3498,8 +3489,8 @@ namespace Processor.UnitTests
 
 		}
 
-		[TestCase(0xF0, true, 2)]  //BEQ
-		[TestCase(0xD0, false, 2)]  //BNE
+		[TestCase(0xF0, false, 2)]  //BEQ
+		[TestCase(0xD0, true, 2)]  //BNE
 		public void Branch_On_Zero_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool zeroSet, byte expectedOutput)
 		{
 			var processor = new Processor();
@@ -3518,8 +3509,8 @@ namespace Processor.UnitTests
 
 		}
 
-		[TestCase(0x30, true, 2)]  //BMI
-		[TestCase(0x10, false, 2)]  //BPL
+		[TestCase(0x30, false, 2)]  //BMI
+		[TestCase(0x10, true, 2)]  //BPL
 		public void Branch_On_Negative_Program_Counter_Correct_When_NoBranch_Occurs(byte operation, bool negativeSet, byte expectedOutput)
 		{
 			var processor = new Processor();

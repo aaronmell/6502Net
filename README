@@ -16,3 +16,6 @@ http://www.atariarchives.org/alp/
 http://en.wikipedia.org/wiki/MOS_Technology_6502
 http://www.obelisk.demon.co.uk/6502/
 http://www.6502.org/tutorials/
+
+I used the following test programs to validate the simulator
+http://2m5.de/6502_Emu/ Klaus Dormann 6502 Test Suite (GPL License)
