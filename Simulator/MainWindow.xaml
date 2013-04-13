@@ -3,27 +3,54 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="6502 Simulator" Height="1080" Width="1960"
 		DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowState="Maximized">
-    <Grid>
+	<Window.Resources>
+		<Style TargetType="{x:Type Button}">
+			<Setter Property="Padding" Value="3.5,0" />
+			<Setter Property="Margin" Value="3.5" />
+			<Setter Property="MinWidth" Value="80" />
+		</Style>
+
+		<!-- This Style inherits from the Button style seen above. -->
+		<Style BasedOn="{StaticResource {x:Type Button}}"  TargetType="{x:Type Button}" x:Key="RunButtonStyle">
+			<Setter Property="Content" Value="Run" />
+			<Style.Triggers>
+				<DataTrigger Binding="{Binding Path=IsRunning}" Value="True">
+					<Setter Property="Content" Value="Pause" />
+				</DataTrigger>
+				<DataTrigger Binding="{Binding Path=IsRunning}" Value="False">
+					<Setter Property="Content" Value="Run" />
+				</DataTrigger>
+			</Style.Triggers>
+		</Style>
+	</Window.Resources>
+
+	<Grid>
 		<ListView Height="247" HorizontalAlignment="Left" Margin="49,753,0,0" Name="OutPutLog" VerticalAlignment="Top" Width="1261" />
 		<ListView Height="752" HorizontalAlignment="Left" Margin="1354,92,0,0" Name="MemoryMap" VerticalAlignment="Top" Width="505" />
 		<ListBox Height="574" HorizontalAlignment="Left" Margin="49,92,0,0" Name="CodeView" VerticalAlignment="Top" Width="1261" />
+		
+		
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,79,0" Name="YRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.YRegister, StringFormat=X,  Mode=OneWay}"/>
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,184,0" Name="XRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.XRegister, StringFormat=X,  Mode=OneWay}" />
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,79,0" Name="Accumulator" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.Accumulator, StringFormat=X,  Mode=OneWay}" />
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,184,0" Name="StackPointer" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.StackPointer, StringFormat=X,  Mode=OneWay}"/>
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,289,0" Name="ProgramCounter" VerticalAlignment="Top" Width="134" Text="{Binding Path=Proc.ProgramCounter, StringFormat=X,  Mode=OneWay}" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,289,0" Name="CurrentInstruction" VerticalAlignment="Top" Width="134" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,450,0" Name="CycleCount" VerticalAlignment="Top" Width="134" />
+
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,963,235,0" Name="XRegisterText" Text="X" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,963,131,0" Name="YRegisterText" Text="Y" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,897,227,0" Name="StackPointerRegisterText" Text="SP" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,897,130,0" Name="AText" Text="A" VerticalAlignment="Top" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,981,289,0" Name="ProgramCounter" VerticalAlignment="Top" Width="134" Text="{Binding Path=Proc.ProgramCounter, StringFormat=X,  Mode=OneWay}" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,289,0" Name="CurrentInstruction" VerticalAlignment="Top" Width="134" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,897,306,0" Name="CurrentInstructionText" Text="Current Instruction" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,961,405,0" Name="ProgramCounterText" Text="PC" VerticalAlignment="Top" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,450,0" Name="CycleCount" VerticalAlignment="Top" Width="134" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1354,897,0,0" Name="CycleCountText" Text="Cycle Count" VerticalAlignment="Top" />
-		<Button Content="Run" Height="23" HorizontalAlignment="Left" Margin="159,709,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunPauseCommand}" />
-		<Button Content="Step" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="268,709,0,0" Name="Step" VerticalAlignment="Top" Width="75" Command="{Binding Path= StepCommand}" />
-		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="377,709,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" />
+
+		<Button Height="23" HorizontalAlignment="Left" Margin="159,709,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunPauseCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" Style="{StaticResource RunButtonStyle}" />
+		<Button Content="Step" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="268,709,0,0" Name="Step" VerticalAlignment="Top" Width="75" Command="{Binding Path= StepCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
+		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="377,709,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
+		<Button Content="Load" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="49,709,0,0" Name="Load" VerticalAlignment="Top" Width="75" Command="{Binding Path=OpenCommand}" />
+
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1187,715,0,0" Name="CarryFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1187,695,0,0" Name="CarryFlagText" Text="C" VerticalAlignment="Top" />
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1149,715,0,0" Name="ZeroFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.ZeroFlag, Mode=OneWay}" />
@@ -38,7 +65,7 @@
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="996,695,0,0" Name="OverflowFlagText" Text="V" VerticalAlignment="Top" />
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="958,715,0,0" Name="NegativeFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.NegativeFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="958,695,0,0" Name="NegativeFlagText" Text="N" VerticalAlignment="Top" />
-		<Button Content="Load" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="49,709,0,0" Name="Load" VerticalAlignment="Top" Width="75" Command="{Binding Path=OpenCommand}" />
+		
 		<TextBlock Height="23" HorizontalAlignment="Left" Margin="49,70,0,0" Name="FilePathText" Text="{Binding Path=FilePath}" VerticalAlignment="Top" Width="630" FontSize="14" />
 	</Grid>
 </Window>

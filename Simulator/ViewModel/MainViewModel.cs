@@ -35,6 +35,11 @@ namespace Simulator.ViewModel
 		}
 
 		/// <summary>
+		/// Is a Program Loaded.
+		/// </summary>
+		public bool IsProgramLoaded { get; set; }
+
+		/// <summary>
 		/// The Path to the Program that is running
 		/// </summary>
 		public string FilePath { get; private set; }
@@ -88,6 +93,9 @@ namespace Simulator.ViewModel
 			Proc.LoadProgram(notificationMessage.Content.MemoryOffset, notificationMessage.Content.Program, notificationMessage.Content.InitialProgramCounter);
 			FilePath = string.Format("Loaded Program: {0}", notificationMessage.Content.FilePath);
 			RaisePropertyChanged("FilePath");
+
+			IsProgramLoaded = true;
+			RaisePropertyChanged("IsProgramLoaded");
 		}
 
 		private void Reset()
