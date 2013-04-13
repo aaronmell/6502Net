@@ -142,6 +142,7 @@ namespace Processor
 			InterruptPeriod = 20;
 			NumberofCyclesLeft = InterruptPeriod;
 
+			CurrentOpCode = Memory.ReadValue(ProgramCounter);
 			DisableInterruptFlag = true;
 		}
 
@@ -150,13 +151,15 @@ namespace Processor
 		/// </summary>
 		public void NextStep()
 		{
-			CurrentOpCode = Memory.ReadValue(ProgramCounter);
 			ProgramCounter++;
 			ExecuteOpCode();
 
 			//We want to add here instead of replace because the number of cycles left could be zero.
 			if (NumberofCyclesLeft < 0)
 				NumberofCyclesLeft += InterruptPeriod;
+
+			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
+			CurrentOpCode = Memory.ReadValue(ProgramCounter);
 		}
 
 		/// <summary>

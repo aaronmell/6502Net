@@ -42,6 +42,7 @@ namespace Simulator.ViewModel
             ////}
 
             SimpleIoc.Default.Register<MainViewModel>();
+			SimpleIoc.Default.Register<OpenFileViewModel>();
         }
 
         public MainViewModel Main
@@ -51,6 +52,14 @@ namespace Simulator.ViewModel
                 return ServiceLocator.Current.GetInstance<MainViewModel>();
             }
         }
+
+		public OpenFileViewModel OpenFile
+		{
+			get
+			{
+				return ServiceLocator.Current.GetInstance<OpenFileViewModel>();
+			}
+		}
         
         public static void Cleanup()
         {

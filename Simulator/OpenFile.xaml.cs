@@ -3,11 +3,11 @@
 namespace Simulator
 {
 	/// <summary>
-	/// Interaction logic for MainWindow.xaml
+	/// Interaction logic for OpenFile.xaml
 	/// </summary>
-	public partial class MainWindow
+	public partial class OpenFile
 	{
-		public MainWindow()
+		public OpenFile()
 		{
 			InitializeComponent();
 			Messenger.Default.Register<NotificationMessage>(this, NotificationMessageReceived);
@@ -15,11 +15,8 @@ namespace Simulator
 
 		private void NotificationMessageReceived(NotificationMessage notificationMessage)
 		{
-			if (notificationMessage.Notification == "OpenFileWindow")
-			{
-				var openFile = new OpenFile();
-				openFile.ShowDialog();
-			}
+			if (notificationMessage.Notification == "CloseFileWindow")
+				Close();
 		}
 	}
 }
