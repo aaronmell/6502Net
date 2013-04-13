@@ -69,6 +69,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\MemoryRowModel.cs" />
     <Compile Include="Model\OpenFileModel.cs" />
     <Compile Include="OpenFile.xaml.cs">
       <DependentUpon>OpenFile.xaml</DependentUpon>

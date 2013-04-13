@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -13,6 +16,7 @@ namespace Simulator.ViewModel
 	{
 		#region Private Properties
 		private bool _isRunning;
+		private int _memoryPageOffset;
 		#endregion
 
 		#region Public Properties
@@ -20,6 +24,27 @@ namespace Simulator.ViewModel
 		/// The Processor
 		/// </summary>
 		public Proc Proc { get; set; }
+
+		public ObservableCollection<MemoryRowModel> MemoryPage { get; set; }
+		
+		public string MemoryPageOffset
+		{
+			get { return _memoryPageOffset.ToString("X"); }
+			set
+			{
+				//I don't like this hack, but WPF doesn't support any way to update the Value on keypress
+				if (string.IsNullOrEmpty(value))
+					return;
+				try
+				{
+					_memoryPageOffset = Convert.ToInt32(value, 16);
+				}
+// ReSharper disable EmptyGeneralCatchClause
+				catch {}
+// ReSharper restore EmptyGeneralCatchClause
+				
+			}
+		}
 
 		/// <summary>
 		///  Is the Prorgam Running
@@ -63,6 +88,11 @@ namespace Simulator.ViewModel
 		/// Relay Command that opens a new file
 		/// </summary>
 		public RelayCommand OpenCommand { get; set; }
+
+		/// <summary>
+		/// Relay Command that updates the Memory Map when the Page changes
+		/// </summary>
+		public RelayCommand UpdateMemoryMapCommand { get; set; }
 		#endregion
 
 		#region public Methods
@@ -75,9 +105,13 @@ namespace Simulator.ViewModel
 			StepCommand = new RelayCommand(Step);
 			OpenCommand = new RelayCommand(OpenFile);
 			RunPauseCommand = new RelayCommand(RunPause);
+			UpdateMemoryMapCommand = new RelayCommand(UpdateMemoryPage);
 
 			Messenger.Default.Register<NotificationMessage<OpenFileModel>>(this, FileOpenedNotification);
 			FilePath = "No File Loaded";
+
+			MemoryPage = new ObservableCollection<MemoryRowModel>();
+			UpdateMemoryPage();
 		}
 
 		#endregion
@@ -96,6 +130,42 @@ namespace Simulator.ViewModel
 
 			IsProgramLoaded = true;
 			RaisePropertyChanged("IsProgramLoaded");
+
+			UpdateMemoryPage();
+			RaisePropertyChanged("MemoryPage");
+		}
+
+		private void UpdateMemoryPage()
+		{
+			MemoryPage.Clear();
+			var offset = ( _memoryPageOffset * 256 );
+
+			var multiplyer = 0;
+			for (var i = offset; i < 256 * (_memoryPageOffset + 1); i++)
+			{
+				
+				MemoryPage.Add(new MemoryRowModel
+					               {
+						               Offset = ((16 * multiplyer) + offset).ToString("X").PadLeft(4, '0'),
+									   Location00 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2,'0'),
+									   Location01 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location02 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location03 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location04 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location05 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location06 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location07 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location08 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location09 = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location0A = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location0B = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location0C = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location0D = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location0E = Proc.Memory.ReadValue(i++).ToString("X").PadLeft(2, '0'),
+									   Location0F = Proc.Memory.ReadValue(i).ToString("X").PadLeft(2, '0'),
+									});
+				multiplyer++;
+			}
 		}
 
 		private void Reset()
