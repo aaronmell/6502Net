@@ -24,5 +24,10 @@
 		/// The initial Vaulue of the Program Counter
 		/// </summary>
 		public int InitialProgramCounter { get; set; }
+
+		/// <summary>
+		/// The path of the Program that was loaded
+		/// </summary>
+		public string FilePath { get; set; }
 	}
 }

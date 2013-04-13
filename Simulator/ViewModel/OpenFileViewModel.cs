@@ -91,7 +91,8 @@ namespace Simulator.ViewModel
 					                                                              InitialProgramCounter = programCounter,
 																				  MemoryOffset = memoryOffset,
 																				  Listing = listing,
-																				  Program = program
+																				  Program = program,
+																				  FilePath = Filename
 				                                                              }, "FileLoaded"));
 
 			Close();

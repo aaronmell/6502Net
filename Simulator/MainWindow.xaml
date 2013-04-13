@@ -2,7 +2,6 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="6502 Simulator" Height="1080" Width="1960"
-		xmlns:ViewModel="clr-namespace:Simulator.ViewModel"
 		DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowState="Maximized">
     <Grid>
 		<ListView Height="247" HorizontalAlignment="Left" Margin="49,753,0,0" Name="OutPutLog" VerticalAlignment="Top" Width="1261" />
@@ -22,13 +21,9 @@
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,961,405,0" Name="ProgramCounterText" Text="PC" VerticalAlignment="Top" />
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,917,450,0" Name="CycleCount" VerticalAlignment="Top" Width="134" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1354,897,0,0" Name="CycleCountText" Text="Cycle Count" VerticalAlignment="Top" />
-		<Button Content="Run" Height="23" HorizontalAlignment="Left" Margin="159,709,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunCommand}" />
+		<Button Content="Run" Height="23" HorizontalAlignment="Left" Margin="159,709,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunPauseCommand}" />
 		<Button Content="Step" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="268,709,0,0" Name="Step" VerticalAlignment="Top" Width="75" Command="{Binding Path= StepCommand}" />
-		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="486,709,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" />
-		<ComboBox Height="23" HorizontalAlignment="Left" Margin="600,709,0,0" Name="HaltOptions" VerticalAlignment="Top" Width="120" />
-		<Button Content="Pause" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="377,709,0,0" Name="Pause" VerticalAlignment="Top" Width="75" Command="{Binding Path= PauseCommand}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,690,1291,0" Name="HaltOnText" Text="Halt On" VerticalAlignment="Top" />
-
+		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="377,709,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" />
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1187,715,0,0" Name="CarryFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1187,695,0,0" Name="CarryFlagText" Text="C" VerticalAlignment="Top" />
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1149,715,0,0" Name="ZeroFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.ZeroFlag, Mode=OneWay}" />
@@ -44,5 +39,6 @@
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="958,715,0,0" Name="NegativeFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.NegativeFlag, Mode=OneWay}" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="958,695,0,0" Name="NegativeFlagText" Text="N" VerticalAlignment="Top" />
 		<Button Content="Load" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="49,709,0,0" Name="Load" VerticalAlignment="Top" Width="75" Command="{Binding Path=OpenCommand}" />
+		<TextBlock Height="23" HorizontalAlignment="Left" Margin="49,70,0,0" Name="FilePathText" Text="{Binding Path=FilePath}" VerticalAlignment="Top" Width="630" FontSize="14" />
 	</Grid>
 </Window>

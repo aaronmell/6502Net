@@ -1,7 +1,6 @@
 ﻿<Window x:Class="Simulator.OpenFile"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:ViewModel="clr-namespace:Simulator.ViewModel"
 		DataContext="{Binding OpenFile, Source={StaticResource Locator}}"
         Title="Open New Program" Height="235" Width="506">
     <Grid>

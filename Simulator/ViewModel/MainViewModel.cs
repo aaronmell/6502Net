@@ -1,9 +1,8 @@
-using System.Windows;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Simulator.Model;
-using Proc= Processor.Processor;
+using Proc = Processor.Processor;
 
 namespace Simulator.ViewModel
 {
@@ -12,12 +11,19 @@ namespace Simulator.ViewModel
 	/// </summary>
 	public class MainViewModel : ViewModelBase
 	{
+		#region Private Properties
 		private bool _isRunning;
-		private bool _isPaused;
-		
+		#endregion
 
+		#region Public Properties
+		/// <summary>
+		/// The Processor
+		/// </summary>
 		public Proc Proc { get; set; }
 
+		/// <summary>
+		///  Is the Prorgam Running
+		/// </summary>
 		public bool IsRunning
 		{
 			get { return _isRunning; }
@@ -28,28 +34,33 @@ namespace Simulator.ViewModel
 			}
 		}
 
-		public bool IsPaused
-		{
-			get { return _isPaused; }
-			set 
-			{ 
-				_isPaused = value;
-				RaisePropertyChanged("IsRunning"); 
-			}
-		}
+		/// <summary>
+		/// The Path to the Program that is running
+		/// </summary>
+		public string FilePath { get; private set; }
 
+		/// <summary>
+		/// RelayCommand for Stepping through the progam one instruction at a time.
+		/// </summary>
 		public RelayCommand StepCommand { get; set; }
 
-		public RelayCommand StartCommand { get; set; }
-
+		/// <summary>
+		/// Relay Command to Reset the Program back to its initial state.
+		/// </summary>
 		public RelayCommand ResetCommand { get; set; }
 
-		public RelayCommand RunCommand { get; set; }
+		/// <summary>
+		/// Relay Command that Run/Pauses Execution
+		/// </summary>
+		public RelayCommand RunPauseCommand { get; set; }
 
+		/// <summary>
+		/// Relay Command that opens a new file
+		/// </summary>
 		public RelayCommand OpenCommand { get; set; }
+		#endregion
 
-		public RelayCommand PauseCommand { get; set; }
-
+		#region public Methods
 		public MainViewModel()
 		{
 			Proc = new Proc();
@@ -57,12 +68,16 @@ namespace Simulator.ViewModel
 
 			ResetCommand = new RelayCommand(Reset);
 			StepCommand = new RelayCommand(Step);
-			StartCommand = new RelayCommand(Start);
 			OpenCommand = new RelayCommand(OpenFile);
-			PauseCommand = new RelayCommand(Pause);
+			RunPauseCommand = new RelayCommand(RunPause);
+
 			Messenger.Default.Register<NotificationMessage<OpenFileModel>>(this, FileOpenedNotification);
+			FilePath = "No File Loaded";
 		}
 
+		#endregion
+
+		#region Private Methods
 		private void FileOpenedNotification(NotificationMessage<OpenFileModel> notificationMessage)
 		{
 			if (notificationMessage.Notification != "FileLoaded")
@@ -71,7 +86,8 @@ namespace Simulator.ViewModel
 			}
 
 			Proc.LoadProgram(notificationMessage.Content.MemoryOffset, notificationMessage.Content.Program, notificationMessage.Content.InitialProgramCounter);
-			MessageBox.Show("Program Loaded");
+			FilePath = string.Format("Loaded Program: {0}", notificationMessage.Content.FilePath);
+			RaisePropertyChanged("FilePath");
 		}
 
 		private void Reset()
@@ -79,31 +95,25 @@ namespace Simulator.ViewModel
 			Proc.Reset();
 			RaisePropertyChanged("Proc");
 			IsRunning = false;
-			IsPaused = true;
 		}
 
 		private void Step()
 		{
-			IsRunning = true;
-			IsPaused = true;
+			IsRunning = false;
 
 			Proc.NextStep();
 			RaisePropertyChanged("Proc");
 		}
 
-		private void Start()
+		private void RunPause()
 		{
 			IsRunning = !IsRunning;
 		}
 
-		private void Pause()
-		{
-			IsPaused = !IsPaused;
-		}
-
-		public void OpenFile()
+		private static void OpenFile()
 		{
 			Messenger.Default.Send(new NotificationMessage("OpenFileWindow"));
 		}
+		#endregion
 	}
 }
