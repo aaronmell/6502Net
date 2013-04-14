@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -26,6 +25,7 @@ namespace Simulator.ViewModel
 		public Proc Proc { get; set; }
 
 		public ObservableCollection<MemoryRowModel> MemoryPage { get; set; }
+		public ObservableCollection<MemoryRowModel> Stack { get; set; } 
 		
 		public string MemoryPageOffset
 		{
@@ -111,7 +111,10 @@ namespace Simulator.ViewModel
 			FilePath = "No File Loaded";
 
 			MemoryPage = new ObservableCollection<MemoryRowModel>();
+			Stack = new ObservableCollection<MemoryRowModel>();
+
 			UpdateMemoryPage();
+			UpdateStack();
 		}
 
 		#endregion
@@ -133,6 +136,9 @@ namespace Simulator.ViewModel
 
 			UpdateMemoryPage();
 			RaisePropertyChanged("MemoryPage");
+
+			UpdateStack();
+			RaisePropertyChanged("Stack");
 		}
 
 		private void UpdateMemoryPage()
@@ -165,6 +171,36 @@ namespace Simulator.ViewModel
 									   Location0F = Proc.Memory.ReadValue(i).ToString("X").PadLeft(2, '0'),
 									});
 				multiplyer++;
+			}
+		}
+
+		private void UpdateStack()
+		{
+			Stack.Clear();
+
+			for (var i = 0x1FF; i > 0x100; i--)
+			{
+
+				Stack.Add(new MemoryRowModel
+				{
+					Offset = (i - 15).ToString("X").PadLeft(4, '0'),
+					Location0F = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location0E = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location0D = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location0C = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location0B = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location0A = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location09 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location08 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location07 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location06 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location05 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location04 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location03 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location02 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location01 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
+					Location00 = Proc.Memory.ReadValue(i).ToString("X").PadLeft(2, '0'),
+				});
 			}
 		}
 
