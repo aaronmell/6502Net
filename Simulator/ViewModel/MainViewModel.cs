@@ -24,9 +24,19 @@ namespace Simulator.ViewModel
 		/// </summary>
 		public Proc Proc { get; set; }
 
+		/// <summary>
+		/// The Current Memory Page
+		/// </summary>
 		public ObservableCollection<MemoryRowModel> MemoryPage { get; set; }
+		
+		/// <summary>
+		/// The Current Stack
+		/// </summary>
 		public ObservableCollection<MemoryRowModel> Stack { get; set; } 
 		
+		/// <summary>
+		/// The Memory Page Offset. IE: Which page are we looking at
+		/// </summary>
 		public string MemoryPageOffset
 		{
 			get { return _memoryPageOffset.ToString("X"); }
@@ -45,6 +55,11 @@ namespace Simulator.ViewModel
 				
 			}
 		}
+
+		/// <summary>
+		/// The Assembler Listing
+		/// </summary>
+		public string Listing { get; set; }
 
 		/// <summary>
 		///  Is the Prorgam Running
@@ -139,6 +154,9 @@ namespace Simulator.ViewModel
 
 			UpdateStack();
 			RaisePropertyChanged("Stack");
+
+			Listing = notificationMessage.Content.Listing;
+			RaisePropertyChanged("Listing");
 		}
 
 		private void UpdateMemoryPage()

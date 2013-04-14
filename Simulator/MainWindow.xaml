@@ -104,8 +104,7 @@
 		</DataGrid>
 
 		<ListView Height="317" HorizontalAlignment="Left" Margin="49,683,0,0" Name="OutputLog" VerticalAlignment="Top" Width="1261" />
-		<ListBox Height="574" HorizontalAlignment="Left" Margin="49,51,0,0" Name="CodeView" VerticalAlignment="Top" Width="1261" />
-		
+		<TextBox Height="574" HorizontalAlignment="Left" Margin="49,51,0,0" Name="CodeView" VerticalAlignment="Top" Width="1261" Text="{Binding Path=Listing}" VerticalScrollBarVisibility="Visible" />
 		
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,1012,74,0" Name="YRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.YRegister, StringFormat=X,  Mode=OneWay}"/>
 		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,1012,179,0" Name="XRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.XRegister, StringFormat=X,  Mode=OneWay}" />
