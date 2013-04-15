@@ -45,7 +45,7 @@
 		/// 3. Perform the ADC operation and Add the value at 0x0005 to the accumulator
 		/// Note: if the Zero Page address is greater than 0xff then roll over the value. IE 0x101 rolls over to 0x01
 		/// </summary>
-		IndexedIndirect = 7,
+		IndirectX = 7,
 		/// <summary>
 		/// In this mode assume the following
 		/// Memory = { 0x61, 0x02, 0x04, 0x00, 0x03 }
@@ -55,7 +55,7 @@
 		/// 3. Perform the ADC operation and Add the value at 0x0005 to the accumulator
 		/// Note: if the address is great that 0xffff then roll over IE: 0x10001 rolls over to 0x01
 		/// </summary>
-		IndirectIndexed = 8,
+		IndirectY = 8,
 		/// <summary>
 		/// JMP is the only operation that uses this mode. In this mode an absolute address is specified that points to the location of the absolute address we want to jump to.
 		/// </summary>

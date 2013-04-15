@@ -1,8 +1,8 @@
 ﻿<Window x:Class="Simulator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="6502 Simulator" Height="1080" Width="1960"
-		DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowState="Maximized">
+        Title="6502 Simulator" Height="985" Width="1821"
+		DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" WindowState="Normal" Background="DarkGray">
 	
 	<Window.Resources>
 		<Style TargetType="{x:Type Button}">
@@ -24,7 +24,11 @@
 			</Style.Triggers>
 		</Style>
 
-		<Style x:Key="MemoryMapColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+		<Style x:Key="ColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+			<Setter Property="FontSize" Value="14"/>
+		</Style>
+
+		<Style x:Key="MemoryMapColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}" BasedOn="{ StaticResource ColumnHeaderStyle}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
@@ -35,10 +39,14 @@
 				</Setter.Value>
 			</Setter>
 			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-			<Setter Property="FontSize" Value="14"/>
 		</Style>
 
-		<Style x:Key="MemoryMapContentCellStyle" TargetType="{x:Type DataGridCell}">
+		<Style x:Key="CellStyle" TargetType="{x:Type DataGridCell}">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="MinHeight" Value="24"/>
+		</Style>
+
+		<Style x:Key="MemoryMapContentCellStyle" TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource CellStyle}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type DataGridCell}">
@@ -50,12 +58,12 @@
 			</Setter>
 			<Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
 			<Setter Property="MinWidth" Value="30"/>
-			<Setter Property="FontSize" Value="14"/>
-			<Setter Property="MinHeight" Value="24"/>
-		</Style>
+			</Style>
+	
 	</Window.Resources>
-	<Grid>
-		<DataGrid MaxHeight="435" HorizontalAlignment="Left" Margin="1347,51,0,0" Name="MemoryMap" VerticalAlignment="Top" Height="Auto" Width="Auto" AutoGenerateColumns="False" 
+
+	<Grid Height="948" Width="1799">
+		<DataGrid MaxHeight="435" HorizontalAlignment="Left" Margin="1230,58,0,0" Name="MemoryMap" VerticalAlignment="Top" Height="Auto" Width="Auto" AutoGenerateColumns="False" 
 					CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" CanUserResizeColumns="False" CanUserDeleteRows="False"
 					CanUserAddRows="False" ItemsSource="{Binding MemoryPage}" CellStyle="{StaticResource MemoryMapContentCellStyle}">
 			<DataGrid.Columns>
@@ -79,10 +87,10 @@
 			</DataGrid.Columns>
 		</DataGrid>
 
-		<DataGrid MaxHeight="435" HorizontalAlignment="Left" Margin="1346,499,0,0" Name="StackMap" VerticalAlignment="Top" Height="424" Width="Auto" AutoGenerateColumns="False" 
+		<DataGrid MaxHeight="435" HorizontalAlignment="Left" Margin="1228,506,0,0" Name="StackMap" VerticalAlignment="Top" Height="424" Width="Auto" AutoGenerateColumns="False" 
 					CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" CanUserResizeColumns="False" CanUserDeleteRows="False"
 					CanUserAddRows="False" ItemsSource="{Binding Stack}" CellStyle="{StaticResource MemoryMapContentCellStyle}">
-			<DataGrid.Columns>
+			<DataGrid.Columns>	
 				<DataGridTextColumn Header="Offset (h)" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Offset, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
 				<DataGridTextColumn Header="0F" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0F, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
 				<DataGridTextColumn Header="0E" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0E, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
@@ -103,53 +111,70 @@
 			</DataGrid.Columns>
 		</DataGrid>
 
-		<ListView Height="317" HorizontalAlignment="Left" Margin="49,683,0,0" Name="OutputLog" VerticalAlignment="Top" Width="1261" />
-		<TextBox Height="574" HorizontalAlignment="Left" Margin="49,51,0,0" Name="CodeView" VerticalAlignment="Top" Width="1261" Text="{Binding Path=Listing}" VerticalScrollBarVisibility="Visible" />
+		<DataGrid Height="247" HorizontalAlignment="Left" Margin="49,683,0,0" Name="OutputLog" VerticalAlignment="Top" MaxWidth="800" Width="Auto" AutoGenerateColumns="False" 
+					CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" CanUserResizeColumns="False" CanUserDeleteRows="False"
+					CanUserAddRows="False" ItemsSource="{Binding OutputLog}" CellStyle="{StaticResource CellStyle}" GridLinesVisibility="Horizontal">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="PC" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding ProgramCounter, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="" Width="Auto" MinWidth="50" CanUserResize="False" IsReadOnly="True" Binding="{Binding CurrentOpCode, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding LowAddress, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding HighAddress, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="" Width="Auto" MinWidth="60" CanUserResize="False" IsReadOnly="True" Binding="{Binding OpCodeString, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="" Width="Auto" MinWidth="80" CanUserResize="False" IsReadOnly="True" Binding="{Binding DisassemblyOutput, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="A" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding Accumulator, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="X" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding XRegister, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="Y" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding YRegister, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="SP" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding StackPointer, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+				<DataGridTextColumn Header="CycleCount" MinWidth="200" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding NumberOfCycles, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+			</DataGrid.Columns>
+		</DataGrid>
 		
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,1012,74,0" Name="YRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.YRegister, StringFormat=X,  Mode=OneWay}"/>
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,1012,179,0" Name="XRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.XRegister, StringFormat=X,  Mode=OneWay}" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,964,74,0" Name="Accumulator" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.Accumulator, StringFormat=X,  Mode=OneWay}" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,964,179,0" Name="StackPointer" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.StackPointer, StringFormat=X,  Mode=OneWay}"/>
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,1012,284,0" Name="ProgramCounter" VerticalAlignment="Top" Width="134" Text="{Binding Path=Proc.ProgramCounter, StringFormat=X,  Mode=OneWay}" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,964,284,0" Name="CurrentInstruction" VerticalAlignment="Top" Width="134" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,964,445,0" Name="CycleCount" VerticalAlignment="Top" Width="134" />
+		<TextBox Height="574" HorizontalAlignment="Left" Margin="49,51,0,0" Name="CodeView" VerticalAlignment="Top" Width="1112" Text="{Binding Path=Listing, Mode=OneWay}" VerticalScrollBarVisibility="Visible" />
+		
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,774,735,0" Name="YRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.YRegister, StringFormat=X,  Mode=OneWay}"/>
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,774,840,0" Name="XRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.XRegister, StringFormat=X,  Mode=OneWay}" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,776,944,0" Name="Accumulator" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.Accumulator, StringFormat=X,  Mode=OneWay}" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,776,639,0" Name="StackPointer" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.StackPointer, StringFormat=X,  Mode=OneWay}"/>
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,703,870,0" Name="ProgramCounter" VerticalAlignment="Top" Width="134" Text="{Binding Path=Proc.ProgramCounter, StringFormat=X,  Mode=OneWay}" />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,703,682,0" Name="Dissambly" VerticalAlignment="Top" Width="134" Text="{Binding Path=CurrentDisasembly, Mode=OneWay}"  />
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,907,868,0" Name="CycleCount" VerticalAlignment="Top" Width="134" Text="{Binding Path=NumberOfCycles, Mode=OneWay}" />
 
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,994,230,0" Name="XRegisterText" Text="X" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,994,126,0" Name="YRegisterText" Text="Y" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,944,222,0" Name="StackPointerRegisterText" Text="SP" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,944,125,0" Name="AText" Text="A" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,944,301,0" Name="CurrentInstructionText" Text="Current Instruction" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,992,400,0" Name="ProgramCounterText" Text="PC" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1359,944,0,0" Name="CycleCountText" Text="Cycle Count" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,756,891,0" Name="XRegisterText" Text="X" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,756,787,0" Name="YRegisterText" Text="Y" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,756,682,0" Name="StackPointerRegisterText" Text="SP" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,756,994,0" Name="AText" Text="A" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,683,698,0" Name="CurrentInstructionText" Text="Current Instruction" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,683,986,0" Name="ProgramCounterText" Text="PC" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="798,888,0,0" Name="CycleCountText" Text="Cycle Count" VerticalAlignment="Top" />
 
 		<Button Height="23" HorizontalAlignment="Left" Margin="159,657,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunPauseCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" Style="{StaticResource RunButtonStyle}" />
 		<Button Content="Step" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="268,657,0,0" Name="Step" VerticalAlignment="Top" Width="75" Command="{Binding Path= StepCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
 		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="377,657,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
 		<Button Content="Load" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="49,657,0,0" Name="Load" VerticalAlignment="Top" Width="75" Command="{Binding Path=OpenCommand}" />
 
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1292,664,0,0" Name="CarryFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1292,644,0,0" Name="CarryFlagText" Text="C" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1254,664,0,0" Name="ZeroFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.ZeroFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="1254,644,0,51" Name="ZeroFlagText" Text="Z" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1216,664,0,0" Name="InterrupFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DisableInterruptFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="1216,644,0,51" Name="InterruptFlagText" Text="I" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1177,664,0,0" Name="BcdFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DecimalFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1177,644,0,0" Name="BcdFlagText" Text="D" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1139,664,0,0" Name="BreakFlag" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1139,644,0,0" Name="BreakFlagText" Text="B" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1101,664,0,0" Name="OverflowFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.OverflowFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1101,644,0,0" Name="OverflowFlagText" Text="V" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1063,664,0,0" Name="NegativeFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.NegativeFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1063,644,0,0" Name="NegativeFlagText" Text="N" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1027,849,0,0" Name="CarryFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1027,829,0,0" Name="CarryFlagText" Text="C" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="989,849,0,0" Name="ZeroFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.ZeroFlag, Mode=OneWay}" />
+		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="989,829,0,-133" Name="ZeroFlagText" Text="Z" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="951,849,0,0" Name="InterrupFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DisableInterruptFlag, Mode=OneWay}" />
+		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="951,829,0,-133" Name="InterruptFlagText" Text="I" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="912,849,0,0" Name="BcdFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DecimalFlag, Mode=OneWay}" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="912,829,0,0" Name="BcdFlagText" Text="D" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="874,849,0,0" Name="BreakFlag" VerticalAlignment="Top" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="874,829,0,0" Name="BreakFlagText" Text="B" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="836,849,0,0" Name="OverflowFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.OverflowFlag, Mode=OneWay}" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="836,829,0,0" Name="OverflowFlagText" Text="V" VerticalAlignment="Top" />
+		<CheckBox Height="16" HorizontalAlignment="Left" Margin="798,849,0,0" Name="NegativeFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.NegativeFlag, Mode=OneWay}" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="798,829,0,0" Name="NegativeFlagText" Text="N" VerticalAlignment="Top" />
 		
 		<TextBlock Height="23" HorizontalAlignment="Left" Margin="49,29,0,0" Name="FilePathText" Text="{Binding Path=FilePath}" VerticalAlignment="Top" Width="630" FontSize="14" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1347,29,0,0" Name="MemoryMapText" Text="Memory Map" VerticalAlignment="Top" Width="86" />
-		<TextBox Height="23" HorizontalAlignment="Left" Margin="1759,22,0,0" Name="CurrentPage" Text="{Binding Path=MemoryPageOffset, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="72" >
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1230,36,0,0" Name="MemoryMapText" Text="Memory Map" VerticalAlignment="Top" Width="86" />
+		<TextBox Height="23" HorizontalAlignment="Left" Margin="1642,29,0,0" Name="CurrentPage" Text="{Binding Path=MemoryPageOffset, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="72" >
 			<TextBox.InputBindings>
 				<KeyBinding Command="{Binding Path=UpdateMemoryMapCommand}" Key="Enter"/>
 			</TextBox.InputBindings>
 		</TextBox>
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1661,22,0,0" Name="CurrentPageText" Text="Current Page:" VerticalAlignment="Top" Width="86" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1347,476,0,0" Name="StackText" Text="Stack" VerticalAlignment="Top" Width="86" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1544,29,0,0" Name="CurrentPageText" Text="Current Page:" VerticalAlignment="Top" Width="86" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1230,483,0,0" Name="StackText" Text="Stack" VerticalAlignment="Top" Width="86" />
 	</Grid>
 </Window>

@@ -16,6 +16,8 @@ namespace Simulator.ViewModel
 		#region Private Properties
 		private bool _isRunning;
 		private int _memoryPageOffset;
+		
+		
 		#endregion
 
 		#region Public Properties
@@ -34,6 +36,21 @@ namespace Simulator.ViewModel
 		/// </summary>
 		public ObservableCollection<MemoryRowModel> Stack { get; set; } 
 		
+		/// <summary>
+		/// The output log
+		/// </summary>
+		public ObservableCollection<OutputLog> OutputLog { get; private set; }
+		
+		public string CurrentDisasembly
+		{
+			get { return string.Format("{0} {1}", Proc.CurrentDisassembly.OpCodeString, Proc.CurrentDisassembly.DisassemblyOutput); }
+		}
+
+		/// <summary>
+		/// The number of cycles.
+		/// </summary>
+		public int NumberOfCycles { get; private set; }
+
 		/// <summary>
 		/// The Memory Page Offset. IE: Which page are we looking at
 		/// </summary>
@@ -127,6 +144,7 @@ namespace Simulator.ViewModel
 
 			MemoryPage = new ObservableCollection<MemoryRowModel>();
 			Stack = new ObservableCollection<MemoryRowModel>();
+			OutputLog = new ObservableCollection<OutputLog>();
 
 			UpdateMemoryPage();
 			UpdateStack();
@@ -149,14 +167,10 @@ namespace Simulator.ViewModel
 			IsProgramLoaded = true;
 			RaisePropertyChanged("IsProgramLoaded");
 
-			UpdateMemoryPage();
-			RaisePropertyChanged("MemoryPage");
-
-			UpdateStack();
-			RaisePropertyChanged("Stack");
-
 			Listing = notificationMessage.Content.Listing;
 			RaisePropertyChanged("Listing");
+
+			Reset();
 		}
 
 		private void UpdateMemoryPage()
@@ -226,15 +240,47 @@ namespace Simulator.ViewModel
 		{
 			Proc.Reset();
 			RaisePropertyChanged("Proc");
+			
 			IsRunning = false;
+			NumberOfCycles = 0;
+			RaisePropertyChanged("NumberOfCycles");
+			
+			UpdateMemoryPage();
+			RaisePropertyChanged("MemoryPage");
+
+			UpdateStack();
+			RaisePropertyChanged("Stack");
+
+			OutputLog.Clear();
+			RaisePropertyChanged("CurrentDisasembly");
 		}
 
 		private void Step()
 		{
+			NumberOfCycles++;
+			UpdateOutputLog();
+
 			IsRunning = false;
 
 			Proc.NextStep();
 			RaisePropertyChanged("Proc");
+			
+			RaisePropertyChanged("NumberOfCycles");
+			RaisePropertyChanged("CurrentDisasembly");
+		}
+
+		private void UpdateOutputLog()
+		{
+			OutputLog.Insert(0, new OutputLog(Proc.CurrentDisassembly)
+				                    {
+					                    XRegister = Proc.XRegister.ToString("X").PadLeft(2,'0'),
+										YRegister = Proc.YRegister.ToString("X").PadLeft(2,'0'),
+										Accumulator =  Proc.Accumulator.ToString("X").PadLeft(2,'0'),
+										NumberOfCycles = NumberOfCycles,
+										StackPointer = Proc.StackPointer.ToString("X").PadLeft(2, '0'),
+										ProgramCounter = Proc.ProgramCounter.ToString("X").PadLeft(4, '0'),
+										CurrentOpCode = Proc.CurrentOpCode.ToString("X").PadLeft(2, '0')
+				                    });
 		}
 
 		private void RunPause()

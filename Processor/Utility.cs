@@ -71,6 +71,14 @@ namespace Processor
 					{
 						return "BRK";
 					}
+				case 0x50: // BVC Relative
+					{
+						return "BCV";
+					}
+				case 0x70: //BVS Relative
+					{
+						return "BVS";
+					}
 				case 0x18:  // CLC Implied
 					{
 						return "CLC";

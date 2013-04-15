@@ -35,7 +35,7 @@ namespace Simulator.ViewModel
 			SelectFileCommand = new RelayCommand(Select);
 
 			InitalProgramCounter = "0x0000";
-			MemoryOffset = "0x000";
+			MemoryOffset = "0x0000";
 		}
 
 		private void Load()

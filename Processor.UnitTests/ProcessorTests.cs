@@ -424,7 +424,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 
-			processor.LoadProgram(0x00, new byte[] { 0xA9, accumulatorValue, operation, 0x05, 0x00, valueToTest }, 0x00);
+			processor.LoadProgram(0x00, new byte[] { 0xA9, accumulatorValue, operation, 0x06, 0x00, 0x00, valueToTest }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -468,7 +468,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 
-			processor.LoadProgram(0x00, new byte[] { 0xA9, accumulatorValue, operation, 0x05, 0x00, valueToTest }, 0x00);
+			processor.LoadProgram(0x00, new byte[] { 0xA9, accumulatorValue, operation, 0x06, 0x00, 0x00, valueToTest }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -488,7 +488,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 
-			processor.LoadProgram(0x00, new byte[] { 0xA9, accumulatorValue, operation, 0x05, 0x00, valueToTest }, 0x00);
+			processor.LoadProgram(0x00, new byte[] { 0xA9, accumulatorValue, operation, 0x06, 0x00, 0x00, valueToTest }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -892,10 +892,10 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xC6, 0x02, initalMemoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xC6, 0x03, 0x00, initalMemoryValue }, 0x00);
 			processor.NextStep();
 			
-			Assert.That(processor.Memory.ReadValue(0x02), Is.EqualTo(expectedMemoryValue));
+			Assert.That(processor.Memory.ReadValue(0x03), Is.EqualTo(expectedMemoryValue));
 		}
 
 		[TestCase(0x00, false)]
@@ -905,7 +905,7 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xC6, 0x02, initalMemoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xC6, 0x03, 0x00, initalMemoryValue }, 0x00);
 			processor.NextStep();
 
 			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
@@ -918,7 +918,7 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xC6, 0x02, initalMemoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xC6, 0x03, 0x00, initalMemoryValue }, 0x00);
 			processor.NextStep();
 
 			Assert.That(processor.NegativeFlag, Is.EqualTo(expectedResult));
@@ -1069,10 +1069,10 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xE6, 0x02, initalMemoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xE6, 0x03, 0x00, initalMemoryValue }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x02), Is.EqualTo(expectedMemoryValue));
+			Assert.That(processor.Memory.ReadValue(0x03), Is.EqualTo(expectedMemoryValue));
 		}
 
 		[TestCase(0x00, false)]
@@ -1082,7 +1082,7 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xE6, 0x02, initalMemoryValue }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xE6, 0x03, 0x00, initalMemoryValue }, 0x00);
 			processor.NextStep();
 
 			Assert.That(processor.ZeroFlag, Is.EqualTo(expectedResult));
@@ -2243,11 +2243,11 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA9, 0x03, 0x85, 0x04 }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, 0x03, 0x85, 0x05 }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(0x03));
+			Assert.That(processor.Memory.ReadValue(0x05), Is.EqualTo(0x03));
 		}
 
 		#endregion
@@ -2259,11 +2259,11 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] {0xA2, 0x03, 0x86, 0x04  }, 0x00);
+			processor.LoadProgram(0, new byte[] {0xA2, 0x03, 0x86, 0x05  }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(0x03));
+			Assert.That(processor.Memory.ReadValue(0x05), Is.EqualTo(0x03));
 		}
 
 		#endregion
@@ -2275,11 +2275,11 @@ namespace Processor.UnitTests
 		{
 			var processor = new Processor();
 
-			processor.LoadProgram(0, new byte[] { 0xA0, 0x03, 0x84, 0x04 }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA0, 0x03, 0x84, 0x05 }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(0x03));
+			Assert.That(processor.Memory.ReadValue(0x05), Is.EqualTo(0x03));
 		}
 
 		#endregion
@@ -2496,7 +2496,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
-			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, operation, 0x04, valueToTest }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, operation, 0x05, 0x00, valueToTest }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -2515,7 +2515,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
 			//Just remember that my value's for the STX and ADC were added to the end of the byte array. In a real program this would be invalid, as an opcode would be next and 0x03 would be somewhere else
-			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x01, operation, 0x05, valueToTest }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x01, operation, 0x06, 0x00, valueToTest }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 			processor.NextStep();
@@ -2534,7 +2534,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
-			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, operation, 0x05, 0x00, valueToTest }, 0x00);
+			processor.LoadProgram(0, new byte[] { 0xA9, accumulatorInitialValue, operation, 0x06, 0x00, 0x00, valueToTest }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
@@ -2559,8 +2559,8 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
 			processor.LoadProgram(0, addressWraps
-									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x08, operation, 0xff, 0xff, valueToTest }
-									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x01, operation, 0x06, 0x00, valueToTest }, 0x00);
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x09, operation, 0xff, 0xff, 0x00, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA2, 0x01, operation, 0x07, 0x00, 0x00, valueToTest }, 0x00);
 
 			processor.NextStep();
 			processor.NextStep();
@@ -2587,8 +2587,8 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
 			processor.LoadProgram(0, addressWraps
-									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x08, operation, 0xff, 0xff, valueToTest }
-									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x01, operation, 0x06, 0x00, valueToTest }, 0x00);
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x09, operation, 0xff, 0xff, 0x00, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x01, operation, 0x07, 0x00, 0x00, valueToTest }, 0x00);
 
 			processor.NextStep();
 			processor.NextStep();
@@ -2646,8 +2646,8 @@ namespace Processor.UnitTests
 
 			processor.LoadProgram(0,
 								  addressWraps
-									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x09, operation, 0x06, 0xFF, 0xFF, valueToTest }
-									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x01, operation, 0x06, 0x07, 0x00, valueToTest },
+									  ? new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x0A, operation, 0x07, 0x00, 0xFF, 0xFF, valueToTest }
+									  : new byte[] { 0xA9, accumulatorInitialValue, 0xA0, 0x01, operation, 0x07, 0x00, 0x08, 0x00, valueToTest },
 								  0x00);
 
 			processor.NextStep();
@@ -2668,7 +2668,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
-			processor.LoadProgram(0, new byte[] { operation, 0x02, valueToLoad }, 0x00);
+			processor.LoadProgram(0, new byte[] { operation, 0x03, 0x00, valueToLoad }, 0x00);
 			processor.NextStep();
 
 			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
@@ -2681,7 +2681,7 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
 
-			processor.LoadProgram(0, new byte[] { operation, 0x03, 0x00, valueToLoad }, 0x00);
+			processor.LoadProgram(0, new byte[] { operation, 0x04, 0x00, 0x00, valueToLoad }, 0x00);
 			processor.NextStep();
 			
 
@@ -2861,13 +2861,13 @@ namespace Processor.UnitTests
 
 		#region Store In Memory Address Tests
 
-		[TestCase(0x85, 0x03, RegisterMode.Accumulator)] // STA Zero Page
-		[TestCase(0x95, 0x03, RegisterMode.Accumulator)] // STA Zero Page X
-		[TestCase(0x86, 0x03, RegisterMode.XRegister)] // STX Zero Page
-		[TestCase(0x96, 0x03, RegisterMode.XRegister)] // STX Zero Page Y
-		[TestCase(0x84, 0x03, RegisterMode.YRegister)] // STY Zero Page
-		[TestCase(0x94, 0x03, RegisterMode.YRegister)] // STY Zero Page X
-		public void ZeroPage_Mode_Memory_Has_Correct_Result(byte operation, byte valueToLoad, RegisterMode mode)
+		[TestCase(0x85, RegisterMode.Accumulator)] // STA Zero Page
+		[TestCase(0x95, RegisterMode.Accumulator)] // STA Zero Page X
+		[TestCase(0x86, RegisterMode.XRegister)] // STX Zero Page
+		[TestCase(0x96, RegisterMode.XRegister)] // STX Zero Page Y
+		[TestCase(0x84, RegisterMode.YRegister)] // STY Zero Page
+		[TestCase(0x94, RegisterMode.YRegister)] // STY Zero Page X
+		public void ZeroPage_Mode_Memory_Has_Correct_Result(byte operation, RegisterMode mode)
 		{
 			var processor = new Processor();
 
@@ -2885,11 +2885,11 @@ namespace Processor.UnitTests
 					break;
 			}
 
-			processor.LoadProgram(0, new byte[] { loadOperation, valueToLoad, operation, 0x04 }, 0x00);
+			processor.LoadProgram(0, new byte[] { loadOperation, 0x04, operation, 0x00, 0x05 }, 0x00);
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(valueToLoad));
+			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(0x05));
 		}
 
 		[TestCase(0x8D, 0x03, RegisterMode.Accumulator)] // STA Absolute
@@ -3071,7 +3071,7 @@ namespace Processor.UnitTests
 		public void NumberOfCyclesRemaining_Correct_After_Operations_That_Do_Not_Wrap(byte operation, int numberOfCyclesUsed)
 		{
 			var processor = new Processor();
-			processor.LoadProgram(0, new byte[] { operation, 0x02, 0x03 }, 0x00);
+			processor.LoadProgram(0, new byte[] { operation, 0x00 }, 0x00);
 			
 			var startingNumberOfCycles = processor.NumberofCyclesLeft;
 			processor.NextStep();
@@ -3463,7 +3463,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0));
 
 
-			processor.LoadProgram(0, new byte[] { operation, 0x02, 0x03 }, 0x00);
+			processor.LoadProgram(0, new byte[] { operation, 0x0}, 0x00);
 			processor.NextStep();
 
 			Assert.That(processor.ProgramCounter, Is.EqualTo(expectedProgramCounter));
