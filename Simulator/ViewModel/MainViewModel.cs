@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -16,7 +20,7 @@ namespace Simulator.ViewModel
 		#region Private Properties
 		private bool _isRunning;
 		private int _memoryPageOffset;
-		
+		private readonly BackgroundWorker _backgroundWorker;
 		
 		#endregion
 
@@ -29,17 +33,17 @@ namespace Simulator.ViewModel
 		/// <summary>
 		/// The Current Memory Page
 		/// </summary>
-		public ObservableCollection<MemoryRowModel> MemoryPage { get; set; }
+		public MultiThreadedObservableCollection<MemoryRowModel> MemoryPage { get; set; }
 		
 		/// <summary>
 		/// The Current Stack
 		/// </summary>
-		public ObservableCollection<MemoryRowModel> Stack { get; set; } 
+		public MultiThreadedObservableCollection<MemoryRowModel> Stack { get; set; } 
 		
 		/// <summary>
 		/// The output log
 		/// </summary>
-		public ObservableCollection<OutputLog> OutputLog { get; private set; }
+		public MultiThreadedObservableCollection<OutputLog> OutputLog { get; private set; }
 		
 		public string CurrentDisasembly
 		{
@@ -102,6 +106,11 @@ namespace Simulator.ViewModel
 		public string FilePath { get; private set; }
 
 		/// <summary>
+		/// The Slider CPU Speed
+		/// </summary>
+		public int CpuSpeed { get; set; }
+
+		/// <summary>
 		/// RelayCommand for Stepping through the progam one instruction at a time.
 		/// </summary>
 		public RelayCommand StepCommand { get; set; }
@@ -142,14 +151,16 @@ namespace Simulator.ViewModel
 			Messenger.Default.Register<NotificationMessage<OpenFileModel>>(this, FileOpenedNotification);
 			FilePath = "No File Loaded";
 
-			MemoryPage = new ObservableCollection<MemoryRowModel>();
-			Stack = new ObservableCollection<MemoryRowModel>();
-			OutputLog = new ObservableCollection<OutputLog>();
+			MemoryPage = new MultiThreadedObservableCollection<MemoryRowModel>();
+			Stack = new MultiThreadedObservableCollection<MemoryRowModel>();
+			OutputLog = new MultiThreadedObservableCollection<OutputLog>();
 
 			UpdateMemoryPage();
 			UpdateStack();
-		}
 
+			_backgroundWorker = new BackgroundWorker {WorkerSupportsCancellation = true, WorkerReportsProgress = false};
+			_backgroundWorker.DoWork += BackgroundWorkerDoWork;
+		}
 		#endregion
 
 		#region Private Methods
@@ -238,6 +249,11 @@ namespace Simulator.ViewModel
 
 		private void Reset()
 		{
+			IsRunning = false;
+
+			if (_backgroundWorker.IsBusy)
+				_backgroundWorker.CancelAsync();
+
 			Proc.Reset();
 			RaisePropertyChanged("Proc");
 			
@@ -257,21 +273,32 @@ namespace Simulator.ViewModel
 
 		private void Step()
 		{
-			NumberOfCycles++;
-			UpdateOutputLog();
-
 			IsRunning = false;
 
-			Proc.NextStep();
+			if (_backgroundWorker.IsBusy)
+				_backgroundWorker.CancelAsync();
+				
+			StepProcessor();
+			OutputLog.Insert(0, GetOutputLog());
+			UpdateUi();
+		}
+
+		private void UpdateUi()
+		{
 			RaisePropertyChanged("Proc");
-			
 			RaisePropertyChanged("NumberOfCycles");
 			RaisePropertyChanged("CurrentDisasembly");
 		}
 
-		private void UpdateOutputLog()
+		private void StepProcessor()
 		{
-			OutputLog.Insert(0, new OutputLog(Proc.CurrentDisassembly)
+			NumberOfCycles++;
+			Proc.NextStep();
+		}
+
+		private OutputLog GetOutputLog()
+		{
+			return new OutputLog(Proc.CurrentDisassembly)
 				                    {
 					                    XRegister = Proc.XRegister.ToString("X").PadLeft(2,'0'),
 										YRegister = Proc.YRegister.ToString("X").PadLeft(2,'0'),
@@ -280,16 +307,119 @@ namespace Simulator.ViewModel
 										StackPointer = Proc.StackPointer.ToString("X").PadLeft(2, '0'),
 										ProgramCounter = Proc.ProgramCounter.ToString("X").PadLeft(4, '0'),
 										CurrentOpCode = Proc.CurrentOpCode.ToString("X").PadLeft(2, '0')
-				                    });
+				                    };
 		}
 
 		private void RunPause()
 		{
+			var isRunning = !IsRunning;
+
+			if (isRunning)
+				_backgroundWorker.RunWorkerAsync();
+			else
+				_backgroundWorker.CancelAsync();
+
 			IsRunning = !IsRunning;
 		}
 
-		private static void OpenFile()
+		void BackgroundWorkerDoWork(object sender, DoWorkEventArgs e)
 		{
+			var worker = sender as BackgroundWorker;
+			var outputLogs = new List<OutputLog>();
+			
+			while (true)
+			{
+				if (worker != null && worker.CancellationPending)
+				{
+					e.Cancel = true;
+
+					RaisePropertyChanged("Proc");
+					
+					foreach (var log in outputLogs)
+						OutputLog.Insert(0,log);
+
+					return;
+				}
+
+				StepProcessor();
+				outputLogs.Add(GetOutputLog());
+
+				if (NumberOfCycles % GetLogModValue() == 0)
+				{
+					foreach (var log in outputLogs)
+						OutputLog.Insert(0, log);
+
+					outputLogs.Clear();
+					UpdateUi();
+				}
+				Thread.Sleep(GetSleepValue());
+			}
+		}
+
+		private int GetLogModValue()
+		{
+			switch (CpuSpeed)
+			{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+					return 1;
+				case 6:
+					return 5;
+				case 7:
+					return 20;
+				case 8:
+					return 30;
+				case 9:
+					return 40;
+				case 10:
+					return 50;
+				default:
+					return 5;
+			}
+		}
+
+		private int GetSleepValue()
+		{
+			switch (CpuSpeed)
+			{
+				case 0:
+					return 550;
+				case 1:
+					return 550;
+				case 2:
+					return 440;
+				case 3:
+					return 330;
+				case 4:
+					return 220;
+				case 5:
+					return 160;
+				case 6:
+					return 80;
+				case 7:
+					return 40;
+				case 8:
+					return 20;
+				case 9:
+					return 10;
+				case 10:
+					return 5;
+				default:
+					return 5;
+			}
+		}
+
+		private void OpenFile()
+		{
+			IsRunning = false;
+
+			if (_backgroundWorker.IsBusy)
+				_backgroundWorker.CancelAsync();
+
 			Messenger.Default.Send(new NotificationMessage("OpenFileWindow"));
 		}
 		#endregion

@@ -72,6 +72,7 @@
     <Compile Include="Model\MemoryRowModel.cs" />
     <Compile Include="Model\OpenFileModel.cs" />
     <Compile Include="Model\OutputLog.cs" />
+    <Compile Include="MultiThreadedCollection.cs" />
     <Compile Include="OpenFile.xaml.cs">
       <DependentUpon>OpenFile.xaml</DependentUpon>
     </Compile>

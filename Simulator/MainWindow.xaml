@@ -176,5 +176,7 @@
 		</TextBox>
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1544,29,0,0" Name="CurrentPageText" Text="Current Page:" VerticalAlignment="Top" Width="86" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1230,483,0,0" Name="StackText" Text="Stack" VerticalAlignment="Top" Width="86" />
+		<Slider Height="23" HorizontalAlignment="Left" Margin="984,907,0,0" Name="CpuSpeed" VerticalAlignment="Top" Width="100" Value="{Binding Path=CpuSpeed}" />
+		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="984,888,0,0" Name="SpeedText" Text="CPU Speed S->F" VerticalAlignment="Top" />
 	</Grid>
 </Window>
