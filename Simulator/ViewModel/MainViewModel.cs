@@ -269,6 +269,9 @@ namespace Simulator.ViewModel
 
 			OutputLog.Clear();
 			RaisePropertyChanged("CurrentDisasembly");
+
+			OutputLog.Insert(0, GetOutputLog());
+			UpdateUi();
 		}
 
 		private void Step()
@@ -279,6 +282,9 @@ namespace Simulator.ViewModel
 				_backgroundWorker.CancelAsync();
 				
 			StepProcessor();
+			UpdateMemoryPage();
+			UpdateStack();
+
 			OutputLog.Insert(0, GetOutputLog());
 			UpdateUi();
 		}
@@ -288,6 +294,8 @@ namespace Simulator.ViewModel
 			RaisePropertyChanged("Proc");
 			RaisePropertyChanged("NumberOfCycles");
 			RaisePropertyChanged("CurrentDisasembly");
+			RaisePropertyChanged("MemoryPage");
+			RaisePropertyChanged("Stack");
 		}
 
 		private void StepProcessor()
@@ -338,6 +346,8 @@ namespace Simulator.ViewModel
 					foreach (var log in outputLogs)
 						OutputLog.Insert(0,log);
 
+					UpdateMemoryPage();
+					UpdateStack();
 					return;
 				}
 
