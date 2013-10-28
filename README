@@ -17,5 +17,21 @@ http://en.wikipedia.org/wiki/MOS_Technology_6502
 http://www.obelisk.demon.co.uk/6502/
 http://www.6502.org/tutorials/
 
-I used the following test programs to validate the simulator
+I used the following test programs to validate the simulator.
 http://2m5.de/6502_Emu/ Klaus Dormann 6502 Test Suite (GPL License)
+
+How to Compile Tests - Go grab the AS65 Compiler
+http://www.kingswood-consulting.co.uk/assemblers/
+
+Modify the 6502_functional_test.a65
+load_data_direct = 0
+
+Run the following command to generate the bin file and lst file
+as65 -l -m -w -h0  6502_functional_test.a65
+
+In the simulator Load the test
+Set the Memory Offset to be 0x0400 and the PC to be 0x0400.
+
+Program Listing starts at 400
+
+
