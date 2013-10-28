@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using Common.Logging;
 
 namespace Processor
 {
@@ -8,6 +9,8 @@ namespace Processor
 	/// </summary>
 	public class Processor
 	{
+		private static ILog _log = LogManager.GetCurrentClassLogger();
+
 		private int _programCounter;
 		private int _stackPointer;
 
@@ -1895,6 +1898,24 @@ namespace Processor
 					                     DisassemblyOutput = disassembledStep
 				                     };
 
+			_log.DebugFormat(" {0} {1} O: {2}  L: {3} H: {4} PC: {5} A: {6} X: {7} Y: {8} SP {9} N: {10} V: {11} B: {12} D: {13} I: {14} Z: {15} C: {16}",
+							 CurrentDisassembly.OpCodeString,
+							 CurrentDisassembly.DisassemblyOutput.PadRight(10, ' '),
+							 CurrentOpCode.ToString("X").PadLeft(2, '0'),
+							 CurrentDisassembly.LowAddress,
+							 CurrentDisassembly.HighAddress,
+							 ProgramCounter.ToString("X").PadRight(4, ' '),
+			                 Accumulator.ToString().PadLeft(3, '0'),
+			                 XRegister.ToString().PadLeft(3, '0'),
+			                 YRegister.ToString().PadLeft(3, '0'),
+			                 StackPointer.ToString().PadLeft(3, '0'),
+			                 Convert.ToInt16(NegativeFlag),
+			                 Convert.ToInt16(OverflowFlag),
+			                 0,
+			                 Convert.ToInt16(DecimalFlag),
+			                 Convert.ToInt16(DisableInterruptFlag),
+			                 Convert.ToInt16(ZeroFlag),
+			                 Convert.ToInt16(CarryFlag));
 		}
 
 		private int WrapProgramCounter(int value)
