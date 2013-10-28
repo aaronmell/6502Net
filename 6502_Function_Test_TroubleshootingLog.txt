@@ -1,0 +1,9 @@
+This is a document outlining the troubleshooting status of the function test. The goal is to document how much of the program runs correctly, so in the event of a prolong absence of working on this project, it can be picked up again.
+
+Bad Jump Here for Some reason
+BEQ $0548      O: 240  L: 03 H:  PC: 548  A: 000 X: 000 Y: 253 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 0 * 2013-10-27 21:44:52,235 * 9 * DEBUG * Processor.Processor * 
+
+
+
+
+
