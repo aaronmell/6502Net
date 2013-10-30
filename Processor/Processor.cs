@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Globalization;
 using Common.Logging;
 
 namespace Processor
@@ -1738,17 +1739,20 @@ namespace Processor
 		/// </summary>
 		private int MoveProgramCounterByRelativeValue(byte valueToMove)
 		{
-			var newAddress = valueToMove > 127 ? (valueToMove - 255) : valueToMove;
+			var movement = valueToMove > 127 ? (valueToMove - 255) : valueToMove;
 
-			var newProgramCounter = ProgramCounter + newAddress;
-
+			var newProgramCounter = ProgramCounter + movement;
+	
+			//This makes sure that we always land on the correct spot for a positive number
+			if (movement >= 0)
+				newProgramCounter++;
+			
 			if (newProgramCounter < 0x0 || newProgramCounter > 0xFFFF)
 			{
 				//We crossed a page boundry, so decrease the number of cycles by 1.
 				NumberofCyclesLeft--;
 			}
 			return newProgramCounter;
-
 		}
 
 		/// <summary>
@@ -1826,6 +1830,7 @@ namespace Processor
 				case AddressingMode.Immediate:
 					{
 						disassembledStep = string.Format("#${0}", address1.Value.ToString("X").PadLeft(4, '0'));
+						address2 = null;
 						break;
 					}
 				case AddressingMode.Implied:
@@ -1857,8 +1862,13 @@ namespace Processor
 					{
 						address2 = null;
 
-						var relativeAddress = MoveProgramCounterByRelativeValue(Memory.ReadValue(address1.Value));
+						var relativeAddress = MoveProgramCounterByRelativeValue((byte)address1.Value);
 						relativeAddress = WrapProgramCounter(relativeAddress);
+
+						var stringAddress = relativeAddress.ToString("X").PadLeft(4, '0');
+
+						address1 = int.Parse(stringAddress.Substring(0, 2), NumberStyles.AllowHexSpecifier);
+						address2 = int.Parse(stringAddress.Substring(2, 2),NumberStyles.AllowHexSpecifier);
 
 						disassembledStep = string.Format("${0}", relativeAddress.ToString("X").PadLeft(4, '0'));
 						break;
@@ -1898,14 +1908,16 @@ namespace Processor
 					                     DisassemblyOutput = disassembledStep
 				                     };
 
-			_log.DebugFormat(" {0} {1} O: {2}  L: {3} H: {4} PC: {5} A: {6} X: {7} Y: {8} SP {9} N: {10} V: {11} B: {12} D: {13} I: {14} Z: {15} C: {16}",
-							 CurrentDisassembly.OpCodeString,
-							 CurrentDisassembly.DisassemblyOutput.PadRight(10, ' '),
+			_log.DebugFormat("{0} : {1}{2}{3} {4} {5} A: {6} X: {7} Y: {8} SP {9} N: {10} V: {11} B: {12} D: {13} I: {14} Z: {15} C: {16}",
+							 ProgramCounter.ToString("X").PadLeft(4, '0'),
 							 CurrentOpCode.ToString("X").PadLeft(2, '0'),
 							 CurrentDisassembly.LowAddress,
 							 CurrentDisassembly.HighAddress,
-							 ProgramCounter.ToString("X").PadRight(4, ' '),
-			                 Accumulator.ToString().PadLeft(3, '0'),
+							 
+							 CurrentDisassembly.OpCodeString,
+							 CurrentDisassembly.DisassemblyOutput.PadRight(10, ' '),
+			                 
+							 Accumulator.ToString().PadLeft(3, '0'),
 			                 XRegister.ToString().PadLeft(3, '0'),
 			                 YRegister.ToString().PadLeft(3, '0'),
 			                 StackPointer.ToString().PadLeft(3, '0'),

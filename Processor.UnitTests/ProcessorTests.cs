@@ -390,10 +390,11 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BEQ - Branch on Zero Set
-		[TestCase(0, 1, 4)]
+		[TestCase(0, 1, 5)]
 		[TestCase(0x80, 0x80, 4)]
 		[TestCase(0, 0xFB, 0xFFFF)]
 		[TestCase(0x7B, 0x80, 0xFFFF)]
+		[TestCase(2, 0xFE, 4)]
 		public void BEQ_Program_Counter_Correct(int programCounterInitalValue, byte offset, int expectedValue)
 		{
 			var processor = new Processor();

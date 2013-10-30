@@ -1,7 +1,105 @@
 This is a document outlining the troubleshooting status of the function test. The goal is to document how much of the program runs correctly, so in the event of a prolong absence of working on this project, it can be picked up again.
 
-Bad Jump Here for Some reason
-BEQ $0548      O: 240  L: 03 H:  PC: 548  A: 000 X: 000 Y: 253 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 0 * 2013-10-27 21:44:52,235 * 9 * DEBUG * Processor.Processor * 
+Fails at the end of this
+
+0552 : 4C3704 JMP $0437      A: 000 X: 000 Y: 001 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 22:49:05,560 * 6 * DEBUG * Processor.Processor * 
+0437 : 88 DEY            A: 000 X: 000 Y: 001 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 22:49:05,568 * 6 * DEBUG * Processor.Processor * 
+0438 : 98 TYA            A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,578 * 6 * DEBUG * Processor.Processor * 
+0439 : AA TAX            A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,588 * 6 * DEBUG * Processor.Processor * 
+043A : 10043E BPL $043E      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,597 * 6 * DEBUG * Processor.Processor * 
+043F : 497F EOR #$007F     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,607 * 6 * DEBUG * Processor.Processor * 
+0441 : 8DC804 STA $04C8      A: 127 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 22:49:05,619 * 6 * DEBUG * Processor.Processor * 
+0444 : A900 LDA #$0000     A: 127 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 22:49:05,629 * 6 * DEBUG * Processor.Processor * 
+0446 : 4CC704 JMP $04C7      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,641 * 6 * DEBUG * Processor.Processor * 
+04C7 : F00547 BEQ $0547      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,652 * 6 * DEBUG * Processor.Processor * 
+0548 : F0054D BEQ $054D      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,663 * 6 * DEBUG * Processor.Processor * 
+054E : C000 CPY #$0000     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,674 * 6 * DEBUG * Processor.Processor * 
+0550 : F00554 BEQ $0554      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,685 * 6 * DEBUG * Processor.Processor * 
+0555 : AD0002 LDA $0200      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 22:49:05,695 * 6 * DEBUG * Processor.Processor * 
+0558 : C901 CMP #$0001     A: 001 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 22:49:05,707 * 6 * DEBUG * Processor.Processor * 
+055A : D00559 BNE $0559      A: 001 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:12:57,824 * 6 * DEBUG * Processor.Processor * 
+055C : A902 LDA #$0002     A: 001 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:12:57,833 * 6 * DEBUG * Processor.Processor * 
+055E : 8D0002 STA $0200      A: 002 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:12:57,841 * 6 * DEBUG * Processor.Processor * 
+0561 : C001 CPY #$0001     A: 002 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:12:57,849 * 6 * DEBUG * Processor.Processor * 
+0563 : D00567 BNE $0567      A: 002 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:12:57,857 * 6 * DEBUG * Processor.Processor * 
+0568 : A900 LDA #$0000     A: 002 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:12:57,866 * 6 * DEBUG * Processor.Processor * 
+056A : C900 CMP #$0000     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 0 * 2013-10-29 23:12:57,876 * 6 * DEBUG * Processor.Processor * 
+056C : D0056B BNE $056B      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,304 * 6 * DEBUG * Processor.Processor * 
+056E : 90056D BCC $056D      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,314 * 6 * DEBUG * Processor.Processor * 
+0570 : 30056F BMI $056F      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,321 * 6 * DEBUG * Processor.Processor * 
+0572 : C901 CMP #$0001     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,330 * 6 * DEBUG * Processor.Processor * 
+0574 : F00573 BEQ $0573      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,339 * 6 * DEBUG * Processor.Processor * 
+0576 : B00575 BCS $0575      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,349 * 6 * DEBUG * Processor.Processor * 
+0578 : 100577 BPL $0577      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,358 * 6 * DEBUG * Processor.Processor * 
+057A : AA TAX            A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,365 * 6 * DEBUG * Processor.Processor * 
+057B : E000 CPX #$0000     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 0 * 2013-10-29 23:13:09,374 * 6 * DEBUG * Processor.Processor * 
+057D : D0057C BNE $057C      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,384 * 6 * DEBUG * Processor.Processor * 
+057F : 90057E BCC $057E      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,395 * 6 * DEBUG * Processor.Processor * 
+0581 : 300580 BMI $0580      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,403 * 6 * DEBUG * Processor.Processor * 
+0583 : E001 CPX #$0001     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,413 * 6 * DEBUG * Processor.Processor * 
+0585 : F00584 BEQ $0584      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,421 * 6 * DEBUG * Processor.Processor * 
+0587 : B00586 BCS $0586      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,429 * 6 * DEBUG * Processor.Processor * 
+0589 : 100588 BPL $0588      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,437 * 6 * DEBUG * Processor.Processor * 
+058B : A8 TAY            A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,444 * 6 * DEBUG * Processor.Processor * 
+058C : C000 CPY #$0000     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 0 * 2013-10-29 23:13:09,454 * 6 * DEBUG * Processor.Processor * 
+058E : D0058D BNE $058D      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,464 * 6 * DEBUG * Processor.Processor * 
+0590 : 90058F BCC $058F      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,472 * 6 * DEBUG * Processor.Processor * 
+0592 : 300591 BMI $0591      A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,482 * 6 * DEBUG * Processor.Processor * 
+0594 : C001 CPY #$0001     A: 000 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,489 * 6 * DEBUG * Processor.Processor * 
+0596 : F00595 BEQ $0595      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,497 * 6 * DEBUG * Processor.Processor * 
+0598 : B00597 BCS $0597      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,506 * 6 * DEBUG * Processor.Processor * 
+059A : 100599 BPL $0599      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,517 * 6 * DEBUG * Processor.Processor * 
+059C : AD0002 LDA $0200      A: 000 X: 000 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,525 * 6 * DEBUG * Processor.Processor * 
+059F : C902 CMP #$0002     A: 002 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:09,535 * 6 * DEBUG * Processor.Processor * 
+05A1 : D005A0 BNE $05A0      A: 002 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,544 * 6 * DEBUG * Processor.Processor * 
+05A3 : A903 LDA #$0003     A: 002 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,556 * 6 * DEBUG * Processor.Processor * 
+05A5 : 8D0002 STA $0200      A: 003 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,566 * 6 * DEBUG * Processor.Processor * 
+05A8 : A2FF LDX #$00FF     A: 003 X: 000 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,576 * 6 * DEBUG * Processor.Processor * 
+05AA : 9A TXS            A: 003 X: 255 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,587 * 6 * DEBUG * Processor.Processor * 
+05AB : A955 LDA #$0055     A: 003 X: 255 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,597 * 6 * DEBUG * Processor.Processor * 
+05AD : 48 PHA            A: 085 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,607 * 6 * DEBUG * Processor.Processor * 
+05AE : A9AA LDA #$00AA     A: 085 X: 255 Y: 000 SP 254 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,615 * 6 * DEBUG * Processor.Processor * 
+05B0 : 48 PHA            A: 170 X: 255 Y: 000 SP 254 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,633 * 6 * DEBUG * Processor.Processor * 
+05B1 : CDFE01 CMP $01FE      A: 170 X: 255 Y: 000 SP 253 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,643 * 6 * DEBUG * Processor.Processor * 
+05B4 : D005B3 BNE $05B3      A: 170 X: 255 Y: 000 SP 253 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,652 * 6 * DEBUG * Processor.Processor * 
+05B6 : BA TSX            A: 170 X: 255 Y: 000 SP 253 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,661 * 6 * DEBUG * Processor.Processor * 
+05B7 : 8A TXA            A: 170 X: 253 Y: 000 SP 253 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,671 * 6 * DEBUG * Processor.Processor * 
+05B8 : C9FD CMP #$00FD     A: 253 X: 253 Y: 000 SP 253 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,683 * 6 * DEBUG * Processor.Processor * 
+05BA : D005B9 BNE $05B9      A: 253 X: 253 Y: 000 SP 253 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,692 * 6 * DEBUG * Processor.Processor * 
+05BC : 68 PLA            A: 253 X: 253 Y: 000 SP 253 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,702 * 6 * DEBUG * Processor.Processor * 
+05BD : C9AA CMP #$00AA     A: 170 X: 253 Y: 000 SP 254 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,712 * 6 * DEBUG * Processor.Processor * 
+05BF : D005BE BNE $05BE      A: 170 X: 253 Y: 000 SP 254 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,721 * 6 * DEBUG * Processor.Processor * 
+05C1 : 68 PLA            A: 170 X: 253 Y: 000 SP 254 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,730 * 6 * DEBUG * Processor.Processor * 
+05C2 : C955 CMP #$0055     A: 085 X: 253 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,738 * 6 * DEBUG * Processor.Processor * 
+05C4 : D005C3 BNE $05C3      A: 085 X: 253 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,749 * 6 * DEBUG * Processor.Processor * 
+05C6 : CDFF01 CMP $01FF      A: 085 X: 253 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,760 * 6 * DEBUG * Processor.Processor * 
+05C9 : D005C8 BNE $05C8      A: 085 X: 253 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,769 * 6 * DEBUG * Processor.Processor * 
+05CB : BA TSX            A: 085 X: 253 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,777 * 6 * DEBUG * Processor.Processor * 
+05CC : E0FF CPX #$00FF     A: 085 X: 255 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,788 * 6 * DEBUG * Processor.Processor * 
+05CE : D005CD BNE $05CD      A: 085 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,796 * 6 * DEBUG * Processor.Processor * 
+05D0 : AD0002 LDA $0200      A: 085 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,805 * 6 * DEBUG * Processor.Processor * 
+05D3 : C903 CMP #$0003     A: 003 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,815 * 6 * DEBUG * Processor.Processor * 
+05D5 : D005D4 BNE $05D4      A: 003 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,824 * 6 * DEBUG * Processor.Processor * 
+05D7 : A904 LDA #$0004     A: 003 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,834 * 6 * DEBUG * Processor.Processor * 
+05D9 : 8D0002 STA $0200      A: 004 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,845 * 6 * DEBUG * Processor.Processor * 
+05DC : A9FF LDA #$00FF     A: 004 X: 255 Y: 000 SP 255 N: 0 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,856 * 6 * DEBUG * Processor.Processor * 
+05DE : 48 PHA            A: 255 X: 255 Y: 000 SP 255 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,864 * 6 * DEBUG * Processor.Processor * 
+05DF : 28 PLP            A: 255 X: 255 Y: 000 SP 254 N: 1 V: 0 B: 0 D: 0 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,873 * 6 * DEBUG * Processor.Processor * 
+05E0 : 1005FB BPL $05FB      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,882 * 6 * DEBUG * Processor.Processor * 
+05E2 : 5005FE BCV $05FE      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,892 * 6 * DEBUG * Processor.Processor * 
+05E4 : 900601 BCC $0601      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,902 * 6 * DEBUG * Processor.Processor * 
+05E6 : D00604 BNE $0604      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,913 * 6 * DEBUG * Processor.Processor * 
+05E8 : 3005EC BMI $05EC      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,922 * 6 * DEBUG * Processor.Processor * 
+05ED : 7005F1 BVS $05F1      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,931 * 6 * DEBUG * Processor.Processor * 
+05F2 : B005F6 BCS $05F6      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,942 * 6 * DEBUG * Processor.Processor * 
+05F7 : F00607 BEQ $0607      A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,953 * 6 * DEBUG * Processor.Processor * 
+0608 : 08 PHP            A: 255 X: 255 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,963 * 6 * DEBUG * Processor.Processor * 
+0609 : BA TSX            A: 255 X: 255 Y: 000 SP 254 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,974 * 6 * DEBUG * Processor.Processor * 
+060A : E0FE CPX #$00FE     A: 255 X: 254 Y: 000 SP 254 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:09,986 * 6 * DEBUG * Processor.Processor * 
+060C : D0060B BNE $060B      A: 255 X: 254 Y: 000 SP 254 N: 0 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:09,995 * 6 * DEBUG * Processor.Processor * 
+060E : 68 PLA            A: 255 X: 254 Y: 000 SP 254 N: 0 V: 1 B: 0 D: 1 I: 1 Z: 1 C: 1 * 2013-10-29 23:13:10,006 * 6 * DEBUG * Processor.Processor * 
+060F : C9FF CMP #$00FF     A: 223 X: 254 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 0 C: 1 * 2013-10-29 23:13:10,017 * 6 * DEBUG * Processor.Processor * 
+0611 : D00610 BNE $0610      A: 223 X: 254 Y: 000 SP 255 N: 1 V: 1 B: 0 D: 1 I: 1 Z: 0 C: 0 * 2013-10-29 23:13:10,027 * 6 * DEBUG * Processor.Processor *
 
 
 
