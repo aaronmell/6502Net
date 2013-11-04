@@ -30,36 +30,25 @@ namespace Simulator.ViewModel
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
-            ////if (ViewModelBase.IsInDesignModeStatic)
-            ////{
-            ////    // Create design time view services and models
-            ////    SimpleIoc.Default.Register<IDataService, DesignDataService>();
-            ////}
-            ////else
-            ////{
-            ////    // Create run time view services and models
-            ////    SimpleIoc.Default.Register<IDataService, DataService>();
-            ////}
-
             SimpleIoc.Default.Register<MainViewModel>();
 			SimpleIoc.Default.Register<OpenFileViewModel>();
+			SimpleIoc.Default.Register<SaveFileViewModel>();
         }
 
         public MainViewModel Main
         {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<MainViewModel>();
-            }
+            get { return ServiceLocator.Current.GetInstance<MainViewModel>(); }
         }
 
 		public OpenFileViewModel OpenFile
 		{
-			get
-			{
-				return ServiceLocator.Current.GetInstance<OpenFileViewModel>();
-			}
+			get { return ServiceLocator.Current.GetInstance<OpenFileViewModel>(); }
 		}
+
+	    public SaveFileViewModel SaveFile
+	    {
+		    get { return ServiceLocator.Current.GetInstance<SaveFileViewModel>(); }
+	    }
         
         public static void Cleanup()
         {

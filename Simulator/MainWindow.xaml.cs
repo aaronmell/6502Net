@@ -1,4 +1,6 @@
 ﻿using GalaSoft.MvvmLight.Messaging;
+using Simulator.Model;
+using Simulator.ViewModel;
 
 namespace Simulator
 {
@@ -7,10 +9,13 @@ namespace Simulator
 	/// </summary>
 	public partial class MainWindow
 	{
+		
+
 		public MainWindow()
 		{
 			InitializeComponent();
 			Messenger.Default.Register<NotificationMessage>(this, NotificationMessageReceived);
+			Messenger.Default.Register<NotificationMessage<SaveFileModel>>(this, NotificationMessageReceived);
 		}
 
 		private void NotificationMessageReceived(NotificationMessage notificationMessage)
@@ -19,6 +24,15 @@ namespace Simulator
 			{
 				var openFile = new OpenFile();
 				openFile.ShowDialog();
+			}
+		}
+
+		private void NotificationMessageReceived(NotificationMessage<SaveFileModel> notificationMessage)
+		{
+			if (notificationMessage.Notification == "SaveFileWindow")
+			{
+				var saveFile = new SaveFile {DataContext = new SaveFileViewModel(notificationMessage.Content)};
+				saveFile.ShowDialog();
 			}
 		}
 	}

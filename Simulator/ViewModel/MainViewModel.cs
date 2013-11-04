@@ -7,6 +7,7 @@ using System.Threading;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
+using Microsoft.Win32;
 using Simulator.Model;
 using Proc = Processor.Processor;
 
@@ -45,7 +46,10 @@ namespace Simulator.ViewModel
 		/// </summary>
 		public MultiThreadedObservableCollection<OutputLog> OutputLog { get; private set; }
 		
-		public string CurrentDisasembly
+		/// <summary>
+		/// The Current Disassembly
+		/// </summary>
+		public string CurrentDisassembly
 		{
 			get { return string.Format("{0} {1}", Proc.CurrentDisassembly.OpCodeString, Proc.CurrentDisassembly.DisassemblyOutput); }
 		}
@@ -134,6 +138,8 @@ namespace Simulator.ViewModel
 		/// Relay Command that updates the Memory Map when the Page changes
 		/// </summary>
 		public RelayCommand UpdateMemoryMapCommand { get; set; }
+
+		public RelayCommand SaveStateCommand { get; set; }
 		#endregion
 
 		#region public Methods
@@ -147,6 +153,7 @@ namespace Simulator.ViewModel
 			OpenCommand = new RelayCommand(OpenFile);
 			RunPauseCommand = new RelayCommand(RunPause);
 			UpdateMemoryMapCommand = new RelayCommand(UpdateMemoryPage);
+			SaveStateCommand = new RelayCommand(SaveState);
 
 			Messenger.Default.Register<NotificationMessage<OpenFileModel>>(this, FileOpenedNotification);
 			FilePath = "No File Loaded";
@@ -268,7 +275,7 @@ namespace Simulator.ViewModel
 			RaisePropertyChanged("Stack");
 
 			OutputLog.Clear();
-			RaisePropertyChanged("CurrentDisasembly");
+			RaisePropertyChanged("CurrentDisassembly");
 
 			OutputLog.Insert(0, GetOutputLog());
 			UpdateUi();
@@ -293,7 +300,7 @@ namespace Simulator.ViewModel
 		{
 			RaisePropertyChanged("Proc");
 			RaisePropertyChanged("NumberOfCycles");
-			RaisePropertyChanged("CurrentDisasembly");
+			RaisePropertyChanged("CurrentDisassembly");
 			RaisePropertyChanged("MemoryPage");
 			RaisePropertyChanged("Stack");
 		}
@@ -330,7 +337,7 @@ namespace Simulator.ViewModel
 			IsRunning = !IsRunning;
 		}
 
-		void BackgroundWorkerDoWork(object sender, DoWorkEventArgs e)
+		private void BackgroundWorkerDoWork(object sender, DoWorkEventArgs e)
 		{
 			var worker = sender as BackgroundWorker;
 			var outputLogs = new List<OutputLog>();
@@ -431,6 +438,39 @@ namespace Simulator.ViewModel
 				_backgroundWorker.CancelAsync();
 
 			Messenger.Default.Send(new NotificationMessage("OpenFileWindow"));
+		}
+
+		private void SaveState()
+		{
+			IsRunning = false;
+
+			if (_backgroundWorker.IsBusy)
+				_backgroundWorker.CancelAsync();
+
+			//Messenger.Default.Send(new NotificationMessage("SaveFileWindow"));
+
+			Messenger.Default.Send(new NotificationMessage<SaveFileModel>(new SaveFileModel
+				{
+					NumberOfCycles = NumberOfCycles,
+					Listing = Listing,
+
+					ProgramCounter = Proc.ProgramCounter,
+					MemoryDump = Proc.Memory.DumpMemory(),
+					StackPointer = Proc.StackPointer,
+					Accumulator = Proc.Accumulator,
+					XRegister = Proc.XRegister,
+					YRegister = Proc.YRegister,
+					CurrentOpCode = Proc.CurrentOpCode,
+					CurrentDisassembly = Proc.CurrentDisassembly,
+					InterruptPeriod = Proc.InterruptPeriod,
+					DisableInterruptFlag = Proc.DisableInterruptFlag,
+					NumberofCyclesLeft = Proc.NumberofCyclesLeft,
+					CarryFlag = Proc.CarryFlag,
+					ZeroFlag = Proc.ZeroFlag,
+					DecimalFlag = Proc.DecimalFlag,
+					OverflowFlag = Proc.OverflowFlag,
+					NegativeFlag = Proc.NegativeFlag
+				}, "SaveFileWindow"));
 		}
 		#endregion
 	}

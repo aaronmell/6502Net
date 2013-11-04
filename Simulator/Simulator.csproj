@@ -81,6 +81,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\SaveFileModel.cs" />
+    <Compile Include="SaveFile.xaml.cs">
+      <DependentUpon>SaveFile.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Model\MemoryRowModel.cs" />
     <Compile Include="Model\OpenFileModel.cs" />
     <Compile Include="Model\OutputLog.cs" />
@@ -88,9 +92,14 @@
     <Compile Include="OpenFile.xaml.cs">
       <DependentUpon>OpenFile.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModel\SaveFileViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\OpenFileViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Page Include="SaveFile.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

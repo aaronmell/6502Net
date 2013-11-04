@@ -10,6 +10,7 @@ namespace Processor
 		private readonly byte[] _memory;
 
 		#region Public Methods
+
 		/// <summary>
 		/// Initializes a new RAM object.
 		/// </summary>
@@ -66,6 +67,15 @@ namespace Processor
 			{
 				_memory[i + offset] = program[i];
 			}
+		}
+
+		/// <summary>
+		/// Dumps the entire memory object. Used when saving the memory state
+		/// </summary>
+		/// <returns></returns>
+		public byte[] DumpMemory()
+		{
+			return _memory;
 		}
 		#endregion
 

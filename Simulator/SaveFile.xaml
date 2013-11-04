@@ -1,0 +1,13 @@
+﻿<Window x:Class="Simulator.SaveFile"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		DataContext="{Binding SaveFile, Source={StaticResource Locator}}"
+        Title="Save State" Height="160" Width="506">
+    <Grid>
+		<Button Content="Select File" Height="23" HorizontalAlignment="Left" Margin="397,50,0,0" Name="SelectFile" VerticalAlignment="Top" Width="75" Command="{Binding Path=SelectFileCommand}" />
+		<TextBox Height="23" HorizontalAlignment="Left" Margin="12,50,0,0" Name="FilePath" VerticalAlignment="Top" Width="361" Text="{Binding Path=Filename }" IsReadOnly="True"/>
+		<TextBlock Height="20" HorizontalAlignment="Left" Margin="12,32,0,0" Name="PathTest" Text="Path" VerticalAlignment="Top" Width="29" />
+		<Button Content="Cancel" Height="23" HorizontalAlignment="Left" Margin="397,92,0,0" Name="CancelButton" VerticalAlignment="Top" Width="75" Command="{Binding Path=CloseCommand}" />
+		<Button Content="Save" Height="23" HorizontalAlignment="Left" Margin="317,92,0,0" Name="LoadButton" VerticalAlignment="Top" Width="75" IsEnabled="{Binding Path=SaveEnabled, Mode=OneWay}" Command="{Binding Path=SaveFileCommand}" />
+	</Grid>
+</Window>
