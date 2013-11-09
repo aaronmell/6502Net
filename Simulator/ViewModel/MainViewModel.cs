@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using GalaSoft.MvvmLight;
@@ -20,6 +21,7 @@ namespace Simulator.ViewModel
 		private bool _isRunning;
 		private int _memoryPageOffset;
 		private readonly BackgroundWorker _backgroundWorker;
+		private bool _breakpointTriggered;
 		#endregion
 
 		#region Properties
@@ -34,15 +36,20 @@ namespace Simulator.ViewModel
 		public MultiThreadedObservableCollection<MemoryRowModel> MemoryPage { get; set; }
 		
 		/// <summary>
-		/// The Current Stack
-		/// </summary>
-		public MultiThreadedObservableCollection<MemoryRowModel> Stack { get; set; } 
-		
-		/// <summary>
 		/// The output log
 		/// </summary>
 		public MultiThreadedObservableCollection<OutputLog> OutputLog { get; private set; }
 		
+		/// <summary>
+		/// The Breakpoints
+		/// </summary>
+		public MultiThreadedObservableCollection<Breakpoint> Breakpoints { get; set; } 
+
+		/// <summary>
+		/// The Currently Selected Breakpoint
+		/// </summary>
+		public Breakpoint SelectedBreakpoint { get; set; }
+
 		/// <summary>
 		/// The Current Disassembly
 		/// </summary>
@@ -140,6 +147,16 @@ namespace Simulator.ViewModel
 		/// Relay Command the Saves the Current State to File
 		/// </summary>
 		public RelayCommand SaveStateCommand { get; set; }
+
+		/// <summary>
+		/// The Relay Command that adds a new breakpoint
+		/// </summary>
+		public RelayCommand AddBreakPointCommand { get; set; }
+
+		/// <summary>
+		/// The Relay Command that Removes an existing breakpoint
+		/// </summary>
+		public RelayCommand RemoveBreakPointCommand { get; set; }
 		#endregion
 
 		#region public Methods
@@ -157,17 +174,18 @@ namespace Simulator.ViewModel
 			RunPauseCommand = new RelayCommand(RunPause);
 			UpdateMemoryMapCommand = new RelayCommand(UpdateMemoryPage);
 			SaveStateCommand = new RelayCommand(SaveState);
+			AddBreakPointCommand = new RelayCommand(AddBreakPoint);
+			RemoveBreakPointCommand = new RelayCommand(RemoveBreakPoint);
 
 			Messenger.Default.Register<NotificationMessage<AssemblyFileModel>>(this, FileOpenedNotification);
 			Messenger.Default.Register<NotificationMessage<StateFileModel>>(this, StateLoadedNotifcation);
 			FilePath = "No File Loaded";
 
 			MemoryPage = new MultiThreadedObservableCollection<MemoryRowModel>();
-			Stack = new MultiThreadedObservableCollection<MemoryRowModel>();
 			OutputLog = new MultiThreadedObservableCollection<OutputLog>();
-
+			Breakpoints = new MultiThreadedObservableCollection<Breakpoint>();
+			
 			UpdateMemoryPage();
-			UpdateStack();
 
 			_backgroundWorker = new BackgroundWorker {WorkerSupportsCancellation = true, WorkerReportsProgress = false};
 			_backgroundWorker.DoWork += BackgroundWorkerDoWork;
@@ -217,7 +235,6 @@ namespace Simulator.ViewModel
 
 			Proc = notificationMessage.Content.Processor;
 			UpdateMemoryPage();
-			UpdateStack();
 			UpdateUi();
 
 			IsProgramLoaded = true;
@@ -257,36 +274,6 @@ namespace Simulator.ViewModel
 			}
 		}
 
-		private void UpdateStack()
-		{
-			Stack.Clear();
-
-			for (var i = 0x1FF; i > 0x100; i--)
-			{
-
-				Stack.Add(new MemoryRowModel
-				{
-					Offset = (i - 15).ToString("X").PadLeft(4, '0'),
-					Location0F = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location0E = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location0D = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location0C = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location0B = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location0A = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location09 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location08 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location07 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location06 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location05 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location04 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location03 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location02 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location01 = Proc.Memory.ReadValue(i--).ToString("X").PadLeft(2, '0'),
-					Location00 = Proc.Memory.ReadValue(i).ToString("X").PadLeft(2, '0'),
-				});
-			}
-		}
-
 		private void Reset()
 		{
 			IsRunning = false;
@@ -304,8 +291,6 @@ namespace Simulator.ViewModel
 			UpdateMemoryPage();
 			RaisePropertyChanged("MemoryPage");
 
-			UpdateStack();
-			RaisePropertyChanged("Stack");
 
 			OutputLog.Clear();
 			RaisePropertyChanged("CurrentDisassembly");
@@ -323,7 +308,6 @@ namespace Simulator.ViewModel
 				
 			StepProcessor();
 			UpdateMemoryPage();
-			UpdateStack();
 
 			OutputLog.Insert(0, GetOutputLog());
 			UpdateUi();
@@ -335,7 +319,6 @@ namespace Simulator.ViewModel
 			RaisePropertyChanged("NumberOfCycles");
 			RaisePropertyChanged("CurrentDisassembly");
 			RaisePropertyChanged("MemoryPage");
-			RaisePropertyChanged("Stack");
 		}
 
 		private void StepProcessor()
@@ -377,7 +360,7 @@ namespace Simulator.ViewModel
 			
 			while (true)
 			{
-				if (worker != null && worker.CancellationPending)
+				if (worker != null && worker.CancellationPending || (!_breakpointTriggered && IsBreakPointTriggered()))
 				{
 					e.Cancel = true;
 
@@ -387,7 +370,6 @@ namespace Simulator.ViewModel
 						OutputLog.Insert(0,log);
 
 					UpdateMemoryPage();
-					UpdateStack();
 					return;
 				}
 
@@ -404,6 +386,40 @@ namespace Simulator.ViewModel
 				}
 				Thread.Sleep(GetSleepValue());
 			}
+		}
+
+		private bool IsBreakPointTriggered()
+		{
+			//This prevents the Run Command from getting stuck after reaching a breakpoint
+			if (_breakpointTriggered)
+			{
+				_breakpointTriggered = false;
+				return false;
+			}
+
+			foreach (var breakpoint in Breakpoints.Where(x => x.IsEnabled))
+			{
+				int value ;
+
+				if (!int.TryParse(breakpoint.Value, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
+					continue;
+
+				if (breakpoint.Type == BreakpointType.NumberOfCycleType && value == NumberOfCycles)
+				{
+					_breakpointTriggered = true;
+					RunPause();
+					return true;
+				}
+
+				if (breakpoint.Type == BreakpointType.ProgramCounterType && value == Proc.ProgramCounter)
+				{
+					_breakpointTriggered = true;
+					RunPause();
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		private int GetLogModValue()
@@ -487,6 +503,23 @@ namespace Simulator.ViewModel
 					OutputLog = OutputLog.ToList(),
 					Processor = Proc
 				}, "SaveFileWindow"));
+		}
+
+		private void AddBreakPoint()
+		{
+			Breakpoints.Add(new Breakpoint());
+			RaisePropertyChanged("Breakpoints");
+		}
+
+		private void RemoveBreakPoint()
+		{
+			if (SelectedBreakpoint == null)
+				return;
+
+			Breakpoints.Remove(SelectedBreakpoint);
+			SelectedBreakpoint = null;
+			RaisePropertyChanged("SelectedBreakpoint");
+
 		}
 		#endregion
 	}
