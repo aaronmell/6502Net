@@ -73,6 +73,5 @@
 		/// The memory at the location offset + 0F
 		/// </summary>
 		public string Location0F { get; set; }
-		
 	}
 }

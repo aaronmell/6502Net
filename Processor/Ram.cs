@@ -79,7 +79,5 @@ namespace Processor
 			return _memory;
 		}
 		#endregion
-
-		
 	}
 }

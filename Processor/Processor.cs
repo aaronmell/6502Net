@@ -11,10 +11,11 @@ namespace Processor
 	[Serializable]
 	public class Processor
 	{
-		private static ILog _log = LogManager.GetCurrentClassLogger();
-
+		#region Fields
+		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 		private int _programCounter;
 		private int _stackPointer;
+		#endregion
 
 		//All of the properties here are public and read only to facilitate ease of debugging and testing.
 		#region Properties
@@ -1861,8 +1862,6 @@ namespace Processor
 					}
 				case AddressingMode.Relative:
 					{
-						address2 = null;
-
 						var relativeAddress = MoveProgramCounterByRelativeValue((byte)address1.Value);
 						relativeAddress = WrapProgramCounter(relativeAddress);
 
@@ -1909,7 +1908,7 @@ namespace Processor
 					                     DisassemblyOutput = disassembledStep
 				                     };
 
-			_log.DebugFormat("{0} : {1}{2}{3} {4} {5} A: {6} X: {7} Y: {8} SP {9} N: {10} V: {11} B: {12} D: {13} I: {14} Z: {15} C: {16}",
+			Log.DebugFormat("{0} : {1}{2}{3} {4} {5} A: {6} X: {7} Y: {8} SP {9} N: {10} V: {11} B: {12} D: {13} I: {14} Z: {15} C: {16}",
 							 ProgramCounter.ToString("X").PadLeft(4, '0'),
 							 CurrentOpCode.ToString("X").PadLeft(2, '0'),
 							 CurrentDisassembly.LowAddress,
@@ -1918,10 +1917,10 @@ namespace Processor
 							 CurrentDisassembly.OpCodeString,
 							 CurrentDisassembly.DisassemblyOutput.PadRight(10, ' '),
 			                 
-							 Accumulator.ToString().PadLeft(3, '0'),
-			                 XRegister.ToString().PadLeft(3, '0'),
-			                 YRegister.ToString().PadLeft(3, '0'),
-			                 StackPointer.ToString().PadLeft(3, '0'),
+							 Accumulator.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
+			                 XRegister.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
+			                 YRegister.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
+			                 StackPointer.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
 			                 Convert.ToInt16(NegativeFlag),
 			                 Convert.ToInt16(OverflowFlag),
 			                 0,

@@ -34,8 +34,5 @@ namespace Simulator.Model
 		/// The Processor Object that is being saved
 		/// </summary>
 		public Proc Processor { get; set; }
-		
-
-		
 	}
 }

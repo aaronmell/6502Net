@@ -27,6 +27,5 @@ namespace Processor
 		/// The disassembly of the current step
 		/// </summary>
 		public string DisassemblyOutput { get; set; }
-		
 	}
 }

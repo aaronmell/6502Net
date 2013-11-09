@@ -16,14 +16,13 @@ namespace Simulator.ViewModel
 	/// </summary>
 	public class MainViewModel : ViewModelBase
 	{
-		#region Private Properties
+		#region Fields
 		private bool _isRunning;
 		private int _memoryPageOffset;
 		private readonly BackgroundWorker _backgroundWorker;
-		
 		#endregion
 
-		#region Public Properties
+		#region Properties
 		/// <summary>
 		/// The Processor
 		/// </summary>
@@ -137,10 +136,16 @@ namespace Simulator.ViewModel
 		/// </summary>
 		public RelayCommand UpdateMemoryMapCommand { get; set; }
 
+		/// <summary>
+		/// Relay Command the Saves the Current State to File
+		/// </summary>
 		public RelayCommand SaveStateCommand { get; set; }
 		#endregion
 
 		#region public Methods
+		/// <summary>
+		/// Creates a new Instance of the MainViewModel
+		/// </summary>
 		public MainViewModel()
 		{
 			Proc = new Proc();

@@ -35,21 +35,35 @@ namespace Simulator.ViewModel
 			SimpleIoc.Default.Register<SaveFileViewModel>();
         }
 
+		/// <summary>
+		/// The MainViewModel Instance
+		/// </summary>
         public MainViewModel Main
         {
             get { return ServiceLocator.Current.GetInstance<MainViewModel>(); }
         }
 
+		/// <summary>
+		/// The OpenFileViewModel Instance
+		/// </summary>
 		public OpenFileViewModel OpenFile
 		{
 			get { return ServiceLocator.Current.GetInstance<OpenFileViewModel>(); }
 		}
 
+
+		/// <summary>
+		/// The SaveFileViewModel Instance
+		/// </summary>
 	    public SaveFileViewModel SaveFile
 	    {
 		    get { return ServiceLocator.Current.GetInstance<SaveFileViewModel>(); }
 	    }
-        
+
+
+		/// <summary>
+		/// The Cleanup Method
+		/// </summary>
         public static void Cleanup()
         {
             // TODO Clear the ViewModels
