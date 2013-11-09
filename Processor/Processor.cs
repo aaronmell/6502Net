@@ -8,6 +8,7 @@ namespace Processor
 	/// <summary>
 	/// An Implementation of a 6502 Processor
 	/// </summary>
+	[Serializable]
 	public class Processor
 	{
 		private static ILog _log = LogManager.GetCurrentClassLogger();

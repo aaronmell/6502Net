@@ -15,7 +15,7 @@ namespace Simulator
 		{
 			InitializeComponent();
 			Messenger.Default.Register<NotificationMessage>(this, NotificationMessageReceived);
-			Messenger.Default.Register<NotificationMessage<SaveFileModel>>(this, NotificationMessageReceived);
+			Messenger.Default.Register<NotificationMessage<StateFileModel>>(this, NotificationMessageReceived);
 		}
 
 		private void NotificationMessageReceived(NotificationMessage notificationMessage)
@@ -27,7 +27,7 @@ namespace Simulator
 			}
 		}
 
-		private void NotificationMessageReceived(NotificationMessage<SaveFileModel> notificationMessage)
+		private void NotificationMessageReceived(NotificationMessage<StateFileModel> notificationMessage)
 		{
 			if (notificationMessage.Notification == "SaveFileWindow")
 			{

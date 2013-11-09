@@ -81,12 +81,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Model\SaveFileModel.cs" />
+    <Compile Include="Model\StateFileModel.cs" />
     <Compile Include="SaveFile.xaml.cs">
       <DependentUpon>SaveFile.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\MemoryRowModel.cs" />
-    <Compile Include="Model\OpenFileModel.cs" />
+    <Compile Include="Model\AssemblyFileModel.cs" />
     <Compile Include="Model\OutputLog.cs" />
     <Compile Include="MultiThreadedCollection.cs" />
     <Compile Include="OpenFile.xaml.cs">

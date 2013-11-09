@@ -1,10 +1,12 @@
-﻿using Processor;
+﻿using System;
+using Processor;
 
 namespace Simulator.Model
 {
 	/// <summary>
 	/// The OutputLog Model. Used by the outputlog grid to show a history of operations performed by the CPU
 	/// </summary>
+	[Serializable]
 	public class OutputLog : Disassembly
 	{
 		public OutputLog(Disassembly disassembly)

@@ -7,9 +7,9 @@
 		<Button Content="Select File" Height="23" HorizontalAlignment="Left" Margin="397,50,0,0" Name="SelectFile" VerticalAlignment="Top" Width="75" Command="{Binding Path=SelectFileCommand}" />
 		<TextBox Height="23" HorizontalAlignment="Left" Margin="12,50,0,0" Name="FilePath" VerticalAlignment="Top" Width="361" Text="{Binding Path=Filename }" IsReadOnly="True"/>
 		<TextBlock Height="20" HorizontalAlignment="Left" Margin="12,32,0,0" Name="PathTest" Text="Path" VerticalAlignment="Top" Width="29" />
-		<TextBox Height="23" HorizontalAlignment="Left" Margin="12,107,0,0" Name="MemoryOffset" VerticalAlignment="Top" Width="120" Text="{Binding Path= MemoryOffset }"/>
+		<TextBox Height="23" HorizontalAlignment="Left" Margin="12,107,0,0" Name="MemoryOffset" VerticalAlignment="Top" Width="120" Text="{Binding Path= MemoryOffset }" IsEnabled="{Binding Path=IsNotStateFile, Mode=OneWay}" />
 		<TextBlock Height="20" Margin="12,89,391,0" Name="MemoryOffsetText" Text="Memory Offset" VerticalAlignment="Top" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,107,172,0" Name="InitialProgramCounter" VerticalAlignment="Top" Width="120" Text="{Binding Path= InitalProgramCounter }"/>
+		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,107,172,0" Name="InitialProgramCounter" VerticalAlignment="Top" Width="120" Text="{Binding Path= InitalProgramCounter }" IsEnabled="{Binding Path=IsNotStateFile, Mode=OneWay}" />
 		<TextBlock Height="20" Margin="192,89,172,0" Name="InitialProgramCounterText" Text="Inital Program Counter" VerticalAlignment="Top" />
 		<Button Content="Cancel" Height="23" HorizontalAlignment="Left" Margin="397,161,0,0" Name="CancelButton" VerticalAlignment="Top" Width="75" Command="{Binding Path=CloseCommand}" />
 		<Button Content="Load" Height="23" HorizontalAlignment="Left" Margin="316,161,0,0" Name="LoadButton" VerticalAlignment="Top" Width="75" IsEnabled="{Binding Path=LoadEnabled, Mode=OneWay}" Command="{Binding Path=LoadProgramCommand}" />

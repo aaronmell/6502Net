@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Threading;
@@ -7,6 +8,23 @@ namespace Simulator
 {
 	public class MultiThreadedObservableCollection<T> : ObservableCollection<T>
 	{
+		public MultiThreadedObservableCollection()
+		{
+			
+		}
+
+		public MultiThreadedObservableCollection(IEnumerable<T> collection)
+			: base(collection)
+		{
+			
+		}
+
+		public MultiThreadedObservableCollection(List<T> list)
+			: base(list)
+		{
+
+		} 
+
 		public override event NotifyCollectionChangedEventHandler CollectionChanged;
 		protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
 		{
@@ -29,7 +47,7 @@ namespace Simulator
 						}
 					}
 					nh.Invoke(this, e);
-				}
+			}
 		}
 	}
 }

@@ -5,6 +5,7 @@ namespace Processor
 	/// <summary>
 	/// The Ram Subsystem
 	/// </summary>
+	[Serializable]
 	public class Ram
 	{
 		private readonly byte[] _memory;

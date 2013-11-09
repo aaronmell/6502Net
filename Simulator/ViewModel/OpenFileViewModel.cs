@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -11,8 +12,6 @@ namespace Simulator.ViewModel
 {
 	public class OpenFileViewModel : ViewModelBase
 	{
-		//public OpenFileModel OpenFileModel { get; set; }
-
 		public RelayCommand LoadProgramCommand { get; set; }
 
 		public RelayCommand CloseCommand { get; set; }
@@ -26,7 +25,17 @@ namespace Simulator.ViewModel
 		public string MemoryOffset { get; set; }
 
 		public bool LoadEnabled { get { return !string.IsNullOrEmpty(Filename); }}
-		
+
+		public bool IsNotStateFile
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(Filename))
+					return true;
+
+				return !Filename.EndsWith(".6502");
+			}
+		}
 
 		public OpenFileViewModel()
 		{
@@ -40,6 +49,33 @@ namespace Simulator.ViewModel
 
 		private void Load()
 		{
+			var extension = Path.GetExtension(Filename);
+			if (extension != null && extension.ToUpper() == ".BIN" && !TryLoadBinFile())
+				return;
+
+			if (extension != null && extension.ToUpper() == ".6502" && !TryLoad6502File())
+					return;
+
+			Close();
+		}
+
+		private bool TryLoad6502File()
+		{
+			var formatter = new BinaryFormatter();
+			Stream stream = new FileStream(Filename, FileMode.Open);
+			
+			var fileModel = (StateFileModel)formatter.Deserialize(stream);
+			fileModel.FilePath = Filename;
+
+			stream.Close();
+			
+			Messenger.Default.Send(new NotificationMessage<StateFileModel>(fileModel, "FileLoaded"));
+
+			return true;
+		}
+
+		private bool TryLoadBinFile()
+		{
 			int programCounter;
 			try
 			{
@@ -48,7 +84,7 @@ namespace Simulator.ViewModel
 			catch (Exception)
 			{
 				MessageBox.Show("Unable to Parse ProgramCounter into int");
-				return;
+				return false;
 			}
 
 			int memoryOffset;
@@ -59,7 +95,7 @@ namespace Simulator.ViewModel
 			catch (Exception)
 			{
 				MessageBox.Show("Unable to Parse Memory Offset into int");
-				return;
+				return false;
 			}
 
 			byte[] program;
@@ -70,34 +106,34 @@ namespace Simulator.ViewModel
 			catch (Exception)
 			{
 				MessageBox.Show("Unable to Open Program Binary");
-				return;
+				return false;
 			}
 
 			string listing;
 			try
 			{
-// ReSharper disable AssignNullToNotNullAttribute
+				// ReSharper disable AssignNullToNotNullAttribute
 				listing = File.ReadAllText(string.Format("{0}.lst", Path.Combine(Path.GetDirectoryName(Filename), Path.GetFileNameWithoutExtension(Filename))));
-// ReSharper restore AssignNullToNotNullAttribute
+				// ReSharper restore AssignNullToNotNullAttribute
 			}
 			catch (Exception)
 			{
 				MessageBox.Show("Unable to Open Program Listing");
-				return;
+				return false;
 			}
-			
-			Messenger.Default.Send(new NotificationMessage<OpenFileModel>(new OpenFileModel
-				                                                              {
-					                                                              InitialProgramCounter = programCounter,
-																				  MemoryOffset = memoryOffset,
-																				  Listing = listing,
-																				  Program = program,
-																				  FilePath = Filename
-				                                                              }, "FileLoaded"));
 
-			Close();
+			Messenger.Default.Send(new NotificationMessage<AssemblyFileModel>(new AssemblyFileModel
+			{
+				InitialProgramCounter = programCounter,
+				MemoryOffset = memoryOffset,
+				Listing = listing,
+				Program = program,
+				FilePath = Filename
+			}, "FileLoaded"));
+
+			return true;
 		}
-
+		
 		private static void Close()
 		{
 			Messenger.Default.Send(new NotificationMessage("CloseFileWindow"));
@@ -105,7 +141,7 @@ namespace Simulator.ViewModel
 
 		private void Select()
 		{
-			var dialog = new OpenFileDialog {DefaultExt = ".bin", Filter = "Binary Assembly (*.bin)|*.bin"};
+			var dialog = new OpenFileDialog {DefaultExt = ".bin", Filter = "All Files (*.bin, *.6502)|*.bin;*.6502|Binary Assembly (*.bin)|*.bin|6502 Simulator Save State (*.6502)|*.6502"};
 
 			var result = dialog.ShowDialog();
 
@@ -115,6 +151,7 @@ namespace Simulator.ViewModel
 			Filename = dialog.FileName;
 			RaisePropertyChanged("Filename");
 			RaisePropertyChanged("LoadEnabled");
+			RaisePropertyChanged("IsNotStateFile");
 		}
 	}
 }

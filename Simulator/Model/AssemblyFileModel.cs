@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The Model used when Loading a Program
 	/// </summary>
-	public class OpenFileModel
+	public class AssemblyFileModel
 	{
 		/// <summary>
 		/// The Program Converted into Hex

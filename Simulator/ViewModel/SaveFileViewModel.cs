@@ -16,7 +16,7 @@ namespace Simulator.ViewModel
 {
 	public class SaveFileViewModel : ViewModelBase
 	{
-		private SaveFileModel _saveFileModel;
+		private StateFileModel _stateFileModel;
 		
 		public RelayCommand SaveFileCommand { get; set; }
 
@@ -34,19 +34,19 @@ namespace Simulator.ViewModel
 			
 		}
 
-		public SaveFileViewModel(SaveFileModel saveFileModel)
+		public SaveFileViewModel(StateFileModel stateFileModel)
 		{
 			SaveFileCommand = new RelayCommand(Save);
 			CloseCommand = new RelayCommand(Close);
 			SelectFileCommand = new RelayCommand(Select);
-			_saveFileModel= saveFileModel;
+			_stateFileModel= stateFileModel;
 		}
 		
 		private void Save()
 		{
 			var formatter = new BinaryFormatter();
 			Stream stream = new FileStream(Filename, FileMode.Create, FileAccess.Write, FileShare.None);
-			formatter.Serialize(stream, _saveFileModel);
+			formatter.Serialize(stream, _stateFileModel);
 			stream.Close();
 
 			Close();

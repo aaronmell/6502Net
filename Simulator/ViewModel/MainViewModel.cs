@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
-using Microsoft.Win32;
 using Simulator.Model;
 using Proc = Processor.Processor;
 
@@ -155,7 +153,8 @@ namespace Simulator.ViewModel
 			UpdateMemoryMapCommand = new RelayCommand(UpdateMemoryPage);
 			SaveStateCommand = new RelayCommand(SaveState);
 
-			Messenger.Default.Register<NotificationMessage<OpenFileModel>>(this, FileOpenedNotification);
+			Messenger.Default.Register<NotificationMessage<AssemblyFileModel>>(this, FileOpenedNotification);
+			Messenger.Default.Register<NotificationMessage<StateFileModel>>(this, StateLoadedNotifcation);
 			FilePath = "No File Loaded";
 
 			MemoryPage = new MultiThreadedObservableCollection<MemoryRowModel>();
@@ -171,7 +170,7 @@ namespace Simulator.ViewModel
 		#endregion
 
 		#region Private Methods
-		private void FileOpenedNotification(NotificationMessage<OpenFileModel> notificationMessage)
+		private void FileOpenedNotification(NotificationMessage<AssemblyFileModel> notificationMessage)
 		{
 			if (notificationMessage.Notification != "FileLoaded")
 			{
@@ -189,6 +188,35 @@ namespace Simulator.ViewModel
 			RaisePropertyChanged("Listing");
 
 			Reset();
+		}
+
+		private void StateLoadedNotifcation(NotificationMessage<StateFileModel> notificationMessage)
+		{
+			if (notificationMessage.Notification != "FileLoaded")
+			{
+				return;
+			}
+
+			Reset();
+
+			FilePath = string.Format("Loaded State: {0}", notificationMessage.Content.FilePath);
+			RaisePropertyChanged("FilePath");
+
+			Listing = notificationMessage.Content.Listing;
+			RaisePropertyChanged("Listing");
+
+			OutputLog = new MultiThreadedObservableCollection<OutputLog>(notificationMessage.Content.OutputLog);
+			RaisePropertyChanged("OutputLog");
+
+			NumberOfCycles = notificationMessage.Content.NumberOfCycles;
+
+			Proc = notificationMessage.Content.Processor;
+			UpdateMemoryPage();
+			UpdateStack();
+			UpdateUi();
+
+			IsProgramLoaded = true;
+			RaisePropertyChanged("IsProgramLoaded");
 		}
 
 		private void UpdateMemoryPage()
@@ -447,29 +475,12 @@ namespace Simulator.ViewModel
 			if (_backgroundWorker.IsBusy)
 				_backgroundWorker.CancelAsync();
 
-			//Messenger.Default.Send(new NotificationMessage("SaveFileWindow"));
-
-			Messenger.Default.Send(new NotificationMessage<SaveFileModel>(new SaveFileModel
+			Messenger.Default.Send(new NotificationMessage<StateFileModel>(new StateFileModel
 				{
 					NumberOfCycles = NumberOfCycles,
 					Listing = Listing,
-
-					ProgramCounter = Proc.ProgramCounter,
-					MemoryDump = Proc.Memory.DumpMemory(),
-					StackPointer = Proc.StackPointer,
-					Accumulator = Proc.Accumulator,
-					XRegister = Proc.XRegister,
-					YRegister = Proc.YRegister,
-					CurrentOpCode = Proc.CurrentOpCode,
-					CurrentDisassembly = Proc.CurrentDisassembly,
-					InterruptPeriod = Proc.InterruptPeriod,
-					DisableInterruptFlag = Proc.DisableInterruptFlag,
-					NumberofCyclesLeft = Proc.NumberofCyclesLeft,
-					CarryFlag = Proc.CarryFlag,
-					ZeroFlag = Proc.ZeroFlag,
-					DecimalFlag = Proc.DecimalFlag,
-					OverflowFlag = Proc.OverflowFlag,
-					NegativeFlag = Proc.NegativeFlag
+					OutputLog = OutputLog.ToList(),
+					Processor = Proc
 				}, "SaveFileWindow"));
 		}
 		#endregion
