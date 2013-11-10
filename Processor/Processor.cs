@@ -1958,10 +1958,10 @@ namespace Processor
 							 CurrentDisassembly.OpCodeString,
 							 CurrentDisassembly.DisassemblyOutput.PadRight(10, ' '),
 			                 
-							 Accumulator.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
-			                 XRegister.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
-			                 YRegister.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
-			                 StackPointer.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0'),
+							 Accumulator.ToString("X").PadLeft(3, '0'),
+			                 XRegister.ToString("X").PadLeft(3, '0'),
+			                 YRegister.ToString("X").PadLeft(3, '0'),
+			                 StackPointer.ToString("X").PadLeft(3, '0'),
 			                 Convert.ToInt16(NegativeFlag),
 			                 Convert.ToInt16(OverflowFlag),
 			                 0,
@@ -2295,11 +2295,13 @@ namespace Processor
 		/// <param name="addressingMode"></param>
 		private void BitOperation(AddressingMode addressingMode)
 		{
-			var valueToCompare = Memory.ReadValue(GetAddressByAddressingMode(addressingMode)) & Accumulator;
 
-			OverflowFlag = (valueToCompare & 0x40) != 0;
+			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
+			var valueToCompare = memoryValue & Accumulator;
 
-			SetNegativeFlag(valueToCompare);
+			OverflowFlag = (memoryValue & 0x40) != 0;
+
+			SetNegativeFlag(memoryValue);
 			SetZeroFlag(valueToCompare);
 		}
 
@@ -2556,6 +2558,7 @@ namespace Processor
 			DecimalFlag = (flags & 0x08) != 0;
 			OverflowFlag = (flags & 0x40) != 0;
 			NegativeFlag = (flags & 0x80) != 0;
+			
 
 		}
 
