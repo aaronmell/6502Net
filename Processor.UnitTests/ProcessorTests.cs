@@ -2675,6 +2675,21 @@ namespace Processor.UnitTests
 			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
 		}
 
+		
+		[TestCase(0xB6, 0x03, true)] // LDX Zero Page Y
+		[TestCase(0xB4, 0x03, false)] // LDY Zero Page X
+		public void ZeroPage_Mode_Index_Has_Correct_Result_When_Wrapped(byte operation, byte valueToLoad, bool testXRegister)
+		{
+			var processor = new Processor();
+			Assert.That(processor.Accumulator, Is.EqualTo(0x00));
+
+			processor.LoadProgram(0, new byte[] { testXRegister ? (byte)0xA0 : (byte)0xA2, 0xFF, operation, 0x06, 0x00, valueToLoad }, 0x00);
+			processor.NextStep();
+			processor.NextStep();
+
+			Assert.That(testXRegister ? processor.XRegister : processor.YRegister, Is.EqualTo(valueToLoad));
+		}
+
 		[TestCase(0xAE, 0x03, true)] // LDX Absolute
 		[TestCase(0xAC, 0x03, false)] // LDY Absolute
 		public void Absolute_Mode_Index_Has_Correct_Result(byte operation, byte valueToLoad, bool testXRegister)

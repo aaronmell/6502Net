@@ -1723,12 +1723,53 @@ namespace Processor
 				case (AddressingMode.ZeroPageX):
 					{
 						address = Memory.ReadValue(ProgramCounter);
-						return address + XRegister;
+						address += XRegister;
+
+						//This address wraps if its greater than 0xFFFF
+						if (address > 0xFF)
+						{
+							address -= 0x100;
+
+							//We crossed a page boundry, so decrease the number of cycles by 1.
+							//However, if this is an ASL, LSR, DEC, INC, ROR, ROL or STA operation, we do not decrease it by 1.
+							switch (CurrentOpCode)
+							{
+								case 0x1E:
+								case 0xDE:
+								case 0xFE:
+								case 0x5E:
+								case 0x3E:
+								case 0x7E:
+								case 0x9D:
+									{
+										return address;
+									}
+								default:
+									{
+										NumberofCyclesLeft--;
+										break;
+									}
+							}
+						}
+
+						return address;
 					}
 				case (AddressingMode.ZeroPageY):
 					{
 						address = Memory.ReadValue(ProgramCounter);
-						return address + YRegister;
+
+						address += YRegister;
+
+						//This address wraps if its greater than 0xFFFF
+						if (address > 0xFF)
+						{
+							address -= 0x100;
+							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
+							if (CurrentOpCode != 0x99)
+								NumberofCyclesLeft--;
+						}
+
+						return address;
 					}
 				default:
 					throw new InvalidOperationException(string.Format("The Address Mode '{0}' does not require an address", addressingMode));
