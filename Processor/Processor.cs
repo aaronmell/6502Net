@@ -2573,6 +2573,8 @@ namespace Processor
 
 			StackPointer--;
 
+			DisableInterruptFlag = true;
+
 			ProgramCounter = (Memory.ReadValue(0xFFFF) << 8) | Memory.ReadValue(0xFFFE);
 		}
 

@@ -354,7 +354,7 @@ namespace Processor.UnitTests
 
 		#region BCC - Branch On Carry Clear
 
-		[TestCase(0, 1, 2)]
+		[TestCase(0, 1, 3)]
 		[TestCase(0x80, 0x80, 2)]
 		[TestCase(0, 0xFD, 0xFFFF)]
 		[TestCase(0x7D, 0x80, 0xFFFF)]
@@ -371,7 +371,7 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BCS - Branch on Carry Set
-		[TestCase(0, 1, 3)]
+		[TestCase(0, 1, 4)]
 		[TestCase(0x80, 0x80, 3)]
 		[TestCase(0, 0xFC, 0xFFFF)]
 		[TestCase(0x7C, 0x80, 0xFFFF)]
@@ -498,7 +498,7 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BMI - Branch if Negative Set
-		[TestCase(0, 1, 4)]
+		[TestCase(0, 1, 5)]
 		[TestCase(0x80, 0x80, 4)]
 		[TestCase(0, 0xFB, 0xFFFF)]
 		[TestCase(0x7B, 0x80, 0xFFFF)]
@@ -517,7 +517,7 @@ namespace Processor.UnitTests
 
 		#region BNE - Branch On Result Not Zero
 
-		[TestCase(0, 1, 4)]
+		[TestCase(0, 1, 5)]
 		[TestCase(0x80, 0x80, 4)]
 		[TestCase(0, 0xFB, 0xFFFF)]
 		[TestCase(0x7B, 0x80, 0xFFFF)]
@@ -536,7 +536,7 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BPL - Branch if Negative Clear
-		[TestCase(0, 1, 4)]
+		[TestCase(0, 1, 5)]
 		[TestCase(0x80, 0x80, 4)]
 		[TestCase(0, 0xFB, 0xFFFF)]
 		[TestCase(0x7B, 0x80, 0xFFFF)]
@@ -598,9 +598,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.StackPointer, Is.EqualTo(stackLocation - 3));
 		}
 
-		[TestCase(0x038, 0x11)] //SEC Carry Flag Test
-		[TestCase(0x0F8, 0x18)] //SED Decimal Flag Test
-		[TestCase(0x078, 0x14)] //SEI Interrupt Flag Test
+		[TestCase(0x038, 0x31)] //SEC Carry Flag Test
+		[TestCase(0x0F8, 0x38)] //SED Decimal Flag Test
+		[TestCase(0x078, 0x34)] //SEI Interrupt Flag Test
 		public void BRK_Stack_Set_Flag_Operations_Correctly(byte operation, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -616,9 +616,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 2), Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0x01, 0x80, 0x90)] //Negative
-		[TestCase(0x01, 0x7F, 0xD0)] //Overflow + Negative
-		[TestCase(0x00, 0x00, 0x12)] //Zero
+		[TestCase(0x01, 0x80, 0xB0)] //Negative
+		[TestCase(0x01, 0x7F, 0xF0)] //Overflow + Negative
+		[TestCase(0x00, 0x00, 0x32)] //Zero
 		public void BRK_Stack_Non_Set_Flag_Operations_Correctly(byte accumulatorValue, byte memoryValue, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -639,7 +639,7 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BVC - Branch if Overflow Clear
-		[TestCase(0, 1, 2)]
+		[TestCase(0, 1, 3)]
 		[TestCase(0x80, 0x80, 2)]
 		[TestCase(0, 0xFD, 0xFFFF)]
 		[TestCase(0x7D, 0x80, 0xFFFF)]
@@ -656,7 +656,7 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region BVS - Branch if Overflow Set
-		[TestCase(0, 1, 6)]
+		[TestCase(0, 1, 7)]
 		[TestCase(0x80, 0x80, 6)]
 		[TestCase(0, 0xF9, 0xFFFF)]
 		[TestCase(0x79, 0x80, 0xFFFF)]
@@ -1547,9 +1547,9 @@ namespace Processor.UnitTests
 		#endregion
 
 		#region PHP - Push Flags Onto Stack 
-		[TestCase(0x038,0x11)] //SEC Carry Flag Test
-		[TestCase(0x0F8,0x18)] //SED Decimal Flag Test
-		[TestCase(0x078, 0x14)] //SEI Interrupt Flag Test
+		[TestCase(0x038,0x31)] //SEC Carry Flag Test
+		[TestCase(0x0F8,0x38)] //SED Decimal Flag Test
+		[TestCase(0x078, 0x34)] //SEI Interrupt Flag Test
 		public void PHP_Stack_Set_Flag_Operations_Correctly(byte operation, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -1565,9 +1565,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0x01,0x80,0x90)] //Negative
-		[TestCase(0x01, 0x7F, 0xD0)] //Overflow + Negative
-		[TestCase(0x00, 0x00, 0x12)] //Zero
+		[TestCase(0x01,0x80,0xB0)] //Negative
+		[TestCase(0x01, 0x7F, 0xF0)] //Overflow + Negative
+		[TestCase(0x00, 0x00, 0x32)] //Zero
 		public void PHP_Stack_Non_Set_Flag_Operations_Correctly( byte accumulatorValue, byte memoryValue, byte expectedValue)
 		{
 			var processor = new Processor();
