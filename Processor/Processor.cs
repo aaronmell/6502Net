@@ -1786,7 +1786,7 @@ namespace Processor
 		private byte ConvertFlagsToByte(bool setBreak)
 		{
 			return (byte)((CarryFlag ? 0x01 : 0) + (ZeroFlag ? 0x02 : 0) + (DisableInterruptFlag ? 0x04 : 0) +
-						 (DecimalFlag ? 8 : 0) + (setBreak ? 0x10 : 0) + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0));
+						 (DecimalFlag ? 8 : 0) + (setBreak ? 0x10 : 0) + 0x20 + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0));
 		}
 
 		private void SetDisassembly()
