@@ -360,7 +360,7 @@ namespace Simulator.ViewModel
 			
 			while (true)
 			{
-				if (worker != null && worker.CancellationPending || (!_breakpointTriggered && IsBreakPointTriggered()))
+				if (worker != null && worker.CancellationPending || IsBreakPointTriggered())
 				{
 					e.Cancel = true;
 
