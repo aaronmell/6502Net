@@ -412,12 +412,12 @@ namespace Processor.UnitTests
 
 		[TestCase(0x24, 0x7f, 0x7F, false)] // BIT Zero Page
 		[TestCase(0x24, 0x80, 0x7F, false)] // BIT Zero Page
-		[TestCase(0x24, 0x7F, 0x80, false)] // BIT Zero Page
+		[TestCase(0x24, 0x7F, 0x80, true)] // BIT Zero Page
 		[TestCase(0x24, 0x80, 0xFF, true)] // BIT Zero Page
 		[TestCase(0x24, 0xFF, 0x80, true)] // BIT Zero Page
 		[TestCase(0x2C, 0x7F, 0x7F, false)] // BIT Absolute
 		[TestCase(0x2C, 0x80, 0x7F, false)] // BIT Absolute
-		[TestCase(0x2C, 0x7F, 0x80, false)] // BIT Absolute
+		[TestCase(0x2C, 0x7F, 0x80, true)] // BIT Absolute
 		[TestCase(0x2C, 0x80, 0xFF, true)] // BIT Absolute
 		[TestCase(0x2C, 0xFF, 0x80, true)] // BIT Absolute
 		public void BIT_Negative_Set_When_Comparison_Is_Negative_Number(byte operation, byte accumulatorValue, byte valueToTest, bool expectedResult)
@@ -433,12 +433,12 @@ namespace Processor.UnitTests
 		}
 
 		[TestCase(0x24, 0x3F, 0x3F, false)] // BIT Zero Page
-		[TestCase(0x24, 0x3F, 0x40, false)] // BIT Zero Page
+		[TestCase(0x24, 0x3F, 0x40, true)] // BIT Zero Page
 		[TestCase(0x24, 0x40, 0x3F, false)] // BIT Zero Page
 		[TestCase(0x24, 0x40, 0x7F, true)] // BIT Zero Page
 		[TestCase(0x24, 0x7F, 0x40, true)] // BIT Zero Page
 		[TestCase(0x24, 0x7F, 0x80, false)] // BIT Zero Page
-		[TestCase(0x24, 0x80, 0x7F, false)] // BIT Zero Page
+		[TestCase(0x24, 0x80, 0x7F, true)] // BIT Zero Page
 		[TestCase(0x24, 0xC0, 0xDF, true)] // BIT Zero Page
 		[TestCase(0x24, 0xDF, 0xC0, true)] // BIT Zero Page
 		[TestCase(0x24, 0x3F, 0x3F, false)] // BIT Zero Page
@@ -449,12 +449,12 @@ namespace Processor.UnitTests
 		[TestCase(0x24, 0xC0, 0x7F, true)] // BIT Zero Page
 		[TestCase(0x24, 0x7F, 0xC0, true)] // BIT Zero Page
 		[TestCase(0x2C, 0x3F, 0x3F, false)] // BIT Absolute
-		[TestCase(0x2C, 0x3F, 0x40, false)] // BIT Absolute
+		[TestCase(0x2C, 0x3F, 0x40, true)] // BIT Absolute
 		[TestCase(0x2C, 0x40, 0x3F, false)] // BIT Absolute
 		[TestCase(0x2C, 0x40, 0x7F, true)] // BIT Absolute
 		[TestCase(0x2C, 0x7F, 0x40, true)] // BIT Absolute
 		[TestCase(0x2C, 0x7F, 0x80, false)] // BIT Absolute
-		[TestCase(0x2C, 0x80, 0x7F, false)] // BIT Absolute
+		[TestCase(0x2C, 0x80, 0x7F, true)] // BIT Absolute
 		[TestCase(0x2C, 0xC0, 0xDF, true)] // BIT Absolute
 		[TestCase(0x2C, 0xDF, 0xC0, true)] // BIT Absolute
 		[TestCase(0x2C, 0x3F, 0x3F, false)] // BIT Absolute
@@ -2027,13 +2027,16 @@ namespace Processor.UnitTests
 
 		#region SBC - Subtraction With Borrow
 
-		[TestCase(0, 0, false, 0)]
-		[TestCase(0, 1, false, 0xFF)]
-		[TestCase(1, 1, false, 0)]
-		[TestCase(0xFF, 0xFF, false, 0)]
-		[TestCase(0, 0, true, 0xFF)]
-		[TestCase(2, 1, true, 0)]
-		[TestCase(255, 255, true, 255)]
+		[TestCase(0x0, 0x0, false, 0xFF)]
+		[TestCase(0x0, 0x0, true, 0x00)]
+		[TestCase(0x50, 0xf0, false, 0x5F)]
+		[TestCase(0x50, 0xB0, true, 0xA0)]
+		[TestCase(0xff, 0xff, false, 0xff)]
+		[TestCase(0xff, 0xff, true, 0x00)]
+		[TestCase(0xff, 0x80, false, 0x7e)]
+		[TestCase(0xff, 0x80, true, 0x7f)]
+		[TestCase(0x80, 0xff, false, 0x80)]
+		[TestCase(0x80, 0xff, true, 0x81)]
 		public void SBC_Accumulator_Correct_When_Not_In_BDC_Mode(byte accumlatorIntialValue, byte amountToSubtract, bool CarryFlagSet, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2081,16 +2084,15 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
 		}
 
-
-		[TestCase(0xFF, 1, false, true)]
-		[TestCase(0xFF, 0, false, true)]
+		[TestCase(0xFF, 1, false, false)]
+		[TestCase(0xFF, 0, false, false)]
 		[TestCase(0x80, 0, false, true)]
 		[TestCase(0x80, 0, true, false)]
 		[TestCase(0x81, 1, false, true)]
 		[TestCase(0x81, 1, true, false)]
 		[TestCase(0, 0x80, false, false)]
 		[TestCase(0, 0x80, true, true)]
-		[TestCase(1, 0x80, true, false)]
+		[TestCase(1, 0x80, true, true)]
 		[TestCase(1, 0x7F, false, false)]
 		public void SBC_Overflow_Correct_When_Not_In_BDC_Mode(byte accumlatorIntialValue, byte amountToSubtact, bool setCarryFlag,
 																	 bool expectedValue)
@@ -2143,7 +2145,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.OverflowFlag, Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0, 0, true)]
+		[TestCase(0, 0, false)]
 		[TestCase(0, 1, false)]
 		[TestCase(1, 0, true)]
 		[TestCase(2, 1, true)]
@@ -2159,10 +2161,10 @@ namespace Processor.UnitTests
 			Assert.That(processor.CarryFlag, Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0, 0, true)]
+		[TestCase(0, 0, false)]
 		[TestCase(0, 1, false)]
-		[TestCase(1, 0, false)]
-		[TestCase(1, 1, true)]
+		[TestCase(1, 0, true)]
+		[TestCase(1, 1, false)]
 		public void SBC_Zero_Correct(byte accumlatorIntialValue, byte amountToSubtract, bool expectedValue)
 		{
 			var processor = new Processor();
@@ -2176,9 +2178,9 @@ namespace Processor.UnitTests
 		}
 
 		[TestCase(0x80, 0x01, false)]
-		[TestCase(0x81, 0x01, true)]
+		[TestCase(0x81, 0x01, false)]
 		[TestCase(0x00, 0x01, true)]
-		[TestCase(0x01, 0x01, false)]
+		[TestCase(0x01, 0x01, true)]
 		public void SBC_Negative_Correct(byte accumlatorIntialValue, byte amountToSubtract, bool expectedValue)
 		{
 			var processor = new Processor();
@@ -2473,7 +2475,7 @@ namespace Processor.UnitTests
 		[TestCase(0xA9, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x49, 0x55, 0xAA, 0xFF)] // EOR
 		[TestCase(0x09, 0x55, 0xAA, 0xFF)] // ORA
-		[TestCase(0xE9, 0x03, 0x01, 0x02)] // SBC
+		[TestCase(0xE9, 0x03, 0x01, 0x01)] // SBC
 		public void Immediate_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2491,7 +2493,7 @@ namespace Processor.UnitTests
 		[TestCase(0xA5, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x45, 0x55, 0xAA, 0xFF)] // EOR
 		[TestCase(0x05, 0x55, 0xAA, 0xFF)] // ORA
-		[TestCase(0xE5, 0x03, 0x01, 0x02)] // SBC
+		[TestCase(0xE5, 0x03, 0x01, 0x01)] // SBC
 		public void ZeroPage_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2509,7 +2511,7 @@ namespace Processor.UnitTests
 		[TestCase(0xB5, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x55, 0x55, 0xAA, 0xFF)] // EOR
 		[TestCase(0x15, 0x55, 0xAA, 0xFF)] // ORA
-		[TestCase(0xF5, 0x03, 0x01, 0x02)] // SBC
+		[TestCase(0xF5, 0x03, 0x01, 0x01)] // SBC
 		public void ZeroPageX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2529,7 +2531,7 @@ namespace Processor.UnitTests
 		[TestCase(0xAD, 0x04, 0x03, 0x03)] // LDA
 		[TestCase(0x4D, 0x55, 0xAA, 0xFF)] // EOR
 		[TestCase(0x0D, 0x55, 0xAA, 0xFF)] // ORA
-		[TestCase(0xED, 0x03, 0x01, 0x02)] // SBC
+		[TestCase(0xED, 0x03, 0x01, 0x01)] // SBC
 		public void Absolute_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2547,13 +2549,13 @@ namespace Processor.UnitTests
 		[TestCase(0xBD, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x5D, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x1D, 0x55, 0xAA, false, 0xFF)] // ORA
-		[TestCase(0xFD, 0x03, 0x01, false, 0x02)] // SBC
+		[TestCase(0xFD, 0x03, 0x01, false, 0x01)] // SBC
 		[TestCase(0x7D, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x3D, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xBD, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x5D, 0x55, 0xAA, true, 0xFF)]  // EOR
 		[TestCase(0x1D, 0x55, 0xAA, true, 0xFF)] // ORA
-		[TestCase(0xFD, 0x03, 0x01, true, 0x02)] // SBC
+		[TestCase(0xFD, 0x03, 0x01, true, 0x01)] // SBC
 		public void AbsoluteX_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2575,13 +2577,13 @@ namespace Processor.UnitTests
 		[TestCase(0xB9, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x59, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x19, 0x55, 0xAA, false, 0xFF)] // ORA
-		[TestCase(0xF9, 0x03, 0x01, false, 0x02)] // SBC
+		[TestCase(0xF9, 0x03, 0x01, false, 0x01)] // SBC
 		[TestCase(0x79, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x39, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xB9, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x59, 0x55, 0xAA, true, 0xFF)]  // EOR
 		[TestCase(0x19, 0x55, 0xAA, true, 0xFF)] // ORA
-		[TestCase(0xF9, 0x03, 0x01, true, 0x02)] // SBC
+		[TestCase(0xF9, 0x03, 0x01, true, 0x01)] // SBC
 		public void AbsoluteY_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2603,13 +2605,13 @@ namespace Processor.UnitTests
 		[TestCase(0xA1, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x41, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x01, 0x55, 0xAA, false, 0xFF)] // ORA
-		[TestCase(0xE1, 0x03, 0x01, false, 0x02)] // SBC
+		[TestCase(0xE1, 0x03, 0x01, false, 0x01)] // SBC
 		[TestCase(0x61, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x21, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xA1, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x41, 0x55, 0xAA, true, 0xFF)]  // EOR
 		[TestCase(0x01, 0x55, 0xAA, true, 0xFF)] // ORA
-		[TestCase(0xE1, 0x03, 0x01, true, 0x02)] // SBC
+		[TestCase(0xE1, 0x03, 0x01, true, 0x01)] // SBC
 		public void Indexed_Indirect_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();
@@ -2633,13 +2635,13 @@ namespace Processor.UnitTests
 		[TestCase(0xB1, 0x04, 0x03, false, 0x03)] // LDA
 		[TestCase(0x51, 0x55, 0xAA, false, 0xFF)]  // EOR
 		[TestCase(0x11, 0x55, 0xAA, false, 0xFF)] // ORA
-		[TestCase(0xF1, 0x03, 0x01, false, 0x02)] // SBC
+		[TestCase(0xF1, 0x03, 0x01, false, 0x01)] // SBC
 		[TestCase(0x71, 0x01, 0x01, true, 0x02)] // ADC
 		[TestCase(0x31, 0x03, 0x03, true, 0x03)] // AND
 		[TestCase(0xB1, 0x04, 0x03, true, 0x03)] // LDA
 		[TestCase(0x51, 0x55, 0xAA, true, 0xFF)]  // EOR
 		[TestCase(0x11, 0x55, 0xAA, true, 0xFF)] // ORA
-		[TestCase(0xF1, 0x03, 0x01, true, 0x02)] // SBC
+		[TestCase(0xF1, 0x03, 0x01, true, 0x01)] // SBC
 		public void Indirect_Indexed_Mode_Accumulator_Has_Correct_Result(byte operation, byte accumulatorInitialValue, byte valueToTest, bool addressWraps, byte expectedValue)
 		{
 			var processor = new Processor();

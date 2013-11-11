@@ -1563,19 +1563,6 @@ namespace Processor
 			//The PC gets increments after the opcode is retrieved but before the opcode is executed. We want to add the remaining length.
 			ProgramCounter += lengthOfOperation - 1;
 		}
-		
-		/// <summary>
-		/// Sets the IsOverflow Register Correctly
-		/// </summary>
-		/// <param name="accumulator">The Value in the accumulator before the operation</param>
-		/// <param name="memory">The value that came from memory</param>
-		/// <param name="result">The result of the operation between the accumulator and memory</param>
-		private void SetAddOverflow(int accumulator , int memory, int result)
-		{
-			
-			OverflowFlag = ( ( accumulator ^ result ) & ( memory ^ result ) & 0x80 ) != 0;
-
-		}
 
 		/// <summary>
 		/// Sets the IsSignNegative register
@@ -2190,7 +2177,8 @@ namespace Processor
 			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
 			var newValue = memoryValue + Accumulator + (CarryFlag ? 1 : 0);
 
-			SetAddOverflow(Accumulator, memoryValue, newValue);
+			
+			OverflowFlag = (((Accumulator ^ newValue) & 0x80) != 0) && (((Accumulator ^ memoryValue) & 0x80) == 0);
 
 			if (DecimalFlag)
 			{
@@ -2513,20 +2501,20 @@ namespace Processor
 		private void SubtractWithBorrowOperation(AddressingMode addressingMode)
 		{
 			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
-			var newValue = Accumulator - memoryValue - (CarryFlag ? 1 : 0);
+			var newValue = Accumulator - memoryValue - (CarryFlag ? 0 : 1);
 
 			CarryFlag = newValue >= 0;
 
 			if (DecimalFlag)
 			{
-				OverflowFlag = ( newValue > 99 || newValue < 0 );
+				//OverflowFlag = ( newValue > 99 || newValue < 0 );
 
 				if (newValue < 0)
-					newValue += 100;
+					newValue += 101;
 			}
 			else
 			{
-				OverflowFlag = ( newValue > 127 || newValue < -128 );
+				OverflowFlag = (((Accumulator ^ newValue) & 0x80) != 0) && (((Accumulator ^ memoryValue) & 0x80) != 0);
 
 				if (newValue < 0)
 					newValue += 256;
