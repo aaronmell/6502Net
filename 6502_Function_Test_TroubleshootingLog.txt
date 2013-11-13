@@ -1,3 +1,0 @@
-This is a document outlining the troubleshooting status of the function test. The goal is to document how much of the program runs correctly, so in the event of a prolong absence of working on this project, it can be picked up again.
-
-Tests have run upto the second to last test, the ADC and SBC Test.

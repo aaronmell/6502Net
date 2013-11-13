@@ -11,37 +11,100 @@ namespace Processor.UnitTests
 
 		[Test]
 // ReSharper disable InconsistentNaming
-		public void KD_Runs_Successfully()
+		public void Functional_Tests_Minus_Math()
 // ReSharper restore InconsistentNaming
 		{
 			var processor = new Processor();
-			processor.LoadProgram(0x1000,KdTestProgram, 0x1000);
+			processor.LoadProgram(0x400,KdTestProgram, 0x400);
+			var numberOfCycles = 0;
 
 			while (true)
 			{
 				processor.NextStep();
+				numberOfCycles++;
+			
+				if (processor.ProgramCounter == 0x32AD)
+					break;
 
-				Debug.WriteLine("{0} A:{2} X:{9} Y:{10} N:{3} V:{4} D:{5} I:{6} Z:{7} C:{8} SP:{1} ", processor.CurrentDisassembly,
-				                processor.StackPointer.ToString("X").PadLeft(2,'0'), 
-								processor.Accumulator.ToString("X"), 
-								processor.NegativeFlag,
-				                processor.OverflowFlag,
-				                processor.DecimalFlag, 
-								processor.DisableInterruptFlag, 
-								processor.ZeroFlag, 
-								processor.CarryFlag,
-								processor.XRegister.ToString("X").PadLeft(2, '0'),
-								processor.YRegister.ToString("X").PadLeft(2,'0'));
+				if (numberOfCycles > 50558)
+					break;
 			}
+
+			Assert.That(processor.Accumulator == 0x29);
+			Assert.That(numberOfCycles, Is.EqualTo(50558));
+			Assert.That(processor.ProgramCounter == 0x32AD);
 // ReSharper disable FunctionNeverReturns
 		}
 // ReSharper restore FunctionNeverReturns
 
 
+		[Test]
+		// ReSharper disable InconsistentNaming
+		public void Functional_Tests_Minus_BCD_Math()
+		// ReSharper restore InconsistentNaming
+		{
+			var stopWatch = new Stopwatch();
+			stopWatch.Start();
+			var processor = new Processor();
+			processor.LoadProgram(0x400, KdTestProgram, 0x400);
+			var numberOfCycles = 0;
+
+			while (true)
+			{
+				processor.NextStep();
+				numberOfCycles++;
+
+				if (processor.ProgramCounter == 0x3312)
+					break;
+
+				if (numberOfCycles > 26235794)
+					break;
+			}
+			stopWatch.Stop();
+			Assert.That(processor.Accumulator == 0x2A);
+			Assert.That(numberOfCycles, Is.EqualTo(26235794));
+			Assert.That(processor.ProgramCounter == 0x3312);
+			Debug.Print("Took '{0} seconds to finish",stopWatch.Elapsed.TotalSeconds);
+
+			//DumpProcessor
+			// ReSharper disable FunctionNeverReturns
+		}
+		// ReSharper restore FunctionNeverReturns
+
+		[Test]
+		// ReSharper disable InconsistentNaming
+		public void Complete_Functional_Test()
+		// ReSharper restore InconsistentNaming
+		{
+			var stopWatch = new Stopwatch();
+			stopWatch.Start();
+			var processor = new Processor();
+			processor.LoadProgram(0x400, KdTestProgram, 0x400);
+			var numberOfCycles = 0;
+
+			while (true)
+			{
+				processor.NextStep();
+				numberOfCycles++;
+
+				if (processor.ProgramCounter == 0x33ba)
+					break;
+
+				if (numberOfCycles > 30037912)
+					break;
+			}
+			stopWatch.Stop();
+			Assert.That(processor.Accumulator == 0xf0);
+			Assert.That(numberOfCycles, Is.EqualTo(30037912));
+			Assert.That(processor.ProgramCounter == 0x33ba);
+			// ReSharper disable FunctionNeverReturns
+		}
+		// ReSharper restore FunctionNeverReturns
+
 		[SetUp]
 		public void SetupPrograms()
 		{
-			KdTestProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "KlausDormann_Test.bin"));
+			KdTestProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Functional Tests", "6502_functional_test.bin"));
 		}
 	}
 

@@ -2182,6 +2182,8 @@ namespace Processor
 
 			if (DecimalFlag)
 			{
+				newValue = int.Parse(memoryValue.ToString("x")) + int.Parse(Accumulator.ToString("x")) + (CarryFlag ? 1 : 0);
+
 				if (newValue > 99)
 				{
 					CarryFlag = true;
@@ -2191,6 +2193,8 @@ namespace Processor
 				{
 					CarryFlag = false;
 				}
+
+				newValue = (int)Convert.ToInt64(string.Concat("0x", newValue), 16);
 			}
 			else
 			{
@@ -2501,16 +2505,18 @@ namespace Processor
 		private void SubtractWithBorrowOperation(AddressingMode addressingMode)
 		{
 			var memoryValue = Memory.ReadValue(GetAddressByAddressingMode(addressingMode));
-			var newValue = Accumulator - memoryValue - (CarryFlag ? 0 : 1);
+			var newValue = DecimalFlag
+				               ? int.Parse(Accumulator.ToString("x")) - int.Parse(memoryValue.ToString("x")) - (CarryFlag ? 0 : 1)
+				               : Accumulator - memoryValue - (CarryFlag ? 0 : 1);
 
 			CarryFlag = newValue >= 0;
 
 			if (DecimalFlag)
 			{
-				//OverflowFlag = ( newValue > 99 || newValue < 0 );
-
 				if (newValue < 0)
-					newValue += 101;
+					newValue += 100;
+
+				newValue = (int)Convert.ToInt64(string.Concat("0x", newValue), 16);
 			}
 			else
 			{

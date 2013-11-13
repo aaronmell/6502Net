@@ -91,18 +91,9 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0, 0, false, 0)]
-		[TestCase(0, 1, false, 1)]
-		[TestCase(1, 2, false, 3)]
-		[TestCase(99, 1, false, 0)]
-		[TestCase(98, 1, false, 99)]
-		[TestCase(99, 0, false, 99)]
-		[TestCase(0, 0, true, 1)]
-		[TestCase(0, 1, true, 2)]
-		[TestCase(1, 2, true, 4)]
-		[TestCase(98, 1, true, 0)]
-		[TestCase(97, 1, true, 99)]
-		[TestCase(98, 0, true, 99)]
+		[TestCase(0x99, 0x99, false, 0x98)]
+		[TestCase(0x99, 0x99, true, 0x99)]
+		[TestCase(0x90, 0x99, false, 0x89)]
 		public void ADC_Accumulator_Correct_When_In_BDC_Mode(byte accumlatorIntialValue, byte amountToAdd,
 		                                                               bool setCarryFlag, byte expectedValue)
 		{
@@ -153,8 +144,8 @@ namespace Processor.UnitTests
 
 		[TestCase(98, 1, false, false)]
 		[TestCase(98, 1, true, false)]
-		[TestCase(99, 1, false, true)]
-		[TestCase(99, 1, true, true)]
+		[TestCase(99, 1, false, false)]
+		[TestCase(99, 1, true, false)]
 		public void ADC_Carry_Correct_When_In_BDC_Mode(byte accumlatorIntialValue, byte amountToAdd, bool setCarryFlag,
 																	 bool expectedValue)
 		{
@@ -2057,11 +2048,8 @@ namespace Processor.UnitTests
 			Assert.That(processor.Accumulator, Is.EqualTo(expectedValue));
 		}
 
-		[TestCase(0, 0, false, 0)]
-		[TestCase(0, 1, false, 0x63)]
-		[TestCase(1, 1, false, 0)]
-		[TestCase(0, 0, true, 0x63)]
-		[TestCase(2, 1, true, 0)]
+		[TestCase(0, 0x99, false, 0)]
+		[TestCase(0, 0x99, true, 1)]
 		public void SBC_Accumulator_Correct_When_In_BDC_Mode(byte accumlatorIntialValue, byte amountToAdd,
 																	   bool setCarryFlag, byte expectedValue)
 		{
@@ -2117,10 +2105,10 @@ namespace Processor.UnitTests
 
 		[TestCase(99, 1, false, false)]
 		[TestCase(99, 0, false, false)]
-		[TestCase(0, 1, false, true)]
-		[TestCase(1, 1, true, true)]
-		[TestCase(2, 1, true, false)]
-		[TestCase(1, 1, false, false)]
+		//[TestCase(0, 1, false, true)]
+		//[TestCase(1, 1, true, true)]
+		//[TestCase(2, 1, true, false)]
+		//[TestCase(1, 1, false, false)]
 		public void SBC_Overflow_Correct_When_In_BDC_Mode(byte accumlatorIntialValue, byte amountToSubtract, bool setCarryFlag,
 																	 bool expectedValue)
 		{
