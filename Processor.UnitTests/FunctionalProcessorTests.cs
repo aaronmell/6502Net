@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using NUnit.Framework;
 
 namespace Processor.UnitTests
@@ -9,8 +8,10 @@ namespace Processor.UnitTests
 	{
 		public byte[] KdTestProgram;
 
+		public byte[] InterruptProgram;
+
 		/// <summary>
-		/// Each Test Case in Klaus_Dormann's Test Program. 
+		/// Each Test Case in Klaus_Dormann's Functional Test Program. 
 		/// See https://github.com/Klaus2m5/6502_65C02_functional_tests
 		/// Note: Each test case also runs the tests before it. There wasn't a good way to just run each test case
 		/// If a test is failing find the first test that fails. The tests are dumb, they do not catch error traps correctly.
@@ -83,14 +84,59 @@ namespace Processor.UnitTests
 		}
 		// ReSharper restore FunctionNeverReturns
 
+
+
+		/// <summary>
+		/// Each Test Group in Klaus_Dormann's Interrupt Test Program. 
+		/// See https://github.com/Klaus2m5/6502_65C02_functional_tests
+		/// This tests that the IRQ BRK and NMI all function correctly.
+		/// </summary>
+		[TestCase(0x04f9)] // IRQ Tests
+		[TestCase(0x05b7)] // BRK Tests
+		[TestCase(0x068d)] // NMI Tests
+		[TestCase(0x06ec)] // Disable Interrupt Tests
+		public void Klaus_Dorman_Interrupt_Test(int programCounter)
+		{
+			var previousInterruptWatchValue = 0;
+			//var previousInterruptDisableCleared = false;
+
+			var processor = new Processor();
+			processor.LoadProgram(0x400, InterruptProgram, 0x400);
+			var numberOfCycles = 0;
+
+			while (true)
+			{
+				
+				var interruptWatch = processor.Memory.ReadValue(0xbffc);
+				
+				//This is used to simulate the edge triggering of an NMI. If we didn't do this we would get stuck in a loop forever
+				if (interruptWatch != previousInterruptWatchValue)
+				{
+					previousInterruptWatchValue = interruptWatch;
+
+					if ((interruptWatch & 2) != 0)
+						processor.NonMaskableInterrupt();
+				}
+				
+				if (!processor.DisableInterruptFlag && (interruptWatch & 1) != 0)
+					processor.InterruptRequest();
+
+				processor.NextStep();
+				numberOfCycles++;
+
+				if (processor.ProgramCounter == programCounter)
+					break;
+
+				if (numberOfCycles > 100000)
+					Assert.Fail("Maximum Number of Cycles Exceeded");
+			}
+		}
+
 		[SetUp]
 		public void SetupPrograms()
 		{
 			KdTestProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Functional Tests", "6502_functional_test.bin"));
+			InterruptProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Functional Tests", "6502_interrupt_test.bin"));
 		}
 	}
-
-
-
-	
 }

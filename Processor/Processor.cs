@@ -190,6 +190,35 @@ namespace Processor
 			//Reset the CPU
 			Reset();
 		}
+		
+		/// <summary>
+		/// The InterruptRequest or IRQ
+		/// </summary>
+		public void InterruptRequest()
+		{
+			if (DisableInterruptFlag)
+				return;
+
+			ProgramCounter--;
+			BreakOperation(false, 0xFFFE);
+			CurrentOpCode = Memory.ReadValue(ProgramCounter);
+#if DEBUG
+			SetDisassembly();
+#endif
+		}
+
+		/// <summary>
+		/// The InterruptRequest or IRQ
+		/// </summary>
+		public void NonMaskableInterrupt()
+		{
+			ProgramCounter--;
+			BreakOperation(false, 0xFFFA);
+			CurrentOpCode = Memory.ReadValue(ProgramCounter);
+#if DEBUG
+			SetDisassembly();
+#endif
+		}
 		#endregion
 
 		#region Private Methods
@@ -900,7 +929,7 @@ namespace Processor
 				//BRK Simulate IRQ, Implied, 1 Byte, 7 Cycles
 				case 0x00:
 					{
-						BreakOperation();
+						BreakOperation(true, 0xFFFE);
 
 						NumberofCyclesLeft -= 7;
 						break;
@@ -2594,7 +2623,7 @@ namespace Processor
 		/// <summary>
 		/// The BRK routine. Called when a BRK occurs.
 		/// </summary>
-		private void BreakOperation()
+		private void BreakOperation(bool isBrk, int vector)
 		{
 			//Put the high value on the stack
 			//When we RTI the address will be incremented by one, and the address after a break will not be used.
@@ -2606,14 +2635,18 @@ namespace Processor
 			PokeStack((byte)((ProgramCounter + 1) & 0xFF));
 
 			StackPointer--;
-
-			PokeStack((byte)(ConvertFlagsToByte(true) | 0x10));
+			
+			//We only set the Break Flag is a Break Occurs
+			if (isBrk)
+				PokeStack((byte)(ConvertFlagsToByte(true) | 0x10));
+			else
+				PokeStack(ConvertFlagsToByte(false));
 
 			StackPointer--;
 
 			DisableInterruptFlag = true;
 
-			ProgramCounter = (Memory.ReadValue(0xFFFF) << 8) | Memory.ReadValue(0xFFFE);
+			ProgramCounter = (Memory.ReadValue(vector + 1) << 8) | Memory.ReadValue(vector);
 		}
 
 		/// <summary>

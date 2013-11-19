@@ -157,6 +157,16 @@ namespace Simulator.ViewModel
 		/// The Relay Command that Removes an existing breakpoint
 		/// </summary>
 		public RelayCommand RemoveBreakPointCommand { get; set; }
+		
+		/// <summary>
+		/// The Command that sends an IRQ or Interrupt Request to the processor
+		/// </summary>
+		public RelayCommand SendInterruptRequestCommand { get; set; }
+
+		/// <summary>
+		/// The Command that sends an NMI or non-maskable Interrupt to the processor
+		/// </summary>
+		public RelayCommand SendNonMaskableInterruptComand { get; set; }
 		#endregion
 
 		#region public Methods
@@ -176,6 +186,9 @@ namespace Simulator.ViewModel
 			SaveStateCommand = new RelayCommand(SaveState);
 			AddBreakPointCommand = new RelayCommand(AddBreakPoint);
 			RemoveBreakPointCommand = new RelayCommand(RemoveBreakPoint);
+			SendNonMaskableInterruptComand = new RelayCommand(SendNonMaskableInterrupt);
+			SendInterruptRequestCommand = new RelayCommand(SendInterruptRequest);
+
 
 			Messenger.Default.Register<NotificationMessage<AssemblyFileModel>>(this, FileOpenedNotification);
 			Messenger.Default.Register<NotificationMessage<StateFileModel>>(this, StateLoadedNotifcation);
@@ -520,6 +533,36 @@ namespace Simulator.ViewModel
 			SelectedBreakpoint = null;
 			RaisePropertyChanged("SelectedBreakpoint");
 
+		}
+
+		private void SendNonMaskableInterrupt()
+		{
+			IsRunning = false;
+
+			if (_backgroundWorker.IsBusy)
+				_backgroundWorker.CancelAsync();
+
+			Proc.NonMaskableInterrupt();
+
+			UpdateMemoryPage();
+
+			OutputLog.Insert(0, GetOutputLog());
+			UpdateUi();
+		}
+
+		private void SendInterruptRequest()
+		{
+			IsRunning = false;
+
+			if (_backgroundWorker.IsBusy)
+				_backgroundWorker.CancelAsync();
+
+			Proc.InterruptRequest();
+			
+			UpdateMemoryPage();
+
+			OutputLog.Insert(0, GetOutputLog());
+			UpdateUi();
 		}
 		#endregion
 	}

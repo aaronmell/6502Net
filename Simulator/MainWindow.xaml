@@ -123,10 +123,10 @@
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,532,991,0" Name="ProgramCounterText" Text="PC" VerticalAlignment="Top" />
 		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="792,731,0,0" Name="CycleCountText" Text="Cycle Count" VerticalAlignment="Top" />
 
-		<Button Content="Save" Height="23" HorizontalAlignment="Left" Margin="155,506,0,0" Name="SaveState" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= SaveStateCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
-		<Button Height="23" HorizontalAlignment="Left" Margin="262,506,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunPauseCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" Style="{StaticResource RunButtonStyle}" />
-		<Button Content="Step" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="371,506,0,0" Name="Step" VerticalAlignment="Top" Width="75" Command="{Binding Path= StepCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
-		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="480,506,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
+		<Button Content="Save" Height="23" HorizontalAlignment="Left" Margin="145,506,0,0" Name="SaveState" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= SaveStateCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
+		<Button Height="23" HorizontalAlignment="Left" Margin="243,506,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunPauseCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" Style="{StaticResource RunButtonStyle}" />
+		<Button Content="Step" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="340,506,0,0" Name="Step" VerticalAlignment="Top" Width="75" Command="{Binding Path= StepCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
+		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="438,506,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
 		<Button Content="Load" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="49,506,0,0" Name="Load" VerticalAlignment="Top" Width="75" Command="{Binding Path=OpenCommand}" />
 
 		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1021,692,0,0" Name="CarryFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
@@ -162,13 +162,17 @@
 				<DataGridComboBoxColumn Header="Type" Width="Auto" MinWidth="240" CanUserResize="False" SelectedItemBinding="{Binding Type}" HeaderStyle="{StaticResource ColumnHeaderStyle}">
 					<DataGridComboBoxColumn.ElementStyle>
 						<Style TargetType="ComboBox">
+<!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
 							<Setter Property="ItemsSource" Value="{Binding AllTypes}"/>
+<!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
 							<Setter Property="IsReadOnly" Value="True"/>
 						</Style>
 					</DataGridComboBoxColumn.ElementStyle>
 					<DataGridComboBoxColumn.EditingElementStyle>
 						<Style TargetType="ComboBox">
+<!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
 							<Setter Property="ItemsSource" Value="{Binding AllTypes}"/>
+<!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
 						</Style>
 					</DataGridComboBoxColumn.EditingElementStyle>
 				</DataGridComboBoxColumn>
@@ -189,5 +193,7 @@
 				</ContextMenu>
 			</DataGrid.ContextMenu>
 		</DataGrid>
+		<Button Content="IRQ" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="539,506,0,0" x:Name="InterruptRequest" VerticalAlignment="Top" Width="75" Command="{Binding SendInterruptRequestCommand}" IsEnabled="{Binding IsProgramLoaded}" />
+		<Button Content="NMI" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="641,506,0,0" x:Name="NonMaskableInterrupt" VerticalAlignment="Top" Width="75" Command="{Binding SendNonMaskableInterruptComand}" IsEnabled="{Binding IsProgramLoaded}" />
 	</Grid>
 </Window>
