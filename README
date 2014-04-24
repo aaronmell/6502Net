@@ -1,13 +1,13 @@
-This is my implementation of a 6502 CPU simulator. There are many like it, but this one is mine.
-This project is still in an early stage. I can only guarantee that my Unit tests pass. There are several needed functions missing, and also several bugs/quirks not implemented correctly in code.
+This is my implementation of a 6502 CPU simulator written in C#. It simulates a basic 6502 processor and memory.
+It also has an application written in WPF that functions as a test harnesss and allows you to load a program into memory
+and step through the program, set break points, and watch the various registers. 
 
+This project is now feature complete. It successfully passes all of Klaus Dormann's tests including the IRQ tests.
+Feel free to submit bug requests if you find an edge case!
 
 Version History
-.01 Current Version - All OP Codes Implemented.
-
-
-
-
+.01 All OP Codes Implemented.
+.02 All of Klaus Dormann's Tests pass successfully.
 
 I used the following websites during implementation as a reference
 http://visual6502.org/wiki
