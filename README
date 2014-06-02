@@ -6,8 +6,8 @@ This project is now feature complete. It successfully passes all of Klaus Dorman
 Feel free to submit bug requests if you find an edge case!
 
 Version History
-.01 All OP Codes Implemented.
-.02 All of Klaus Dormann's Tests pass successfully.
+.0.9.9 All OP Codes Implemented.
+.1.0.0 All of Klaus Dormann's Tests pass successfully.
 
 I used the following websites during implementation as a reference
 http://visual6502.org/wiki
