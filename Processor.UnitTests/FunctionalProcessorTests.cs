@@ -107,7 +107,7 @@ namespace Processor.UnitTests
 			while (true)
 			{
 				
-				var interruptWatch = processor.Memory.ReadValue(0xbffc);
+				var interruptWatch = processor.ReadMemoryValue(0xbffc);
 				
 				//This is used to simulate the edge triggering of an NMI. If we didn't do this we would get stuck in a loop forever
 				if (interruptWatch != previousInterruptWatchValue)
