@@ -163,7 +163,7 @@ namespace Processor
 		   
 			
 #if DEBUG
-			//SetDisassembly();
+			SetDisassembly();
 #endif
 			
 		}
