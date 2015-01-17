@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using NUnit.Framework;
 
 namespace Processor.UnitTests
@@ -39,7 +40,7 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0x01));
 		}
 
-		[Test, ExpectedException(typeof(InvalidEnumArgumentException))]
+		[Test, ExpectedException(typeof(NotSupportedException))]
 		public void Throws_Exception_When_OpCode_Is_Invalid()
 		{
 			var processor = new Processor();

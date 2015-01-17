@@ -131,7 +131,7 @@ namespace Processor
 		/// </summary>
 		public void Reset()
 		{
-            CycleCount = 0;
+            CycleCount = 6;
 			StackPointer = 0x1FD;
 
 			//Set the Program Counter to the Reset Vector Address.
@@ -140,8 +140,6 @@ namespace Processor
 			ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
             
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-		    CycleCount++;
-
 #if DEBUG
 			SetDisassembly();
 #endif
@@ -2118,7 +2116,7 @@ namespace Processor
 						return AddressingMode.ZeroPageX;
 					}
 				default:
-					throw new InvalidEnumArgumentException(string.Format("Unable to find Opcode {0} when Looking up Addressing Mode",CurrentOpCode));
+                    throw new NotSupportedException(string.Format("Opcode {0} is not supported", CurrentOpCode));
 			}
 		}
 
