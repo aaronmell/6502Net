@@ -883,16 +883,21 @@ namespace Processor
 				//JMP Jump to New Location, Indirect 3 Bytes, 5 Cycles
 				case 0x6C:
 					{
-						
-						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+                        if ((ProgramCounter & 0xFF) == 0xFF)
+                        {
+                            //Get the first half of the address
+                            int address = ReadMemoryValue(ProgramCounter);
 
-                        //If the target address falls on a page boundary, Ie the MSB = FF, a bug occurs and it will fetch from 00 instead
-					    if ((ProgramCounter & 0xFF) == 0xFF)
-					    {
-					        ProgramCounter -= 0xFF;
-					    }
+                            //Get the second half of the address, due to the issue with page boundary it reads from the wrong location!
+                            address += 256 * ReadMemoryValue(ProgramCounter - 255);
+                            ProgramCounter = address;
+                        }
+                        else
+                        {
+                            ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+                        }
 
-						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+                        ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
                         break;
 					}
 				//JSR Jump to SubRoutine, Absolute, 3 Bytes, 6 Cycles
