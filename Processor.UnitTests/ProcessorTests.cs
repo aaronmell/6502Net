@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using NUnit.Framework;
 
 namespace Processor.UnitTests
@@ -3095,10 +3094,10 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			processor.LoadProgram(0, new byte[] { operation, 0x00 }, 0x00);
 			
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x07D, true, 5)] // ADC Absolute X
@@ -3136,10 +3135,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x071, 6)] // ADC Indirect Y
@@ -3157,10 +3156,10 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xA0, 0x04, operation, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
 			processor.NextStep();
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 		
 		[TestCase(0x90, 2 , true)] //BCC
@@ -3179,10 +3178,10 @@ namespace Processor.UnitTests
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x90, 4, false, true)]  //BCC
@@ -3201,10 +3200,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0xF0, 3, true)]  //BEQ
@@ -3223,10 +3222,10 @@ namespace Processor.UnitTests
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0xF0, 4, true, true)]  //BEQ
@@ -3245,10 +3244,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x30, 3, true)]  //BEQ
@@ -3267,10 +3266,10 @@ namespace Processor.UnitTests
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x30, 4, true, true)]  //BEQ
@@ -3289,10 +3288,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x50, 3, false)]  //BVC
@@ -3311,10 +3310,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x50, 4, false, true)]  //BVC
@@ -3334,10 +3333,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.CycleCount;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.CycleCount);
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 		#endregion
 

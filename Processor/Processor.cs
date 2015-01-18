@@ -16,6 +16,7 @@ namespace Processor
 		private int _programCounter;
 		private int _stackPointer;
         private readonly byte[] _memory;
+	    private int _cycleCount; 
 		#endregion
 
 		//All of the properties here are public and read only to facilitate ease of debugging and testing.
@@ -68,16 +69,11 @@ namespace Processor
 			}
 		}
 		
-		/// <summary>
-		/// The number of cycles executed so far.
-		/// </summary>
-		public int CycleCount { get; private set; }
-		
         /// <summary>
-		/// The Memory
-		/// </summary>
-		//public Ram Memory { get; private set; }
-		
+        /// An external action that occurs when the cycle count is incremented
+        /// </summary>
+        public Action CycleCountIncrementedAction { get; set; }
+
         //Status Registers
 		/// <summary>
 		/// This is the carry flag. when adding, if the result is greater than 255 or 99 in BCD Mode, then this bit is enabled. 
@@ -122,8 +118,9 @@ namespace Processor
 		public Processor()
 		{
 			_memory = new byte[0x10000];
-
 			StackPointer = 0x100;
+
+		    CycleCountIncrementedAction = () => { };
 		}
 
 		/// <summary>
@@ -131,7 +128,8 @@ namespace Processor
 		/// </summary>
 		public void Reset()
 		{
-            CycleCount = 6;
+            ResetCycleCount();
+           
 			StackPointer = 0x1FD;
 
 			//Set the Program Counter to the Reset Vector Address.
@@ -253,7 +251,7 @@ namespace Processor
         public byte ReadMemoryValue(int address)
         {
             var value  = _memory[address];
-            CycleCount++;
+            IncrementCycleCount();
             return value;
         }
 
@@ -265,8 +263,24 @@ namespace Processor
         public void WriteMemoryValue(int address, byte data)
         {
              _memory[address] = data;
-            CycleCount++;
+            IncrementCycleCount();
         }
+
+	    public int GetCycleCount()
+	    {
+	        return _cycleCount;
+	    }
+
+	    private void IncrementCycleCount()
+	    {
+	        _cycleCount++;
+	        CycleCountIncrementedAction();
+	    }
+
+	    public void ResetCycleCount()
+	    {
+	        _cycleCount = 0;
+	    }
 
         /// <summary>
         /// Dumps the entire memory object. Used when saving the memory state
@@ -277,6 +291,8 @@ namespace Processor
             return _memory;
         }
         #endregion
+
+
 
 		#region Private Methods
 		/// <summary>
@@ -649,7 +665,7 @@ namespace Processor
 				case 0x18:
 					{
 						CarryFlag = false;
-					    CycleCount++;
+					    IncrementCycleCount();
 						IncrementProgramCounter(1);
 						break;
 					}
@@ -657,7 +673,7 @@ namespace Processor
 				case 0xD8:
 					{
 						DecimalFlag = false;
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(1);
 						break;
 
@@ -666,7 +682,7 @@ namespace Processor
 				case 0x58:
 					{
 						DisableInterruptFlag = false;
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(1);
 						break;
 
@@ -675,7 +691,7 @@ namespace Processor
 				case 0xB8:
 					{
 						OverflowFlag = false;
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(1);
 						break;
 					}
@@ -810,7 +826,7 @@ namespace Processor
 				case 0xDE:
 					{
 						ChangeMemoryByOne(AddressingMode.AbsoluteX, true);
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -853,7 +869,7 @@ namespace Processor
 				case 0xFE:
 					{
 						ChangeMemoryByOne(AddressingMode.AbsoluteX, false);
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -1114,11 +1130,11 @@ namespace Processor
 				//PHA Push Accumulator onto Stack, Implied, 1 Byte, 3 Cycles
 				case 0x48:
 			        {
-			            CycleCount++;
+			            IncrementCycleCount();
 
                         PokeStack((byte)Accumulator);
 					    StackPointer--;
-			            CycleCount++;
+			            IncrementCycleCount();
 						
                         IncrementProgramCounter(1);
 						break;
@@ -1127,26 +1143,26 @@ namespace Processor
 				//PHP Push Flags onto Stack, Implied, 1 Byte, 3 Cycles
 				case 0x08:
 			        {
-			            CycleCount++;
+			            IncrementCycleCount();
                         PushFlagsOperation();
 						StackPointer--;
 
-						CycleCount++;
+						IncrementCycleCount();
 						IncrementProgramCounter(1);
 						break;
 					}
 				//PLA Pull Accumulator from Stack, Implied, 1 Byte, 4 Cycles
 				case 0x68:
 			        {
-			            CycleCount++;
+			            IncrementCycleCount();
 						StackPointer++;
-                        CycleCount++;
+                        IncrementCycleCount();
 
 						Accumulator = PeekStack();
 						SetNegativeFlag(Accumulator);
 						SetZeroFlag(Accumulator);
 
-                        CycleCount++;
+                        IncrementCycleCount();
 						
 						IncrementProgramCounter(1);
 						break;
@@ -1154,13 +1170,13 @@ namespace Processor
 				//PLP Pull Flags from Stack, Implied, 1 Byte, 4 Cycles
 				case 0x28:
 					{
-                        CycleCount++;
+                        IncrementCycleCount();
 						StackPointer++;
-                        CycleCount++;
+                        IncrementCycleCount();
 
 						PullFlagsOperation();
                         
-                        CycleCount++; 
+                        IncrementCycleCount(); 
                         IncrementProgramCounter(1);
 						break;
 					}
@@ -1171,7 +1187,7 @@ namespace Processor
 
 						SetNegativeFlag(XRegister);
 						SetZeroFlag(XRegister);
-					    CycleCount++;
+					    IncrementCycleCount();
 						
 						IncrementProgramCounter(1);
 						break;
@@ -1180,7 +1196,7 @@ namespace Processor
 				case 0x9A:
 					{
 						StackPointer = (byte)XRegister;
-					    CycleCount++;
+					    IncrementCycleCount();
 						
 						IncrementProgramCounter(1);
 						break;
@@ -1192,7 +1208,7 @@ namespace Processor
 				case 0x38:
 					{
 						CarryFlag = true;
-                        CycleCount++;
+                        IncrementCycleCount();
                         IncrementProgramCounter(1);
 						break;
 					}
@@ -1200,7 +1216,7 @@ namespace Processor
 				case 0xF8:
 					{
 						DecimalFlag = true;
-                        CycleCount++;
+                        IncrementCycleCount();
                         IncrementProgramCounter(1);
 						break;
 					}
@@ -1209,7 +1225,7 @@ namespace Processor
 					{
 						DisableInterruptFlag = true;
                         IncrementProgramCounter(1);
-					    CycleCount++;
+					    IncrementCycleCount();
                         break;
 					}
 				#endregion
@@ -1247,7 +1263,7 @@ namespace Processor
 				case 0x1E:
 					{
 						AslOperation(AddressingMode.AbsoluteX);
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -1283,7 +1299,7 @@ namespace Processor
 				case 0x5E:
 					{
 						LsrOperation(AddressingMode.AbsoluteX);
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -1319,7 +1335,7 @@ namespace Processor
 				case 0x3E:
 					{
 						RolOperation(AddressingMode.AbsoluteX);
-                        CycleCount++;
+                        IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -1355,7 +1371,7 @@ namespace Processor
 				case 0x7E:
 					{
 						RorOperation(AddressingMode.AbsoluteX);
-					    CycleCount++;
+					    IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -1387,7 +1403,7 @@ namespace Processor
 				case 0x9D:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.AbsoluteX), (byte)Accumulator);
-					    CycleCount++;
+					    IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -1395,7 +1411,7 @@ namespace Processor
 				case 0x99:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.AbsoluteY), (byte)Accumulator);
-					    CycleCount++;
+					    IncrementCycleCount();
 						IncrementProgramCounter(3);
 						break;
 					}
@@ -1410,7 +1426,7 @@ namespace Processor
 				case 0x91:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.IndirectY), (byte)Accumulator);
-					    CycleCount++;
+					    IncrementCycleCount();
 						IncrementProgramCounter(2);
 						break;
 					}
@@ -1462,7 +1478,7 @@ namespace Processor
 				//TAX Transfer Accumulator to X Register, Implied, 1 Bytes, 2 Cycles
 				case 0xAA:
 					{
-                        CycleCount++;
+                        IncrementCycleCount();
 						XRegister = Accumulator;
 
 						SetNegativeFlag(XRegister);
@@ -1473,7 +1489,7 @@ namespace Processor
 				//TAY Transfer Accumulator to Y Register, 1 Bytes, 2 Cycles
 				case 0xA8:
 					{
-                        CycleCount++;
+                        IncrementCycleCount();
 						YRegister = Accumulator;
 
 						SetNegativeFlag(YRegister);
@@ -1485,7 +1501,7 @@ namespace Processor
 				//TXA Transfer X Register to Accumulator, Implied, 1 Bytes, 2 Cycles
 				case 0x8A:
 					{
-                        CycleCount++;
+                        IncrementCycleCount();
 						Accumulator = XRegister;
 
 						SetNegativeFlag(Accumulator);
@@ -1497,7 +1513,7 @@ namespace Processor
 				//TYA Transfer Y Register to Accumulator, Implied, 1 Bytes, 2 Cycles
 				case 0x98:
 					{
-                        CycleCount++;
+                        IncrementCycleCount();
 						Accumulator = YRegister;
 
 						SetNegativeFlag(Accumulator);
@@ -1511,7 +1527,7 @@ namespace Processor
 				//NOP Operation, Implied, 1 Byte, 2 Cycles
 				case 0xEA:
 			    {
-			        CycleCount++;
+			        IncrementCycleCount();
 						break;
 					}
 
@@ -1603,7 +1619,7 @@ namespace Processor
 									}
 								default:
 									{
-										CycleCount++;
+										IncrementCycleCount();
 										break;
 									}
 							}
@@ -1627,7 +1643,7 @@ namespace Processor
 							address -= 0x10000;
 							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
 							if (CurrentOpCode != 0x99)
-								CycleCount++;
+								IncrementCycleCount();
 						}
 						return address;
 					}
@@ -1639,7 +1655,7 @@ namespace Processor
 					{
 						//Get the location of the address to retrieve
 						address =ReadMemoryValue(ProgramCounter) + XRegister;
-					    CycleCount++;
+					    IncrementCycleCount();
 						//Its a zero page address, so it wraps around if greater than 0xff
 						if (address > 0xff)
 							address -= 0x100;
@@ -1661,7 +1677,7 @@ namespace Processor
 
 							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
 							if (CurrentOpCode != 0x91)
-								CycleCount++;
+								IncrementCycleCount();
 						}
 						return finalAddress;
 					}
@@ -1678,7 +1694,7 @@ namespace Processor
 					{
 						address =ReadMemoryValue(ProgramCounter);
 						address += XRegister;
-					    CycleCount++;
+					    IncrementCycleCount();
 
 						//This address wraps if its greater than 0xFFFF
 						if (address > 0xFF)
@@ -1701,7 +1717,7 @@ namespace Processor
 									}
 								default:
 									{
-										CycleCount++;
+										IncrementCycleCount();
 										break;
 									}
 							}
@@ -1713,7 +1729,7 @@ namespace Processor
 					{
 						address =ReadMemoryValue(ProgramCounter);
                         address += YRegister;
-					    CycleCount++;
+					    IncrementCycleCount();
 
 						//This address wraps if its greater than 0xFFFF
 						if (address > 0xFF)
@@ -1721,7 +1737,7 @@ namespace Processor
 							address -= 0x100;
 							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
 							if (CurrentOpCode != 0x99)
-								CycleCount++;
+								IncrementCycleCount();
 						}
 
 						return address;
@@ -1748,7 +1764,7 @@ namespace Processor
 			if (newProgramCounter < 0x0 || newProgramCounter > 0xFFFF)
 			{
 				//We crossed a page boundry, so decrease the number of cycles by 1.
-				CycleCount++;
+				IncrementCycleCount();
 			}
 			return newProgramCounter;
 		}
@@ -2218,7 +2234,7 @@ namespace Processor
 
 			SetNegativeFlag(value);
 			SetZeroFlag(value);
-		    CycleCount++;
+		    IncrementCycleCount();
 
 			if (addressingMode == AddressingMode.Accumulator)
 				Accumulator = value;
@@ -2236,7 +2252,7 @@ namespace Processor
 		{
 			if (!performBranch)
 			{
-                CycleCount++;
+                IncrementCycleCount();
 				IncrementProgramCounter(2);
 				return;
 			}
@@ -2245,7 +2261,7 @@ namespace Processor
 				
 			ProgramCounter = MoveProgramCounterByRelativeValue(value);
 			//We add a cycle because the branch occured.
-			CycleCount += 1;
+			IncrementCycleCount();
 
 			//IncrementProgramCounter(2);
 		}
@@ -2302,7 +2318,7 @@ namespace Processor
 
 			SetZeroFlag(memory);
 			SetNegativeFlag(memory);
-		    CycleCount++;
+		    IncrementCycleCount();
 
 			WriteMemoryValue(memoryLocation,memory);
 		}
@@ -2328,7 +2344,7 @@ namespace Processor
 
 			SetZeroFlag(value);
 			SetNegativeFlag(value);
-		    CycleCount++;
+		    IncrementCycleCount();
 
 			if (useXRegister)
 				XRegister = value;
@@ -2372,7 +2388,7 @@ namespace Processor
 			value = (value >> 1);
 
 			SetZeroFlag(value);
-		    CycleCount++;
+		    IncrementCycleCount();
 			if (addressingMode == AddressingMode.Accumulator)
 				Accumulator = value;
 			else
@@ -2422,7 +2438,7 @@ namespace Processor
 
 			SetZeroFlag(value);
 			SetNegativeFlag(value);
-		    CycleCount++;
+		    IncrementCycleCount();
 
 			if (addressingMode == AddressingMode.Accumulator)
 				Accumulator = value;
@@ -2461,7 +2477,7 @@ namespace Processor
 
 			SetZeroFlag(value);
 			SetNegativeFlag(value);
-		    CycleCount++;
+		    IncrementCycleCount();
 
 			if (addressingMode == AddressingMode.Accumulator)
 				Accumulator = value;
@@ -2534,17 +2550,17 @@ namespace Processor
 		/// </summary>
 		private void JumpToSubRoutineOperation()
 		{
-		    CycleCount++;
+		    IncrementCycleCount();
 
             //Put the high value on the stack, this should be the address after our operation -1
 			//The RTS operation increments the PC by 1 which is why we don't move 2
 			PokeStack((byte)(((ProgramCounter + 1) >> 8) & 0xFF));
             StackPointer--;
-		    CycleCount++;
+		    IncrementCycleCount();
 
 			PokeStack((byte)((ProgramCounter + 1) & 0xFF));
             StackPointer--;
-		    CycleCount++;
+		    IncrementCycleCount();
 
 			ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
 		   
@@ -2556,19 +2572,19 @@ namespace Processor
 	    /// </summary>
 	    private void ReturnFromSubRoutineOperation()
 	    {
-	        CycleCount++;
+	        IncrementCycleCount();
 	        StackPointer++;
-	        CycleCount++;
+	        IncrementCycleCount();
 
 	        var lowBit = PeekStack();
 	        StackPointer++;
-	        CycleCount++;
+	        IncrementCycleCount();
 
 	        var highBit = PeekStack() << 8;
-            CycleCount++;
+            IncrementCycleCount();
 
 	        ProgramCounter = (highBit | lowBit) + 1;
-            CycleCount++;
+            IncrementCycleCount();
         }
 
 
@@ -2577,18 +2593,18 @@ namespace Processor
 		/// </summary>
 		private void BreakOperation(bool isBrk, int vector)
 	    {
-	        CycleCount++;
+	        IncrementCycleCount();
 
 			//Put the high value on the stack
 			//When we RTI the address will be incremented by one, and the address after a break will not be used.
 			PokeStack((byte)(((ProgramCounter + 1) >> 8) & 0xFF));
             StackPointer--;
-	        CycleCount++;
+	        IncrementCycleCount();
 
 			//Put the low value on the stack
 			PokeStack((byte)((ProgramCounter + 1) & 0xFF));
             StackPointer--;
-            CycleCount++;
+            IncrementCycleCount();
 			
             //We only set the Break Flag is a Break Occurs
 			if (isBrk)
@@ -2597,7 +2613,7 @@ namespace Processor
 				PokeStack(ConvertFlagsToByte(false));
 
 			StackPointer--;
-	        CycleCount++;
+	        IncrementCycleCount();
 
 			DisableInterruptFlag = true;
 
@@ -2611,20 +2627,20 @@ namespace Processor
 		/// </summary>
 		private void ReturnFromInterruptOperation()
 		{
-		    CycleCount++;
+		    IncrementCycleCount();
 			StackPointer++;
-		    CycleCount ++;
+		    IncrementCycleCount();
 
 			PullFlagsOperation();
             StackPointer++;
-            CycleCount++;
+            IncrementCycleCount();
 
 			var lowBit = PeekStack();
 			StackPointer++;
-            CycleCount++;
+            IncrementCycleCount();
 
 			var highBit = PeekStack() << 8;
-            CycleCount++;
+            IncrementCycleCount();
 
 			ProgramCounter = (highBit | lowBit);
 		}
