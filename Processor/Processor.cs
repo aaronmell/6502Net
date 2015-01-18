@@ -882,7 +882,9 @@ namespace Processor
 					}
 				//JMP Jump to New Location, Indirect 3 Bytes, 5 Cycles
 				case 0x6C:
-					{
+                    {
+                        ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+
                         if ((ProgramCounter & 0xFF) == 0xFF)
                         {
                             //Get the first half of the address
@@ -897,9 +899,8 @@ namespace Processor
                             ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
                         }
 
-                        ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
                         break;
-					}
+                    }
 				//JSR Jump to SubRoutine, Absolute, 3 Bytes, 6 Cycles
 				case 0x20:
 					{

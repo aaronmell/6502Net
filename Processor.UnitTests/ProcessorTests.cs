@@ -1213,13 +1213,13 @@ namespace Processor.UnitTests
 	    {
             var processor = new Processor();
             processor.WriteMemoryValue(0x01FE, 0x6C);
-            processor.LoadProgram(0, new byte[] { 0x6C, 0x03, 0x00, 0x08, 0x00 }, 0x01FE);
+            processor.LoadProgram(0, new byte[] { 0x6C, 0xFF, 0x01, 0x08, 0x00 }, 0x00);
            
             processor.WriteMemoryValue(0x01FF, 0x03);
-            processor.WriteMemoryValue(0x0100, 0x00);
+            processor.WriteMemoryValue(0x0100, 0x02);
             processor.NextStep();
 
-            Assert.That(processor.ProgramCounter, Is.EqualTo(0x08));
+            Assert.That(processor.ProgramCounter, Is.EqualTo(0x0203));
 	    }
 
 		#endregion
