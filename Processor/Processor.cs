@@ -885,6 +885,13 @@ namespace Processor
 					{
 						
 						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
+
+                        //If the target address falls on a page boundary, Ie the MSB = FF, a bug occurs and it will fetch from 00 instead
+					    if ((ProgramCounter & 0xFF) == 0xFF)
+					    {
+					        ProgramCounter -= 0xFF;
+					    }
+
 						ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
                         break;
 					}
