@@ -15,17 +15,22 @@ namespace Processor
 		private static readonly ILog _log = LogManager.GetCurrentClassLogger();
 		private int _programCounter;
 		private int _stackPointer;
-        private readonly byte[] _memory;
+       
 	    private int _cycleCount; 
 		#endregion
 
 		//All of the properties here are public and read only to facilitate ease of debugging and testing.
 		#region Properties
+        /// <summary>
+        /// The memory
+        /// </summary>
+        protected byte[] Memory { get; private set; }
+
 		/// <summary>
 		/// The Accumulator. This value is implemented as an integer intead of a byte.
 		/// This is done so we can detect wrapping of the value and set the correct number of cycles.
 		/// </summary>
-		public int Accumulator { get; private set; }
+		public int Accumulator { get; protected set; }
 		/// <summary>
 		/// The X Index Register
 		/// </summary>
@@ -79,7 +84,7 @@ namespace Processor
 		/// This is the carry flag. when adding, if the result is greater than 255 or 99 in BCD Mode, then this bit is enabled. 
 		/// In subtraction this is reversed and set to false if a borrow is required IE the result is less than 0
 		/// </summary>
-		public bool CarryFlag { get; private set; }
+		public bool CarryFlag { get; protected set; }
 		/// <summary>
 		/// Is true if one of the registers is set to zero.
 		/// </summary>
@@ -102,7 +107,7 @@ namespace Processor
 		/// 64 + 64 = -128 
 		/// -128 + -128 = 0
 		/// </summary>
-		public bool OverflowFlag { get; private set; }
+		public bool OverflowFlag { get; protected set; }
 		/// <summary>
 		/// Set to true if the result of an operation is negative in ADC and SBC operations. 
 		/// Remember that 128-256 represent negative numbers when doing signed math.
@@ -117,7 +122,7 @@ namespace Processor
 		/// </summary>
 		public Processor()
 		{
-			_memory = new byte[0x10000];
+			Memory = new byte[0x10000];
 			StackPointer = 0x100;
 
 		    CycleCountIncrementedAction = () => { };
@@ -191,15 +196,15 @@ namespace Processor
         /// <param name="program">The program to be loaded</param>
         public void LoadProgram(int offset, byte[] program)
         {
-            if (offset > _memory.Length)
+            if (offset > Memory.Length)
                 throw new InvalidOperationException("Offset '{0}' is larger than memory size '{1}'");
 
-            if (program.Length > _memory.Length + offset)
-                throw new InvalidOperationException(string.Format("Program Size '{0}' Cannot be Larger than Memory Size '{1}' plus offset '{2}'", program.Length, _memory.Length, offset));
+            if (program.Length > Memory.Length + offset)
+                throw new InvalidOperationException(string.Format("Program Size '{0}' Cannot be Larger than Memory Size '{1}' plus offset '{2}'", program.Length, Memory.Length, offset));
 
             for (var i = 0; i < program.Length; i++)
             {
-                _memory[i + offset] = program[i];
+                Memory[i + offset] = program[i];
             }
 
             Reset();
@@ -239,8 +244,8 @@ namespace Processor
         /// </summary>
         public void ClearMemory()
         {
-            for (var i = 0; i < _memory.Length; i++)
-                _memory[i] = 0x00;
+            for (var i = 0; i < Memory.Length; i++)
+                Memory[i] = 0x00;
         }
 
         /// <summary>
@@ -248,9 +253,9 @@ namespace Processor
         /// </summary>
         /// <param name="address">The address to return</param>
         /// <returns>the byte being returned</returns>
-        public byte ReadMemoryValue(int address)
+        public virtual byte ReadMemoryValue(int address)
         {
-            var value  = _memory[address];
+            var value  = Memory[address];
             IncrementCycleCount();
             return value;
         }
@@ -258,25 +263,32 @@ namespace Processor
         /// <summary>
         /// Writes data to the given address.
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="data"></param>
-        public void WriteMemoryValue(int address, byte data)
+        /// <param name="address">The address to write data to</param>
+        /// <param name="data">The data to write</param>
+        public virtual void WriteMemoryValue(int address, byte data)
         {
-             _memory[address] = data;
+             Memory[address] = data;
             IncrementCycleCount();
         }
 
+        /// <summary>
+        /// Gets the Number of Cycles that have elapsed
+        /// </summary>
+        /// <returns>The number of elapsed cycles</returns>
 	    public int GetCycleCount()
 	    {
 	        return _cycleCount;
 	    }
 
-	    private void IncrementCycleCount()
+	    protected void IncrementCycleCount()
 	    {
 	        _cycleCount++;
 	        CycleCountIncrementedAction();
 	    }
 
+        /// <summary>
+        /// Resets the Cycle Count back to 0
+        /// </summary>
 	    public void ResetCycleCount()
 	    {
 	        _cycleCount = 0;
@@ -288,7 +300,7 @@ namespace Processor
         /// <returns></returns>
         public byte[] DumpMemory()
         {
-            return _memory;
+            return Memory;
         }
         #endregion
 
@@ -1551,7 +1563,7 @@ namespace Processor
 		/// Sets the IsSignNegative register
 		/// </summary>
 		/// <param name="value"></param>
-		private void SetNegativeFlag(int value)
+		protected void SetNegativeFlag(int value)
 		{
 			//on the 6502, any value greater than 127 is negative. 128 = 1000000 in Binary. the 8th bit is set, therefore the number is a negative number.
 			NegativeFlag = value > 127;
@@ -1561,7 +1573,7 @@ namespace Processor
 		/// Sets the IsResultZero register
 		/// </summary>
 		/// <param name="value"></param>
-		private void SetZeroFlag(int value)
+		protected void SetZeroFlag(int value)
 		{
 			ZeroFlag = value == 0;
 		}
@@ -1573,7 +1585,7 @@ namespace Processor
 		/// </summary>
 		/// <param name="addressingMode">The addressing Mode to use</param>
 		/// <returns>The memory Location</returns>
-		private int GetAddressByAddressingMode(AddressingMode addressingMode)
+		protected int GetAddressByAddressingMode(AddressingMode addressingMode)
 		{
 			int address;
 			switch (addressingMode)
@@ -1777,7 +1789,7 @@ namespace Processor
 		private byte PeekStack()
 		{
 			//The stack lives at 0x100-0x1FF, but the value is only a byte so it needs to be translated
-			return _memory[StackPointer + 0x100];
+			return Memory[StackPointer + 0x100];
 		}
 
 		/// <summary>
@@ -1787,7 +1799,7 @@ namespace Processor
 		private void PokeStack(byte value)
 		{
 			//The stack lives at 0x100-0x1FF, but the value is only a byte so it needs to be translated
-			_memory[StackPointer + 0x100] = value;
+			Memory[StackPointer + 0x100] = value;
 		}
 
 		/// <summary>
@@ -1808,10 +1820,10 @@ namespace Processor
 			var currentProgramCounter = ProgramCounter;
 
 			currentProgramCounter = WrapProgramCounter(++currentProgramCounter);
-			int? address1 = _memory[currentProgramCounter];
+			int? address1 = Memory[currentProgramCounter];
 		
 			currentProgramCounter = WrapProgramCounter(++currentProgramCounter);
-			int? address2 = _memory[currentProgramCounter];
+			int? address2 = Memory[currentProgramCounter];
 
 			string disassembledStep = string.Empty;
 
@@ -2154,7 +2166,7 @@ namespace Processor
 		/// The ADC - Add Memory to Accumulator with Carry Operation
 		/// </summary>
 		/// <param name="addressingMode">The addressing mode used to perform this operation.</param>
-		private void AddWithCarryOperation(AddressingMode addressingMode)
+		protected virtual void AddWithCarryOperation(AddressingMode addressingMode)
 		{
 			//Accumulator, Carry = Accumulator + ValueInMemoryLocation + Carry 
 			var memoryValue =ReadMemoryValue(GetAddressByAddressingMode(addressingMode));
@@ -2491,7 +2503,7 @@ namespace Processor
 		/// The SBC operation. Performs a subtract with carry operation on the accumulator and a value in memory.
 		/// </summary>
 		/// <param name="addressingMode">The addressing mode to use</param>
-		private void SubtractWithBorrowOperation(AddressingMode addressingMode)
+		protected virtual void SubtractWithBorrowOperation(AddressingMode addressingMode)
 		{
 			var memoryValue =ReadMemoryValue(GetAddressByAddressingMode(addressingMode));
 			var newValue = DecimalFlag
