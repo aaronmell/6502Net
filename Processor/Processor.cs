@@ -12,10 +12,9 @@ namespace Processor
 	public class Processor
 	{
 		#region Fields
-		private static readonly ILog _log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog _log = LogManager.GetLogger("Processor");
 		private int _programCounter;
 		private int _stackPointer;
-       
 	    private int _cycleCount; 
 		#endregion
 

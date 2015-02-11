@@ -55,7 +55,16 @@ namespace Simulator.ViewModel
 		/// </summary>
 		public string CurrentDisassembly
 		{
-			get { return string.Format("{0} {1}", Proc.CurrentDisassembly.OpCodeString, Proc.CurrentDisassembly.DisassemblyOutput); }
+			get 
+            { 
+                if (Proc.CurrentDisassembly != null) 
+                    return string.Format("{0} {1}", Proc.CurrentDisassembly.OpCodeString, Proc.CurrentDisassembly.DisassemblyOutput);
+
+			    else
+                {
+                    return string.Empty;
+                }
+            }
 		}
 
 		/// <summary>
