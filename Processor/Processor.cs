@@ -1577,6 +1577,7 @@ namespace Processor
 									}
 								default:
 									{
+                                        //TODO This needs to be a dummy read instead of an increment CycleCount
 										IncrementCycleCount();
 										break;
 									}
@@ -1709,7 +1710,7 @@ namespace Processor
 		/// Moves the ProgramCounter in a given direction based on the value inputted
 		/// 
 		/// </summary>
-		private int MoveProgramCounterByRelativeValue(byte valueToMove)
+		private void MoveProgramCounterByRelativeValue(byte valueToMove)
 		{
 			var movement = valueToMove > 127 ? (valueToMove - 255) : valueToMove;
 
@@ -1718,13 +1719,20 @@ namespace Processor
 			//This makes sure that we always land on the correct spot for a positive number
 			if (movement >= 0)
 				newProgramCounter++;
-			
-			if (newProgramCounter < 0x0 || newProgramCounter > 0xFFFF)
+
+            //We Crossed a Page Boundary. So we Read from the wrong place.
+            if ((ProgramCounter & 0xFF) + (movement & 0xFF) > 0xFF)
 			{
-				//We crossed a page boundry, so decrease the number of cycles by 1.
-				IncrementCycleCount();
+			    ReadMemoryValue(WrapProgramCounter(ProgramCounter - 0x0100));
+
 			}
-			return newProgramCounter;
+            else if ((ProgramCounter & 0xFF) - (movement & 0xFF) < 0x00)
+		    {
+                ReadMemoryValue(WrapProgramCounter(ProgramCounter + 0x0100));
+		    }
+
+		    ProgramCounter = newProgramCounter;
+		    ReadMemoryValue(ProgramCounter);
 		}
 
 		/// <summary>
@@ -1830,17 +1838,20 @@ namespace Processor
 						break;
 					}
 				case AddressingMode.Relative:
-					{
-						var relativeAddress = MoveProgramCounterByRelativeValue((byte)address1.Value);
-						relativeAddress = WrapProgramCounter(relativeAddress);
+			    {
+			        var pc = ProgramCounter;
 
-						var stringAddress = relativeAddress.ToString("X").PadLeft(4, '0');
+                    MoveProgramCounterByRelativeValue((byte)address1.Value);
 
-						address1 = int.Parse(stringAddress.Substring(0, 2), NumberStyles.AllowHexSpecifier);
-						address2 = int.Parse(stringAddress.Substring(2, 2),NumberStyles.AllowHexSpecifier);
+                    var stringAddress = ProgramCounter.ToString("X").PadLeft(4, '0');
 
-						disassembledStep = string.Format("${0}", relativeAddress.ToString("X").PadLeft(4, '0'));
-						break;
+                    address1 = int.Parse(stringAddress.Substring(0, 2), NumberStyles.AllowHexSpecifier);
+                    address2 = int.Parse(stringAddress.Substring(2, 2), NumberStyles.AllowHexSpecifier);
+
+                    disassembledStep = string.Format("${0}", ProgramCounter.ToString("X").PadLeft(4, '0'));
+
+			        ProgramCounter = pc;
+                        break;
 					}
 				case AddressingMode.ZeroPage:
 					{
@@ -2217,20 +2228,15 @@ namespace Processor
 		/// <param name="performBranch">Is a branch required</param>
 		private void BranchOperation(bool performBranch)
 		{
+            var value = ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.Relative));
+
 			if (!performBranch)
 			{
-                IncrementCycleCount();
 				IncrementProgramCounter(2);
 				return;
 			}
 
-			var value =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.Relative));
-				
-			ProgramCounter = MoveProgramCounterByRelativeValue(value);
-			//We add a cycle because the branch occured.
-			IncrementCycleCount();
-
-			//IncrementProgramCounter(2);
+			MoveProgramCounterByRelativeValue(value);
 		}
 
 		/// <summary>
