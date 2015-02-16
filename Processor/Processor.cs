@@ -362,7 +362,6 @@ namespace Processor
 				case 0x61:
 					{
 						AddWithCarryOperation(AddressingMode.IndirectX);
-						IncrementProgramCounter(2);
 						break;
 					}
                 //ADC Add With Carry, Indexed Indirect, 2 Bytes, 5+ Cycles
@@ -419,7 +418,6 @@ namespace Processor
 				case 0xE1:
 					{
 						SubtractWithBorrowOperation(AddressingMode.IndirectX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//SBC Subtract with Borrow, Indexed Indirect, 2 Bytes, 5+ Cycles
@@ -528,7 +526,6 @@ namespace Processor
 				case 0x21:
 					{
 						AndOperation(AddressingMode.IndirectX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//AND Compare Memory with Accumulator, IndirectIndexed, 2 Bytes, 5 Cycles
@@ -594,7 +591,6 @@ namespace Processor
 				case 0x41:
 					{
 						EorOperation(AddressingMode.IndirectX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//EOR Exclusive OR Memory with Accumulator, IndirectIndexed, 2 Bytes 5 Cycles
@@ -647,7 +643,6 @@ namespace Processor
 				case 0x01:
 					{
 						OrOperation(AddressingMode.IndirectX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ORA Compare Memory with Accumulator, IndirectIndexed, 2 Bytes, 5 Cycles
@@ -741,7 +736,6 @@ namespace Processor
 				case 0xC1:
 					{
 						CompareOperation(AddressingMode.IndirectX, Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CMP Compare Accumulator with Memory, Indirect Y, 2 Bytes, 5 Cycles
@@ -994,7 +988,6 @@ namespace Processor
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
 
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDA Load Accumulator with Memory, Indirect Index, 2 Bytes, 5+ Cycles
@@ -1379,7 +1372,6 @@ namespace Processor
 				case 0x81:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.IndirectX), (byte)Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STA Store Accumulator In Memory, Indirect Indexed, 2 Bytes, 6 Cycles
@@ -1606,8 +1598,11 @@ namespace Processor
 				case AddressingMode.IndirectX:
 					{
 						//Get the location of the address to retrieve
-						address =ReadMemoryValue(ProgramCounter) + XRegister;
-					    IncrementCycleCount();
+						address = ReadMemoryValue(ProgramCounter++);
+					    ReadMemoryValue(address);
+
+					    address += XRegister;
+                       
 						//Its a zero page address, so it wraps around if greater than 0xff
 						if (address > 0xff)
 							address -= 0x100;
