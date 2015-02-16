@@ -1534,6 +1534,7 @@ namespace Processor
 		protected int GetAddressByAddressingMode(AddressingMode addressingMode)
 		{
 			int address;
+		    int highByte;
 			switch (addressingMode)
 			{
 				case (AddressingMode.Absolute):
@@ -1548,63 +1549,55 @@ namespace Processor
 					}
 				case AddressingMode.AbsoluteX:
 					{
-						//Get the first half of the address
+						//Get the low half of the address
 						address =ReadMemoryValue(ProgramCounter++);
 
-						//Get the second half of the address. We multiple the value by 256 so we retrieve the right address. 
-						//IF the first Value is FF and the second value is FF the address would be FFFF.
-						//Then add the X Register value to that.
-						//We don't increment the program counter here, because it is incremented as part of the operation.
-						address += (256 *ReadMemoryValue(ProgramCounter++) + XRegister);
-					    
-						//This address wraps if its greater than 0xFFFF
-						if (address > 0xFFFF)
-						{
-							address -= 0x10000;
-							//We crossed a page boundry, so decrease the number of cycles by 1.
-							//However, if this is an ASL, LSR, DEC, INC, ROR, ROL or STA operation, we do not decrease it by 1.
-							switch (CurrentOpCode)
-							{
-								case 0x1E:
-								case 0xDE:
-								case 0xFE:
-								case 0x5E:
-								case 0x3E:
-								case 0x7E:
-								case 0x9D:
-									{
-										return address;
-									}
-								default:
-									{
-                                        //TODO This needs to be a dummy read instead of an increment CycleCount
-										IncrementCycleCount();
-										break;
-									}
-							}
-						}
-						return address;
+                        //Get the high byte
+						highByte = ReadMemoryValue(ProgramCounter++);
+
+                        //We crossed a page boundry, so an extra read has occurred.
+                        //However, if this is an ASL, LSR, DEC, INC, ROR, ROL or STA operation, we do not decrease it by 1.
+					    if (address + XRegister > 0xFF)
+					    {
+                            switch (CurrentOpCode)
+                            {
+                                case 0x1E:
+                                case 0xDE:
+                                case 0xFE:
+                                case 0x5E:
+                                case 0x3E:
+                                case 0x7E:
+                                case 0x9D:
+                                {
+                                    //This is a Read Fetch Write Operation, so we don't make the extra read.
+                                    return ((highByte << 8 | address) + XRegister) & 0xFFFF;
+                                }
+                                default:
+                                {
+                                    ReadMemoryValue((((highByte << 8 | address) + XRegister) - 0xFF) & 0xFFFF);
+                                    break;
+                                }
+                            }
+					    }
+
+					    return ((highByte << 8 | address) + XRegister) & 0xFFFF;
 					}
 				case AddressingMode.AbsoluteY:
 					{
-						//Get the first half of the address
-						address =ReadMemoryValue(ProgramCounter++);
+                        //Get the low half of the address
+                        address = ReadMemoryValue(ProgramCounter++);
 
-						//Get the second half of the address. We multiple the value by 256 so we retrieve the right address. 
-						//IF the first Value is FF and the second value is FF the address would be FFFF.
-						//Then add the Y Register value to that.
-						//We don't increment the program counter here, because it is incremented as part of the operation.
-						address += (256 *ReadMemoryValue(ProgramCounter++) + YRegister);
+                        //Get the high byte
+                        highByte = ReadMemoryValue(ProgramCounter++);
 
-						//This address wraps if its greater than 0xFFFF
-						if (address > 0xFFFF)
-						{
-							address -= 0x10000;
-							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
-							if (CurrentOpCode != 0x99)
-								IncrementCycleCount();
-						}
-						return address;
+                        //We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
+					    if (address + YRegister > 0xFF && CurrentOpCode != 0x99)
+					    {
+                            ReadMemoryValue((((highByte << 8 | address) + YRegister) - 0xFF) & 0xFFFF);
+					    }
+
+                        //Bitshift the high byte into place, AND with FFFF to handle wrapping.
+                        return ((highByte << 8 | address) + YRegister) & 0xFFFF;
 					}
 				case AddressingMode.Immediate:
 					{
@@ -1912,12 +1905,7 @@ namespace Processor
 
 		private int WrapProgramCounter(int value)
 		{
-			if (value > 0xFFFF)
-				value = value - 0x10000;
-			else if (value < 0)
-				value = value + 0x10000;
-
-			return value;
+			return value & 0xFFFF;
 		}
 
 		private AddressingMode GetAddressingMode()
