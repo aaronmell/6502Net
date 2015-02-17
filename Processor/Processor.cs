@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using Common.Logging;
 
@@ -142,9 +143,8 @@ namespace Processor
 			ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
             
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-#if DEBUG
-			SetDisassembly();
-#endif
+			
+            SetDisassembly();
 
 			DisableInterruptFlag = true;
 		}
@@ -160,12 +160,8 @@ namespace Processor
             
 			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-		   
 			
-#if DEBUG
 			SetDisassembly();
-#endif
-			
 		}
 
 		/// <summary>
@@ -220,9 +216,8 @@ namespace Processor
 			ProgramCounter--;
 			BreakOperation(false, 0xFFFE);
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-#if DEBUG
-			SetDisassembly();
-#endif
+			
+            SetDisassembly();
 		}
 
 		/// <summary>
@@ -233,9 +228,8 @@ namespace Processor
 			ProgramCounter--;
 			BreakOperation(false, 0xFFFA);
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-#if DEBUG
-			SetDisassembly();
-#endif
+
+            SetDisassembly();
 		}
 
         /// <summary>
@@ -279,11 +273,14 @@ namespace Processor
 	        return _cycleCount;
 	    }
 
-	    protected void IncrementCycleCount()
-	    {
-	        _cycleCount++;
-	        CycleCountIncrementedAction();
-	    }
+        /// <summary>
+        /// Increments the Cycle Count, causes a CycleCountIncrementedAction to fire.
+        /// </summary>
+        protected void IncrementCycleCount()
+        {
+            _cycleCount++;
+            CycleCountIncrementedAction();
+        }
 
         /// <summary>
         /// Resets the Cycle Count back to 0
@@ -321,8 +318,6 @@ namespace Processor
 				case 0x69:
 					{
 						AddWithCarryOperation(AddressingMode.Immediate);
-						IncrementProgramCounter(2);
-						
 						break;
 					}
                 //ADC Add With Carry, Zero Page, 2 Bytes, 3 Cycles
@@ -371,8 +366,6 @@ namespace Processor
 				case 0xE9:
 					{
 						SubtractWithBorrowOperation(AddressingMode.Immediate);
-						IncrementProgramCounter(2);
-						
 						break;
 					}
 				//SBC Subtract with Borrow, Zero Page, 2 Bytes, 3 Cycles
@@ -391,21 +384,18 @@ namespace Processor
 				case 0xED:
 					{
 						SubtractWithBorrowOperation(AddressingMode.Absolute);
-						
 						break;
 					}
 				//SBC Subtract with Borrow, Absolute X, 3 Bytes, 4+ Cycles
 				case 0xFD:
 					{
 						SubtractWithBorrowOperation(AddressingMode.AbsoluteX);
-						
 						break;
 					}
 				//SBC Subtract with Borrow, Absolute Y, 3 Bytes, 4+ Cycles
 				case 0xF9:
 					{
 						SubtractWithBorrowOperation(AddressingMode.AbsoluteY);
-						
 						break;
 					}
 				//SBC Subtract with Borrow, Indexed Indirect, 2 Bytes, 6 Cycles
@@ -480,7 +470,6 @@ namespace Processor
 				case 0x29:
 					{
 						AndOperation(AddressingMode.Immediate);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//AND Compare Memory with Accumulator, Zero Page, 2 Bytes, 3 Cycles
@@ -541,7 +530,6 @@ namespace Processor
 				case 0x49:
 					{
 						EorOperation(AddressingMode.Immediate);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//EOR Exclusive OR Memory with Accumulator, Zero Page, 2 Bytes, 3 Cycles
@@ -590,7 +578,6 @@ namespace Processor
 				case 0x09:
 					{
 						OrOperation(AddressingMode.Immediate);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ORA Compare Memory with Accumulator, Zero Page, 2 Bytes, 2 Cycles
@@ -643,7 +630,6 @@ namespace Processor
 					{
 						CarryFlag = false;
 					    IncrementCycleCount();
-						IncrementProgramCounter(1);
 						break;
 					}
 				//CLD Clear Decimal Flag, Implied, 1 Byte, 2 Cycles
@@ -651,7 +637,6 @@ namespace Processor
 					{
 						DecimalFlag = false;
                         IncrementCycleCount();
-						IncrementProgramCounter(1);
 						break;
 
 					}
@@ -660,7 +645,6 @@ namespace Processor
 					{
 						DisableInterruptFlag = false;
                         IncrementCycleCount();
-						IncrementProgramCounter(1);
 						break;
 
 					}
@@ -669,7 +653,6 @@ namespace Processor
 					{
 						OverflowFlag = false;
                         IncrementCycleCount();
-						IncrementProgramCounter(1);
 						break;
 					}
 
@@ -680,7 +663,6 @@ namespace Processor
 				case 0xC9:
 					{
 						CompareOperation(AddressingMode.Immediate, Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CMP Compare Accumulator with Memory, Zero Page, 2 Bytes, 3 Cycles
@@ -729,7 +711,6 @@ namespace Processor
 				case 0xE0:
 					{
 						CompareOperation(AddressingMode.Immediate, XRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CPX Compare Accumulator with X Register, Zero Page, 2 Bytes, 3 Cycles
@@ -748,7 +729,6 @@ namespace Processor
 				case 0xC0:
 					{
 						CompareOperation(AddressingMode.Immediate, YRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CPY Compare Accumulator with Y Register, Zero Page, 2 Bytes, 3 Cycles
@@ -795,14 +775,12 @@ namespace Processor
 				case 0xCA:
 					{
 						ChangeRegisterByOne(true, true);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//DEY Decrement Y Register by One, Implied, 1 Bytes, 2 Cycles
 				case 0x88:
 					{
 						ChangeRegisterByOne(false, true);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//INC Increment Memory by One, Zero Page, 2 Bytes, 5 Cycles
@@ -834,14 +812,12 @@ namespace Processor
 				case 0xE8:
 					{
 						ChangeRegisterByOne(true, false);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//INY Increment Y Register by One, Implied, 1 Bytes, 2 Cycles
 				case 0xC8:
 					{
 						ChangeRegisterByOne(false, false);
-						IncrementProgramCounter(1);
 						break;
 					}
 				#endregion
@@ -907,8 +883,6 @@ namespace Processor
 						Accumulator =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.Immediate));
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
-                        
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDA Load Accumulator with Memory, Zero Page, 2 Bytes, 3 Cycles
@@ -917,7 +891,6 @@ namespace Processor
 						Accumulator =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
-                        
 						break;
 					}
 				//LDA Load Accumulator with Memory, Zero Page X, 2 Bytes, 4 Cycles
@@ -926,7 +899,6 @@ namespace Processor
 						Accumulator =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX));
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
-						
 						break;
 					}
 				//LDA Load Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
@@ -959,7 +931,6 @@ namespace Processor
 						Accumulator =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.IndirectX));
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
-
 						break;
 					}
 				//LDA Load Accumulator with Memory, Indirect Index, 2 Bytes, 5+ Cycles
@@ -968,7 +939,6 @@ namespace Processor
 						Accumulator =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.IndirectY));
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
-
 						break;
 					}
 				//LDX Load X with memory, Immediate, 2 Bytes, 2 Cycles
@@ -977,8 +947,6 @@ namespace Processor
 						XRegister =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.Immediate));
 						SetZeroFlag(XRegister);
 						SetNegativeFlag(XRegister);
-                        
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDX Load X with memory, Zero Page, 2 Bytes, 3 Cycles
@@ -987,7 +955,6 @@ namespace Processor
 						XRegister =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
 						SetZeroFlag(XRegister);
 						SetNegativeFlag(XRegister);
-
 						break;
 					}
 				//LDX Load X with memory, Zero Page Y, 2 Bytes, 4 Cycles
@@ -996,7 +963,6 @@ namespace Processor
 						XRegister =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY));
 						SetZeroFlag(XRegister);
 						SetNegativeFlag(XRegister);
-						
 						break;
 					}
 				//LDX Load X with memory, Absolute, 3 Bytes, 4 Cycles
@@ -1021,8 +987,6 @@ namespace Processor
 						YRegister =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.Immediate));
 						SetZeroFlag(YRegister);
 						SetNegativeFlag(YRegister);
-
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDY Load Y with memory, Zero Page, 2 Bytes, 3 Cycles
@@ -1031,7 +995,6 @@ namespace Processor
 						YRegister =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPage));
 						SetZeroFlag(YRegister);
 						SetNegativeFlag(YRegister);
-
 						break;
 					}
 				//LDY Load Y with memory, Zero Page X, 2 Bytes, 4 Cycles
@@ -1040,7 +1003,6 @@ namespace Processor
 						YRegister =ReadMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX));
 						SetZeroFlag(YRegister);
 						SetNegativeFlag(YRegister);
-						
 						break;
 					}
 				//LDY Load Y with memory, Absolute, 3 Bytes, 4 Cycles
@@ -1080,7 +1042,6 @@ namespace Processor
 
                         PushFlagsOperation();
 						StackPointer--;
-
 						IncrementCycleCount();
 						break;
 					}
@@ -1119,8 +1080,6 @@ namespace Processor
 						SetNegativeFlag(XRegister);
 						SetZeroFlag(XRegister);
 					    IncrementCycleCount();
-						
-						IncrementProgramCounter(1);
 						break;
 					}
 				//TXS Transfer X Register to Stack Pointer, 1 Bytes, 2 Cycles
@@ -1128,8 +1087,6 @@ namespace Processor
 					{
 						StackPointer = (byte)XRegister;
 					    IncrementCycleCount();
-						
-						IncrementProgramCounter(1);
 						break;
 					}
 				#endregion
@@ -1140,7 +1097,6 @@ namespace Processor
 					{
 						CarryFlag = true;
                         IncrementCycleCount();
-                        IncrementProgramCounter(1);
 						break;
 					}
 				//SED Set Interrupt, Implied, 1 Bytes, 2 Cycles
@@ -1148,14 +1104,12 @@ namespace Processor
 					{
 						DecimalFlag = true;
                         IncrementCycleCount();
-                        IncrementProgramCounter(1);
 						break;
 					}
 				//SEI Set Interrupt, Implied, 1 Bytes, 2 Cycles
 				case 0x78:
 					{
 						DisableInterruptFlag = true;
-                        IncrementProgramCounter(1);
 					    IncrementCycleCount();
                         break;
 					}
@@ -1166,7 +1120,6 @@ namespace Processor
 				case 0x0A:
 					{
 						AslOperation(AddressingMode.Accumulator);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//ASL Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
@@ -1198,7 +1151,6 @@ namespace Processor
 				case 0x4A:
 					{
 						LsrOperation(AddressingMode.Accumulator);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//LSR Shift Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
@@ -1230,7 +1182,6 @@ namespace Processor
 				case 0x2A:
 					{
 						RolOperation(AddressingMode.Accumulator);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//ROL Rotate Left 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
@@ -1262,7 +1213,6 @@ namespace Processor
 				case 0x6A:
 					{
 						RorOperation(AddressingMode.Accumulator);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//ROR Rotate Right 1 Bit Memory or Accumulator, Zero Page, 2 Bytes, 5 Cycles
@@ -1385,7 +1335,6 @@ namespace Processor
 
 						SetNegativeFlag(XRegister);
 						SetZeroFlag(XRegister);
-						IncrementProgramCounter(1);
 						break;
 					}
 				//TAY Transfer Accumulator to Y Register, 1 Bytes, 2 Cycles
@@ -1396,8 +1345,6 @@ namespace Processor
 
 						SetNegativeFlag(YRegister);
 						SetZeroFlag(YRegister);
-
-						IncrementProgramCounter(1);
 						break;
 					}
 				//TXA Transfer X Register to Accumulator, Implied, 1 Bytes, 2 Cycles
@@ -1408,8 +1355,6 @@ namespace Processor
 
 						SetNegativeFlag(Accumulator);
 						SetZeroFlag(Accumulator);
-                       
-						IncrementProgramCounter(1);
 						break;
 					}
 				//TYA Transfer Y Register to Accumulator, Implied, 1 Bytes, 2 Cycles
@@ -1420,8 +1365,6 @@ namespace Processor
 
 						SetNegativeFlag(Accumulator);
 						SetZeroFlag(Accumulator);
-                        
-						IncrementProgramCounter(1);
 						break;
 					}
 				#endregion
@@ -1436,17 +1379,6 @@ namespace Processor
 				default:
 					throw new NotSupportedException(string.Format("The OpCode {0} is not supported", CurrentOpCode));
 			}
-		}
-		
-		/// <summary>
-		/// Increments the program Counter. We always Increment by 1 less than the value that is passed in to account for the increment that happens after the current
-		/// Op code is retrieved
-		/// </summary>
-		/// <param name="lengthOfOperation">The lenght of the operation</param>
-		private void IncrementProgramCounter(int lengthOfOperation)
-		{
-			//The PC gets increments after the opcode is retrieved but before the opcode is executed. We want to add the remaining length.
-			ProgramCounter += lengthOfOperation - 1;
 		}
 
 		/// <summary>
@@ -1545,7 +1477,7 @@ namespace Processor
 					}
 				case AddressingMode.Immediate:
 					{
-						return ProgramCounter;
+						return ProgramCounter++;
 					}
 				case AddressingMode.IndirectX:
 					{
@@ -1678,8 +1610,12 @@ namespace Processor
 						 (DecimalFlag ? 8 : 0) + (setBreak ? 0x10 : 0) + 0x20 + (OverflowFlag ? 0x40 : 0) + (NegativeFlag ? 0x80 : 0));
 		}
 
+        [Conditional("DEBUG")]
 		private void SetDisassembly()
-		{
+        {
+            if (!_log.IsDebugEnabled)
+                return;
+
 			var addressMode = GetAddressingMode();
 			
 			var currentProgramCounter = ProgramCounter;
@@ -2138,7 +2074,7 @@ namespace Processor
 
 			if (!performBranch)
 			{
-				IncrementProgramCounter(2);
+			    ProgramCounter++;
 				return;
 			}
 
