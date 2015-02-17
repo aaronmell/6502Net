@@ -329,14 +329,12 @@ namespace Processor
 				case 0x65:
 					{
 						AddWithCarryOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
                 //ADC Add With Carry, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x75:
 					{
 						AddWithCarryOperation(AddressingMode.ZeroPageX);						
-						IncrementProgramCounter(2);
 						break;
 					}
                 //ADC Add With Carry, Absolute, 3 Bytes, 4 Cycles
@@ -349,7 +347,6 @@ namespace Processor
 				case 0x7D:
 					{
 						AddWithCarryOperation(AddressingMode.AbsoluteX);
-						
 						break;
 					}
                 //ADC Add With Carry, Absolute Y, 3 Bytes, 4+ Cycles
@@ -382,14 +379,12 @@ namespace Processor
 				case 0xE5:
 					{
 						SubtractWithBorrowOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//SBC Subtract with Borrow, Zero Page X, 2 Bytes, 4 Cycles
 				case 0xF5:
 					{
 						SubtractWithBorrowOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//SBC Subtract with Borrow, Absolute, 3 Bytes, 4 Cycles
@@ -492,14 +487,12 @@ namespace Processor
 				case 0x25:
 					{
 						AndOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//AND Compare Memory with Accumulator, Zero PageX, 2 Bytes, 3 Cycles
 				case 0x35:
 					{
 						AndOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//AND Compare Memory with Accumulator, Absolute,  3 Bytes, 4 Cycles
@@ -536,7 +529,6 @@ namespace Processor
 				case 0x24:
 					{
 						BitOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//BIT Compare Memory with Accumulator, Absolute, 2 Bytes, 4 Cycles
@@ -556,14 +548,12 @@ namespace Processor
 				case 0x45:
 					{
 						EorOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//EOR Exclusive OR Memory with Accumulator, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x55:
 					{
 						EorOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//EOR Exclusive OR Memory with Accumulator, Absolute, 3 Bytes, 4 Cycles
@@ -607,14 +597,12 @@ namespace Processor
 				case 0x05:
 					{
 						OrOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ORA Compare Memory with Accumulator, Zero PageX, 2 Bytes, 4 Cycles
 				case 0x15:
 					{
 						OrOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ORA Compare Memory with Accumulator, Absolute,  3 Bytes, 4 Cycles
@@ -699,14 +687,12 @@ namespace Processor
 				case 0xC5:
 					{
 						CompareOperation(AddressingMode.ZeroPage, Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CMP Compare Accumulator with Memory, Zero Page x, 2 Bytes, 4 Cycles
 				case 0xD5:
 					{
 						CompareOperation(AddressingMode.ZeroPageX, Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CMP Compare Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
@@ -750,7 +736,6 @@ namespace Processor
 				case 0xE4:
 					{
 						CompareOperation(AddressingMode.ZeroPage, XRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CPX Compare Accumulator with X Register, Absolute, 3 Bytes, 4 Cycles
@@ -770,7 +755,6 @@ namespace Processor
 				case 0xC4:
 					{
 						CompareOperation(AddressingMode.ZeroPage, YRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CPY Compare Accumulator with Y Register, Absolute, 3 Bytes, 4 Cycles
@@ -786,14 +770,12 @@ namespace Processor
 				case 0xC6:
 					{
 						ChangeMemoryByOne(AddressingMode.ZeroPage, true);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//DEC Decrement Memory by One, Zero Page X, 2 Bytes, 6 Cycles
 				case 0xD6:
 					{
 						ChangeMemoryByOne(AddressingMode.ZeroPageX, true);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//DEC Decrement Memory by One, Absolute, 3 Bytes, 6 Cycles
@@ -827,14 +809,12 @@ namespace Processor
 				case 0xE6:
 					{
 						ChangeMemoryByOne(AddressingMode.ZeroPage, false);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//INC Increment Memory by One, Zero Page X, 2 Bytes, 6 Cycles
 				case 0xF6:
 					{
 						ChangeMemoryByOne(AddressingMode.ZeroPageX, false);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//INC Increment Memory by One, Absolute, 3 Bytes, 6 Cycles
@@ -938,7 +918,6 @@ namespace Processor
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
                         
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDA Load Accumulator with Memory, Zero Page X, 2 Bytes, 4 Cycles
@@ -948,7 +927,6 @@ namespace Processor
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
 						
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDA Load Accumulator with Memory, Absolute, 3 Bytes, 4 Cycles
@@ -1010,7 +988,6 @@ namespace Processor
 						SetZeroFlag(XRegister);
 						SetNegativeFlag(XRegister);
 
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDX Load X with memory, Zero Page Y, 2 Bytes, 4 Cycles
@@ -1020,7 +997,6 @@ namespace Processor
 						SetZeroFlag(XRegister);
 						SetNegativeFlag(XRegister);
 						
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDX Load X with memory, Absolute, 3 Bytes, 4 Cycles
@@ -1056,7 +1032,6 @@ namespace Processor
 						SetZeroFlag(YRegister);
 						SetNegativeFlag(YRegister);
 
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDY Load Y with memory, Zero Page X, 2 Bytes, 4 Cycles
@@ -1066,7 +1041,6 @@ namespace Processor
 						SetZeroFlag(YRegister);
 						SetNegativeFlag(YRegister);
 						
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDY Load Y with memory, Absolute, 3 Bytes, 4 Cycles
@@ -1199,14 +1173,12 @@ namespace Processor
 				case 0x06:
 					{
 						AslOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ASL Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
 				case 0x16:
 					{
 						AslOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ASL Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
@@ -1233,14 +1205,12 @@ namespace Processor
 				case 0x46:
 					{
 						LsrOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LSR Shift Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
 				case 0x56:
 					{
 						LsrOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LSR Shift Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
@@ -1267,14 +1237,12 @@ namespace Processor
 				case 0x26:
 					{
 						RolOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ROL Rotate Left 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
 				case 0x36:
 					{
 						RolOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ROL Rotate Left 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
@@ -1301,14 +1269,12 @@ namespace Processor
 				case 0x66:
 					{
 						RorOperation(AddressingMode.ZeroPage);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ROR Rotate Right 1 Bit Memory or Accumulator, Zero PageX, 2 Bytes, 6 Cycles
 				case 0x76:
 					{
 						RorOperation(AddressingMode.ZeroPageX);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ROR Rotate Right 1 Bit Memory or Accumulator, Absolute, 3 Bytes, 6 Cycles
@@ -1331,14 +1297,12 @@ namespace Processor
 				case 0x85:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPage), (byte)Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STA Store Accumulator In Memory, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x95:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX), (byte)Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STA Store Accumulator In Memory, Absolute, 3 Bytes, 4 Cycles
@@ -1378,14 +1342,12 @@ namespace Processor
 				case 0x86:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPage), (byte)XRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STX Store Index X, Zero Page Y, 2 Bytes, 4 Cycles
 				case 0x96:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPageY), (byte)XRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STX Store Index X, Absolute, 3 Bytes, 4 Cycles
@@ -1398,14 +1360,12 @@ namespace Processor
 				case 0x84:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPage), (byte)YRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STY Store Index Y, Zero Page X, 2 Bytes, 4 Cycles
 				case 0x94:
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.ZeroPageX), (byte)YRegister);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STY Store Index Y, Absolute, 2 Bytes, 4 Cycles
@@ -1622,58 +1582,33 @@ namespace Processor
 					}
 				case (AddressingMode.ZeroPage):
 					{
-						address =ReadMemoryValue(ProgramCounter);
+						address =ReadMemoryValue(ProgramCounter++);
 						return address;
 					}
 				case (AddressingMode.ZeroPageX):
 					{
-						address =ReadMemoryValue(ProgramCounter);
-						address += XRegister;
-					    IncrementCycleCount();
+						address = ReadMemoryValue(ProgramCounter++);
+					    ReadMemoryValue(address);
 
-						//This address wraps if its greater than 0xFFFF
+						address += XRegister;
+					    address &= 0xFF;
+
+						//This address wraps if its greater than 0xFF
 						if (address > 0xFF)
 						{
 							address -= 0x100;
-
-							//We crossed a page boundry, so decrease the number of cycles by 1.
-							//However, if this is an ASL, LSR, DEC, INC, ROR, ROL or STA operation, we do not decrease it by 1.
-							switch (CurrentOpCode)
-							{
-								case 0x1E:
-								case 0xDE:
-								case 0xFE:
-								case 0x5E:
-								case 0x3E:
-								case 0x7E:
-								case 0x9D:
-									{
-										return address;
-									}
-								default:
-									{
-										IncrementCycleCount();
-										break;
-									}
-							}
+							return address;
 						}
 
 						return address;
 					}
 				case (AddressingMode.ZeroPageY):
 					{
-						address =ReadMemoryValue(ProgramCounter);
-                        address += YRegister;
-					    IncrementCycleCount();
+						address =ReadMemoryValue(ProgramCounter++);
+                        ReadMemoryValue(address);
 
-						//This address wraps if its greater than 0xFFFF
-						if (address > 0xFF)
-						{
-							address -= 0x100;
-							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
-							if (CurrentOpCode != 0x99)
-								IncrementCycleCount();
-						}
+                        address += YRegister;
+                        address &= 0xFF;
 
 						return address;
 					}
