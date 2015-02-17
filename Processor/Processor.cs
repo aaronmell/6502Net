@@ -368,7 +368,6 @@ namespace Processor
 				case 0x71:
 					{
 						AddWithCarryOperation(AddressingMode.IndirectY);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//SBC Subtract with Borrow, Immediate, 2 Bytes, 2 Cycles
@@ -424,7 +423,6 @@ namespace Processor
 				case 0xF1:
 					{
 						SubtractWithBorrowOperation(AddressingMode.IndirectY);
-						IncrementProgramCounter(2);
 						break;
 					}
 				#endregion
@@ -532,7 +530,6 @@ namespace Processor
 				case 0x31:
 					{
 						AndOperation(AddressingMode.IndirectY);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//BIT Compare Memory with Accumulator, Zero Page, 2 Bytes, 3 Cycles
@@ -597,7 +594,6 @@ namespace Processor
 				case 0x51:
 					{
 						EorOperation(AddressingMode.IndirectY);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//ORA Compare Memory with Accumulator, Immediate, 2 Bytes, 2 Cycles
@@ -649,7 +645,6 @@ namespace Processor
 				case 0x11:
 					{
 						OrOperation(AddressingMode.IndirectY);
-						IncrementProgramCounter(2);
 						break;
 					}
 				#endregion
@@ -742,7 +737,6 @@ namespace Processor
 				case 0xD1:
 					{
 						CompareOperation(AddressingMode.IndirectY, Accumulator);
-						IncrementProgramCounter(2);
 						break;
 					}
 				//CPX Compare Accumulator with X Register, Immediate, 2 Bytes, 2 Cycles
@@ -997,7 +991,6 @@ namespace Processor
 						SetZeroFlag(Accumulator);
 						SetNegativeFlag(Accumulator);
 
-						IncrementProgramCounter(2);
 						break;
 					}
 				//LDX Load X with memory, Immediate, 2 Bytes, 2 Cycles
@@ -1379,7 +1372,6 @@ namespace Processor
 					{
 						WriteMemoryValue(GetAddressByAddressingMode(AddressingMode.IndirectY), (byte)Accumulator);
 					    IncrementCycleCount();
-						IncrementProgramCounter(2);
 						break;
 					}
 				//STX Store Index X, Zero Page, 2 Bytes, 3 Cycles
@@ -1613,20 +1605,16 @@ namespace Processor
 					}
 				case AddressingMode.IndirectY:
 					{
-						address =ReadMemoryValue(ProgramCounter);
+						address = ReadMemoryValue(ProgramCounter++);
 
-                        var finalAddress = ReadMemoryValue(address) + (ReadMemoryValue(address + 1) << 8) + YRegister;
-					   
-						//This address wraps if its greater than 0xFFFF
-						if (finalAddress > 0xFFFF)
-						{
-							finalAddress -= 0x10000;
+					    var finalAddress = ReadMemoryValue(address) + (ReadMemoryValue(address + 1) << 8);
 
-							//We crossed a page boundry, so decrease the number of cycles by 1 if the operation is not STA
-							if (CurrentOpCode != 0x91)
-								IncrementCycleCount();
-						}
-						return finalAddress;
+                        if (finalAddress + YRegister > 0xFF && CurrentOpCode != 0x91)
+                        {
+                            ReadMemoryValue((finalAddress + YRegister - 0xFF) & 0xFFFF);
+                        }
+						
+						return (finalAddress + YRegister) & 0xFFFF;
 					}
 				case AddressingMode.Relative:
 					{
