@@ -140,11 +140,11 @@ namespace Processor
 			//Set the Program Counter to the Reset Vector Address.
 			ProgramCounter = 0xFFFC;
 			//Reset the Program Counter to the Address contained in the Reset Vector
-			ProgramCounter = GetAddressByAddressingMode(AddressingMode.Absolute);
-            
-			CurrentOpCode = ReadMemoryValue(ProgramCounter);
+			ProgramCounter = ( Memory[ProgramCounter] | ( Memory[ProgramCounter + 1] << 8));;
+
+            CurrentOpCode = Memory[ProgramCounter];
 			
-            SetDisassembly();
+            //SetDisassembly();
 
 			DisableInterruptFlag = true;
 		}
@@ -217,7 +217,7 @@ namespace Processor
 			BreakOperation(false, 0xFFFE);
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
 			
-            SetDisassembly();
+            //SetDisassembly();
 		}
 
 		/// <summary>
@@ -229,7 +229,7 @@ namespace Processor
 			BreakOperation(false, 0xFFFA);
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
 
-            SetDisassembly();
+            //SetDisassembly();
 		}
 
         /// <summary>
@@ -1414,15 +1414,9 @@ namespace Processor
 			switch (addressingMode)
 			{
 				case (AddressingMode.Absolute):
-					{
-						//Get the first half of the address
-						address = ReadMemoryValue(ProgramCounter++);
-
-						//Get the second half of the address. We multiple the value by 256 so we retrieve the right address. 
-						//IF the first Value is FF and the second value is FF the address would be FFFF.
-						address += 256 *ReadMemoryValue(ProgramCounter++);
-						return address;
-					}
+			    {
+			        return (ReadMemoryValue(ProgramCounter++) | (ReadMemoryValue(ProgramCounter++) << 8));
+				}
 				case AddressingMode.AbsoluteX:
 					{
 						//Get the low half of the address
@@ -1487,21 +1481,19 @@ namespace Processor
 
 					    address += XRegister;
                        
-						//Its a zero page address, so it wraps around if greater than 0xff
-						if (address > 0xff)
-							address -= 0x100;
-
+						
+						
 						//Now get the final Address. The is not a zero page address either.
-						var finalAddress =ReadMemoryValue(address) + (ReadMemoryValue(address + 1) << 8);
+						var finalAddress = ReadMemoryValue((address & 0xFF)) | (ReadMemoryValue((address + 1) & 0xFF) << 8);
 						return finalAddress;
 					}
 				case AddressingMode.IndirectY:
 					{
 						address = ReadMemoryValue(ProgramCounter++);
 
-					    var finalAddress = ReadMemoryValue(address) + (ReadMemoryValue(address + 1) << 8);
+					    var finalAddress = ReadMemoryValue(address) + (ReadMemoryValue((address + 1) & 0xFF) << 8);
 
-                        if (finalAddress + YRegister > 0xFF && CurrentOpCode != 0x91)
+                        if ((finalAddress & 0xFF) + YRegister > 0xFF && CurrentOpCode != 0x91)
                         {
                             ReadMemoryValue((finalAddress + YRegister - 0xFF) & 0xFFFF);
                         }
@@ -1564,12 +1556,11 @@ namespace Processor
 				newProgramCounter++;
 
             //We Crossed a Page Boundary. So we Read from the wrong place.
-            if ((ProgramCounter & 0xFF) + (movement & 0xFF) > 0xFF)
+            if ((ProgramCounter + 1 & 0xFF) + (movement & 0xFF) > 0xFF)
 			{
 			    ReadMemoryValue(WrapProgramCounter(ProgramCounter - 0x0100));
-
 			}
-            else if ((ProgramCounter & 0xFF) - (movement & 0xFF) < 0x00)
+            else if (valueToMove > 127 && (ProgramCounter & 0xFF) - (movement & 0xFF) < 0x00)
 		    {
                 ReadMemoryValue(WrapProgramCounter(ProgramCounter + 0x0100));
 		    }
@@ -1686,20 +1677,25 @@ namespace Processor
 					}
 				case AddressingMode.Relative:
 			    {
-			        var pc = ProgramCounter;
+                    var valueToMove = (byte)address1.Value;
 
-                    MoveProgramCounterByRelativeValue((byte)address1.Value);
+                    var movement = valueToMove > 127 ? (valueToMove - 255) : valueToMove;
+
+                    var newProgramCounter = ProgramCounter + movement;
+
+                    //This makes sure that we always land on the correct spot for a positive number
+                    if (movement >= 0)
+                        newProgramCounter++;
 
                     var stringAddress = ProgramCounter.ToString("X").PadLeft(4, '0');
 
                     address1 = int.Parse(stringAddress.Substring(0, 2), NumberStyles.AllowHexSpecifier);
                     address2 = int.Parse(stringAddress.Substring(2, 2), NumberStyles.AllowHexSpecifier);
 
-                    disassembledStep = string.Format("${0}", ProgramCounter.ToString("X").PadLeft(4, '0'));
+                    disassembledStep = string.Format("${0}", newProgramCounter.ToString("X").PadLeft(4, '0'));
 
-			        ProgramCounter = pc;
-                        break;
-					}
+                    break;
+				}
 				case AddressingMode.ZeroPage:
 					{
 						address2 = null;
@@ -1968,7 +1964,7 @@ namespace Processor
 		protected virtual void AddWithCarryOperation(AddressingMode addressingMode)
 		{
 			//Accumulator, Carry = Accumulator + ValueInMemoryLocation + Carry 
-			var memoryValue =ReadMemoryValue(GetAddressByAddressingMode(addressingMode));
+			var memoryValue = ReadMemoryValue(GetAddressByAddressingMode(addressingMode));
 			var newValue = memoryValue + Accumulator + (CarryFlag ? 1 : 0);
 
 			
