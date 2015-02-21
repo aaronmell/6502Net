@@ -16,7 +16,9 @@ namespace Processor
         private static readonly ILog _log = LogManager.GetLogger("Processor");
 		private int _programCounter;
 		private int _stackPointer;
-	    private int _cycleCount; 
+	    private int _cycleCount;
+	    private bool _nmiTriggered;
+	    private bool _irqTriggered;
 		#endregion
 
 		//All of the properties here are public and read only to facilitate ease of debugging and testing.
@@ -160,8 +162,21 @@ namespace Processor
             
 			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-			
-			SetDisassembly();
+
+		    if (_nmiTriggered)
+		    {
+		        NmiOccurred();
+		        _nmiTriggered = false;
+		    }
+            else if (_irqTriggered)
+		    {
+		        IrqTriggered();
+		        _irqTriggered = false;
+		    }
+		    else
+		    {
+		        SetDisassembly();
+		    }
 		}
 
 		/// <summary>
@@ -210,14 +225,7 @@ namespace Processor
 		/// </summary>
 		public void InterruptRequest()
 		{
-			if (DisableInterruptFlag)
-				return;
-
-			ProgramCounter--;
-			BreakOperation(false, 0xFFFE);
-			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-			
-            //SetDisassembly();
+		    _irqTriggered = true;
 		}
 
 		/// <summary>
@@ -225,11 +233,7 @@ namespace Processor
 		/// </summary>
 		public void NonMaskableInterrupt()
 		{
-			ProgramCounter--;
-			BreakOperation(false, 0xFFFA);
-			CurrentOpCode = ReadMemoryValue(ProgramCounter);
-
-            //SetDisassembly();
+		    _nmiTriggered = true;
 		}
 
         /// <summary>
@@ -1480,8 +1484,6 @@ namespace Processor
 					    ReadMemoryValue(address);
 
 					    address += XRegister;
-                       
-						
 						
 						//Now get the final Address. The is not a zero page address either.
 						var finalAddress = ReadMemoryValue((address & 0xFF)) | (ReadMemoryValue((address + 1) & 0xFF) << 8);
@@ -2482,6 +2484,33 @@ namespace Processor
 
 			ProgramCounter = (highBit | lowBit);
 		}
+
+        /// <summary>
+        /// This is ran anytime an NMI occurrs
+        /// </summary>
+	    private void NmiOccurred()
+	    {
+            ProgramCounter--;
+            BreakOperation(false, 0xFFFA);
+            CurrentOpCode = ReadMemoryValue(ProgramCounter);
+
+            SetDisassembly();
+	    }
+
+        /// <summary>
+        /// This is ran anytime an IRQ occurrs
+        /// </summary>
+        private void IrqTriggered()
+        {
+            if (DisableInterruptFlag)
+                return;
+
+            ProgramCounter--;
+            BreakOperation(false, 0xFFFE);
+            CurrentOpCode = ReadMemoryValue(ProgramCounter);
+
+            SetDisassembly();
+        }
 		#endregion
 
 		#endregion
