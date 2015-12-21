@@ -39,12 +39,12 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0x01));
 		}
 
-		[Test, ExpectedException(typeof(NotSupportedException))]
+		[Test]
 		public void Throws_Exception_When_OpCode_Is_Invalid()
 		{
 			var processor = new Processor();
 			processor.LoadProgram(0x00, new byte[] { 0xFF}, 0x00);
-			processor.NextStep();
+			Assert.Throws<NotSupportedException>(() => processor.NextStep());
 		}
 		
 		[Test]
