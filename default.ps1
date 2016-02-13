@@ -15,5 +15,5 @@ task Build {
 
 task Test {
     $env:TestDataDirectory = ".\Processor.UnitTests\Functional Tests"
-    & $nunitConsolePath '6502.nunit'
+    & $nunitConsolePath '6502.nunit' --result:TestResult.xml;format=nunit2
 }
