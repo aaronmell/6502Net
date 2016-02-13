@@ -1,3 +1,8 @@
+properties {
+    $nunitConsolePath = '.\packages\NUnit.Console.3.0.1\tools\nunit3-console.exe'
+}
+
+
 task default -depends Clean, Build, Test
 
 task Clean {
@@ -9,5 +14,6 @@ task Build {
 }
 
 task Test {
-    exec { .\packages\NUnit.Runners.2.6.2\tools\nunit-console.exe 6502.nunit }
+    $env:TestDataDirectory = ".\Processor.UnitTests\Functional Tests"
+    & $nunitConsolePath '6502.nunit'
 }

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using NUnit.Framework;
+using System;
 
 namespace Processor.UnitTests
 {
@@ -135,8 +136,16 @@ namespace Processor.UnitTests
 		[SetUp]
 		public void SetupPrograms()
 		{
-			KdTestProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Functional Tests", "6502_functional_test.bin"));
-			InterruptProgram = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Functional Tests", "6502_interrupt_test.bin"));
+            const string EnvironmentVariable = "TestDataDirectory";
+            string testDataDir = Environment.GetEnvironmentVariable(EnvironmentVariable);
+
+            if (string.IsNullOrWhiteSpace(testDataDir))
+            {
+                testDataDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Functional Tests");
+            }
+
+            KdTestProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_functional_test.bin"));
+			InterruptProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_interrupt_test.bin"));
 		}
 	}
 }
