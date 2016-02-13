@@ -1,0 +1,9 @@
+﻿<NUnitProject>
+  <Settings activeconfig="Debug" processModel="Default" domainUsage="Default" />
+  <Config name="Debug" binpathtype="Auto">
+    <assembly path="Processor.UnitTests\bin\Debug\Processor.UnitTests.dll" />
+  </Config>
+  <Config name="Release" binpathtype="Auto">
+    <assembly path="Processor.UnitTests\bin\Debug\Processor.UnitTests.dll" />
+  </Config>
+</NUnitProject>
