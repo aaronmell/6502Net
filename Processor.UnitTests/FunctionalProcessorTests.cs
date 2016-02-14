@@ -18,7 +18,6 @@ namespace Processor.UnitTests
 		/// If a test is failing find the first test that fails. The tests are dumb, they do not catch error traps correctly.
 		/// </summary>
 		[TestCase(0x01, 0x0432)] // Load Data
-		
 		[TestCase(0x02, 0x055e)] // BNE Relative Addressing Test
 		[TestCase(0x03, 0x05a5)] // Partial test BNE & CMP, CPX, CPY immediate
 		[TestCase(0x04, 0x05d9)] // Testing stack operations PHA PHP PLA PLP
