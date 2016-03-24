@@ -1558,11 +1558,11 @@ namespace Processor
             //We Crossed a Page Boundary. So we Read from the wrong place.
             if (valueToMove < 128 && (ProgramCounter & 0xFF) + movement > 0xFF)
 			{
-			    ReadMemoryValue(WrapProgramCounter(ProgramCounter - 0x0100));
+			    //ReadMemoryValue(WrapProgramCounter(ProgramCounter - 0x0100));
 			}
             else if (valueToMove > 127 && (ProgramCounter & 0xFF) + movement < 0x00)
 		    {
-                ReadMemoryValue(WrapProgramCounter(ProgramCounter + 0x0100));
+                //ReadMemoryValue(WrapProgramCounter(ProgramCounter + 0x0100));
 		    }
 
 		    ProgramCounter = newProgramCounter;

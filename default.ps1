@@ -3,7 +3,7 @@ properties {
 }
 
 
-task default -depends Clean, Build, Test 
+task default -depends Clean, Build, Test
 
 task Clean {
 	exec { msbuild 6502.sln '/t:Clean' /nologo /verbosity:Minimal }
