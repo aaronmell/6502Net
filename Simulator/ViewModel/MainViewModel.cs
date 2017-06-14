@@ -351,6 +351,11 @@ namespace Simulator.ViewModel
 
 		private OutputLog GetOutputLog()
 		{
+            if (Proc.CurrentDisassembly == null)
+            {
+                return new OutputLog(new Processor.Disassembly());
+            }
+
 			return new OutputLog(Proc.CurrentDisassembly)
 				                    {
 					                    XRegister = Proc.XRegister.ToString("X").PadLeft(2,'0'),

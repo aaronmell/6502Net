@@ -1,8 +1,8 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using Common.Logging;
 
 namespace Processor
 {
@@ -13,7 +13,7 @@ namespace Processor
 	public class Processor
 	{
 		#region Fields
-        private static readonly ILog _log = LogManager.GetLogger("Processor");
+        private static readonly ILogger _logger = LogManager.GetLogger("Processor");
 		private int _programCounter;
 		private int _stackPointer;
 	    private int _cycleCount;
@@ -1558,14 +1558,16 @@ namespace Processor
             //We Crossed a Page Boundary. So we Read from the wrong place.
             if (valueToMove < 128 && (ProgramCounter & 0xFF) + movement > 0xFF)
 			{
+                IncrementCycleCount();
 			    //ReadMemoryValue(WrapProgramCounter(ProgramCounter - 0x0100));
 			}
             else if (valueToMove > 127 && (ProgramCounter & 0xFF) + movement < 0x00)
 		    {
+                IncrementCycleCount();
                 //ReadMemoryValue(WrapProgramCounter(ProgramCounter + 0x0100));
-		    }
+            }
 
-		    ProgramCounter = newProgramCounter;
+            ProgramCounter = newProgramCounter;
 		    ReadMemoryValue(ProgramCounter);
 		}
 
@@ -1604,7 +1606,7 @@ namespace Processor
         [Conditional("DEBUG")]
 		private void SetDisassembly()
         {
-            if (!_log.IsDebugEnabled)
+            if (!_logger.IsDebugEnabled)
                 return;
 
 			var addressMode = GetAddressingMode();
@@ -1731,7 +1733,7 @@ namespace Processor
 					                     DisassemblyOutput = disassembledStep
 				                     };
 
-			_log.DebugFormat("{0} : {1}{2}{3} {4} {5} A: {6} X: {7} Y: {8} SP {9} N: {10} V: {11} B: {12} D: {13} I: {14} Z: {15} C: {16}",
+			_logger.Debug("{0} : {1}{2}{3} {4} {5} A: {6} X: {7} Y: {8} SP {9} N: {10} V: {11} B: {12} D: {13} I: {14} Z: {15} C: {16}",
 							 ProgramCounter.ToString("X").PadLeft(4, '0'),
 							 CurrentOpCode.ToString("X").PadLeft(2, '0'),
 							 CurrentDisassembly.LowAddress,
