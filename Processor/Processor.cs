@@ -258,6 +258,17 @@ namespace Processor
         }
 
         /// <summary>
+        /// Returns the byte at a given address without incrementing the cycle. Useful for test harness. 
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public virtual byte ReadMemoryValueWithoutCycle(int address)
+        {
+            var value = Memory[address];
+            return value;
+        }
+
+        /// <summary>
         /// Writes data to the given address.
         /// </summary>
         /// <param name="address">The address to write data to</param>

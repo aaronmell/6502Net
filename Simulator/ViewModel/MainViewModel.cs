@@ -275,22 +275,22 @@ namespace Simulator.ViewModel
 				MemoryPage.Add(new MemoryRowModel
 					               {
 						               Offset = ((16 * multiplyer) + offset).ToString("X").PadLeft(4, '0'),
-									   Location00 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2,'0'),
-									   Location01 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location02 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location03 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location04 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location05 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location06 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location07 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location08 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location09 = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location0A = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location0B = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location0C = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location0D = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location0E = Proc.ReadMemoryValue(i++).ToString("X").PadLeft(2, '0'),
-									   Location0F = Proc.ReadMemoryValue(i).ToString("X").PadLeft(2, '0'),
+									   Location00 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2,'0'),
+									   Location01 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location02 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location03 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location04 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location05 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location06 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location07 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location08 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location09 = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location0A = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location0B = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location0C = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location0D = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location0E = Proc.ReadMemoryValueWithoutCycle(i++).ToString("X").PadLeft(2, '0'),
+									   Location0F = Proc.ReadMemoryValueWithoutCycle(i).ToString("X").PadLeft(2, '0'),
 									});
 				multiplyer++;
 			}
@@ -345,9 +345,9 @@ namespace Simulator.ViewModel
 
 		private void StepProcessor()
 		{
-			NumberOfCycles++;
 			Proc.NextStep();
-		}
+            NumberOfCycles = Proc.GetCycleCount();
+        }
 
 		private OutputLog GetOutputLog()
 		{
