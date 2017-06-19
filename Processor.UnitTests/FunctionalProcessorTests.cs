@@ -11,6 +11,8 @@ namespace Processor.UnitTests
 
 		public byte[] InterruptProgram;
 
+        public byte[] CycleProgram;
+
         /// <summary>
         /// Each Test Case in Klaus_Dormann's Functional Test Program. 
         /// See https://github.com/Klaus2m5/6502_65C02_functional_tests
@@ -134,7 +136,29 @@ namespace Processor.UnitTests
 			}
 		}
 
-		[SetUp]
+        [Test]
+        public void Cycle_Test()
+        {
+            var processor = new Processor();
+            processor.LoadProgram(0x000, CycleProgram, 0x00);
+            var numberOfCycles = 0;
+
+            while (true)
+            {
+
+                processor.NextStep();
+                numberOfCycles++;
+
+                if (processor.ProgramCounter == 0x1266)
+                    break;
+
+                if (numberOfCycles > 500)
+                    Assert.Fail("Maximum Number of Cycles Exceeded");
+            }
+
+            Assert.AreEqual(1140, processor.GetCycleCount());        }
+
+        [SetUp]
 		public void SetupPrograms()
 		{
             const string EnvironmentVariable = "TestDataDirectory";
@@ -147,6 +171,7 @@ namespace Processor.UnitTests
 
             KdTestProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_functional_test.bin"));
 			InterruptProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_interrupt_test.bin"));
-		}
+            CycleProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_cycle_test.bin"));
+        }
 	}
 }
