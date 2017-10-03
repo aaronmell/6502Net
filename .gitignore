@@ -45,6 +45,7 @@ local.properties
 *.suo
 *.user
 *.sln.docstates
+.vs
 
 # Build results
 [Dd]ebug/
@@ -67,6 +68,7 @@ local.properties
 *.vspscc
 .builds
 *.dotCover
+[Pp]ackages/
 
 ## TODO: If you have NuGet Package Restore enabled, uncomment this
 #packages/

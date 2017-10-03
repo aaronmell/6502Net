@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using System;
 using NUnit.Framework;
 
 namespace Processor.UnitTests
@@ -39,12 +39,12 @@ namespace Processor.UnitTests
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0x01));
 		}
 
-		[Test, ExpectedException(typeof(InvalidEnumArgumentException))]
+		[Test]
 		public void Throws_Exception_When_OpCode_Is_Invalid()
 		{
 			var processor = new Processor();
 			processor.LoadProgram(0x00, new byte[] { 0xFF}, 0x00);
-			processor.NextStep();
+			Assert.Throws<NotSupportedException>(() => processor.NextStep());
 		}
 		
 		[Test]
@@ -290,7 +290,7 @@ namespace Processor.UnitTests
 
 			Assert.That(operation == 0x0A
 				? processor.Accumulator
-				: processor.Memory.ReadValue(expectedLocation),
+				: processor.ReadMemoryValue(expectedLocation),
 						Is.EqualTo(expectedValue));
 		}
 
@@ -554,8 +554,8 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0x00 }, 0x00);
 
 			//Manually Write the Break Address
-			processor.Memory.WriteValue(0xFFFE, 0xBC);
-			processor.Memory.WriteValue(0xFFFF, 0xCD);
+			processor.WriteMemoryValue(0xFFFE, 0xBC);
+            processor.WriteMemoryValue(0xFFFF, 0xCD);
 			
 			processor.NextStep();
 		
@@ -572,8 +572,8 @@ namespace Processor.UnitTests
 			var stackLocation = processor.StackPointer;
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(0xAB));
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 1), Is.EqualTo(0xCF));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100), Is.EqualTo(0xAB));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100 - 1), Is.EqualTo(0xCF));
 		}
 
 		[Test]
@@ -604,7 +604,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Accounting for the Offest in memory
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 2), Is.EqualTo(expectedValue));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100 - 2), Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(0x01, 0x80, 0xB0)] //Negative
@@ -623,7 +623,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Accounting for the Offest in memory
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 2), Is.EqualTo(expectedValue));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100 - 2), Is.EqualTo(expectedValue));
 		}
 
 
@@ -887,7 +887,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xC6, 0x03, 0x00, initalMemoryValue }, 0x00);
 			processor.NextStep();
 			
-			Assert.That(processor.Memory.ReadValue(0x03), Is.EqualTo(expectedMemoryValue));
+			Assert.That(processor.ReadMemoryValue(0x03), Is.EqualTo(expectedMemoryValue));
 		}
 
 		[TestCase(0x00, false)]
@@ -1064,7 +1064,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xE6, 0x03, 0x00, initalMemoryValue }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x03), Is.EqualTo(expectedMemoryValue));
+			Assert.That(processor.ReadMemoryValue(0x03), Is.EqualTo(expectedMemoryValue));
 		}
 
 		[TestCase(0x00, false)]
@@ -1206,6 +1206,21 @@ namespace Processor.UnitTests
 
 			Assert.That(processor.ProgramCounter, Is.EqualTo(0x08));
 		}
+
+        [Test]
+	    public void JMP_Indirect_Wraps_Correct_If_MSB_IS_FF()
+	    {
+            var processor = new Processor();
+            processor.WriteMemoryValue(0x01FE, 0x6C);
+            processor.LoadProgram(0, new byte[] { 0x6C, 0xFF, 0x01, 0x08, 0x00 }, 0x00);
+           
+            processor.WriteMemoryValue(0x01FF, 0x03);
+            processor.WriteMemoryValue(0x0100, 0x02);
+            processor.NextStep();
+
+            Assert.That(processor.ProgramCounter, Is.EqualTo(0x0203));
+	    }
+
 		#endregion
 
 		#region JSR - Jump to SubRoutine
@@ -1221,8 +1236,8 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			
 		
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(0xBB));
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100 - 1), Is.EqualTo(0xAC));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100), Is.EqualTo(0xBB));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100 - 1), Is.EqualTo(0xAC));
 		}
 
 		[Test]
@@ -1439,7 +1454,7 @@ namespace Processor.UnitTests
 
 			Assert.That(operation == 0x4A
 				? processor.Accumulator
-				: processor.Memory.ReadValue(expectedLocation),
+				: processor.ReadMemoryValue(expectedLocation),
 						Is.EqualTo(expectedValue));
 		}
 		#endregion
@@ -1505,7 +1520,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Accounting for the Offest in memory
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(0x03));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100), Is.EqualTo(0x03));
 		}
 		
 		[Test]
@@ -1553,7 +1568,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Accounting for the Offest in memory
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(0x01,0x80,0xB0)] //Negative
@@ -1572,7 +1587,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Accounting for the Offest in memory
-			Assert.That(processor.Memory.ReadValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
+			Assert.That(processor.ReadMemoryValue(stackLocation + 0x100), Is.EqualTo(expectedValue));
 		}
 
 		[Test]
@@ -1799,7 +1814,7 @@ namespace Processor.UnitTests
 
 			Assert.That(operation == 0x2A
 				? processor.Accumulator
-				: processor.Memory.ReadValue(expectedLocation),
+				: processor.ReadMemoryValue(expectedLocation),
 						Is.EqualTo(expectedValue));
 		}
 
@@ -1873,7 +1888,7 @@ namespace Processor.UnitTests
 
 			Assert.That(operation == 0x6A
 				? processor.Accumulator
-				: processor.Memory.ReadValue(expectedLocation),
+				: processor.ReadMemoryValue(expectedLocation),
 						Is.EqualTo(expectedValue));
 		}
 
@@ -1888,7 +1903,7 @@ namespace Processor.UnitTests
 
 			processor.LoadProgram(0xABCD, new byte[] { 0x00 }, 0xABCD);
 			//The Reset Vector Points to 0x0000 by default, so load the RTI instruction there.
-			processor.Memory.WriteValue(0x00, 0x40);
+            processor.WriteMemoryValue(0x00, 0x40);
 			
 			processor.NextStep();
 			processor.NextStep();
@@ -2238,7 +2253,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x05), Is.EqualTo(0x03));
+			Assert.That(processor.ReadMemoryValue(0x05), Is.EqualTo(0x03));
 		}
 
 		#endregion
@@ -2254,7 +2269,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x05), Is.EqualTo(0x03));
+			Assert.That(processor.ReadMemoryValue(0x05), Is.EqualTo(0x03));
 		}
 
 		#endregion
@@ -2270,7 +2285,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x05), Is.EqualTo(0x03));
+			Assert.That(processor.ReadMemoryValue(0x05), Is.EqualTo(0x03));
 		}
 
 		#endregion
@@ -2847,7 +2862,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { operation, 0x02, memoryValue }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x02), Is.EqualTo(expectedValue));
+			Assert.That(processor.ReadMemoryValue(0x02), Is.EqualTo(expectedValue));
 		}
 
 		[TestCase(0xCE, 0xFF, 0xFE)] //DEC Zero Page
@@ -2861,7 +2876,7 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { operation, 0x03, 0x00, memoryValue }, 0x00);
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x03), Is.EqualTo(expectedValue));
+			Assert.That(processor.ReadMemoryValue(0x03), Is.EqualTo(expectedValue));
 		}
 		#endregion
 
@@ -2895,7 +2910,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(0x05));
+			Assert.That(processor.ReadMemoryValue(0x04), Is.EqualTo(0x05));
 		}
 
 		[TestCase(0x8D, 0x03, RegisterMode.Accumulator)] // STA Absolute
@@ -2925,7 +2940,7 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			processor.NextStep();
 
-			Assert.That(processor.Memory.ReadValue(0x04), Is.EqualTo(valueToLoad));
+			Assert.That(processor.ReadMemoryValue(0x04), Is.EqualTo(valueToLoad));
 		}
 
 		#endregion
@@ -2940,8 +2955,8 @@ namespace Processor.UnitTests
 		[TestCase(0x61, 6)] // ADC Indrect X
 		[TestCase(0x71, 5)] // ADC Indirect Y
 		[TestCase(0x29, 2)] // AND Immediate
-		[TestCase(0x25, 2)] // AND Zero Page
-		[TestCase(0x35, 3)] // AND Zero Page X
+		[TestCase(0x25, 3)] // AND Zero Page
+		[TestCase(0x35, 4)] // AND Zero Page X
 		[TestCase(0x2D, 4)] // AND Absolute
 		[TestCase(0x3D, 4)] // AND Absolute X
 		[TestCase(0x39, 4)] // AND Absolute Y
@@ -2989,10 +3004,10 @@ namespace Processor.UnitTests
 		[TestCase(0x51, 5)] // EOR Indirect Y
 		[TestCase(0xE6, 5)] // INC Zero Page
 		[TestCase(0xF6, 6)] // INC Zero Page X
+        [TestCase(0xEE, 6)] // INC Absolute
+        [TestCase(0xFE, 7)] // INC Absolute X
 		[TestCase(0xE8, 2)] // INX Implied
 		[TestCase(0xC8, 2)] // INY Implied
-		[TestCase(0xEE, 6)] // INC Absolute
-		[TestCase(0xFE, 7)] // INC Absolute X
 		[TestCase(0x4C, 3)] // JMP Absolute
 		[TestCase(0x6C, 5)] // JMP Indirect
 		[TestCase(0x20, 6)] // JSR Absolute
@@ -3021,8 +3036,8 @@ namespace Processor.UnitTests
 		[TestCase(0x5E, 7)] // LSR Absolute X
 		[TestCase(0xEA, 2)] // NOP Implied
 		[TestCase(0x09, 2)] // ORA Immediate
-		[TestCase(0x05, 2)] // ORA Zero Page
-		[TestCase(0x15, 3)] // ORA Zero Page X
+		[TestCase(0x05, 3)] // ORA Zero Page
+		[TestCase(0x15, 4)] // ORA Zero Page X
 		[TestCase(0x0D, 4)] // ORA Absolute
 		[TestCase(0x1D, 4)] // ORA Absolute X
 		[TestCase(0x19, 4)] // ORA Absolute Y
@@ -3079,10 +3094,10 @@ namespace Processor.UnitTests
 			var processor = new Processor();
 			processor.LoadProgram(0, new byte[] { operation, 0x00 }, 0x00);
 			
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x07D, true, 5)] // ADC Absolute X
@@ -3120,10 +3135,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x071, 6)] // ADC Indirect Y
@@ -3141,10 +3156,10 @@ namespace Processor.UnitTests
 			processor.LoadProgram(0, new byte[] { 0xA0, 0x04, operation, 0x05, 0x08, 0xFF, 0xFF, 0x03 }, 0x00);
 			processor.NextStep();
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 		
 		[TestCase(0x90, 2 , true)] //BCC
@@ -3163,10 +3178,10 @@ namespace Processor.UnitTests
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x90, 4, false, true)]  //BCC
@@ -3185,10 +3200,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0xF0, 3, true)]  //BEQ
@@ -3207,10 +3222,10 @@ namespace Processor.UnitTests
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0xF0, 4, true, true)]  //BEQ
@@ -3229,10 +3244,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x30, 3, true)]  //BEQ
@@ -3251,10 +3266,10 @@ namespace Processor.UnitTests
 
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x30, 4, true, true)]  //BEQ
@@ -3273,10 +3288,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x50, 3, false)]  //BVC
@@ -3295,10 +3310,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 			
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 
 		[TestCase(0x50, 4, false, true)]  //BVC
@@ -3318,10 +3333,10 @@ namespace Processor.UnitTests
 			processor.NextStep();
 
 			//Get the number of cycles after the register has been loaded, so we can isolate the operation under test
-			var startingNumberOfCycles = processor.NumberofCyclesLeft;
+			var startingNumberOfCycles = processor.GetCycleCount();
 			processor.NextStep();
 
-			Assert.That(processor.NumberofCyclesLeft, Is.EqualTo(startingNumberOfCycles - numberOfCyclesUsed));
+            Assert.AreEqual(startingNumberOfCycles + numberOfCyclesUsed, processor.GetCycleCount());
 		}
 		#endregion
 
