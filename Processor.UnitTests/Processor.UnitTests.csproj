@@ -55,6 +55,7 @@
     <Compile Include="RegisterMode.cs" />
     <Compile Include="ProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestData.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Functional Tests\6502_cycle_test.lst">
@@ -86,6 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Functional Tests\6502_cycle_test.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Functional Tests\cycle_test_data.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

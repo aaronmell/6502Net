@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace Processor.UnitTests
 {
@@ -12,6 +13,9 @@ namespace Processor.UnitTests
 		public byte[] InterruptProgram;
 
         public byte[] CycleProgram;
+
+        public List<TestData> CycleTestDataResults;
+       
 
         /// <summary>
         /// Each Test Case in Klaus_Dormann's Functional Test Program. 
@@ -141,37 +145,103 @@ namespace Processor.UnitTests
         {
             var processor = new Processor();
             processor.LoadProgram(0x000, CycleProgram, 0x00);
-            var numberOfCycles = 0;
+            var numberofLoops = 1;
 
             while (true)
             {
+                if (numberofLoops == 249 )
+                {
+
+                }
 
                 processor.NextStep();
-                numberOfCycles++;
+
+                Assert.AreEqual(CycleTestDataResults[numberofLoops].ProgramCounter, processor.ProgramCounter,
+                   string.Format("Step {0} PC: {1}", numberofLoops, processor.ProgramCounter));
+
+                Assert.AreEqual(CycleTestDataResults[numberofLoops].CycleCount, processor.GetCycleCount(),
+                   string.Format("Step {0} Cycles: {1}", numberofLoops, processor.GetCycleCount()));
+
+
+                numberofLoops++;
 
                 if (processor.ProgramCounter == 0x1266)
                     break;
 
-                if (numberOfCycles > 500)
+                if (numberofLoops > 500)
                     Assert.Fail("Maximum Number of Cycles Exceeded");
             }
 
-            Assert.AreEqual(1140, processor.GetCycleCount());        }
+            Assert.AreEqual(1140, processor.GetCycleCount());
+        }
 
         [SetUp]
 		public void SetupPrograms()
 		{
             const string EnvironmentVariable = "TestDataDirectory";
-            string testDataDir = Environment.GetEnvironmentVariable(EnvironmentVariable);
+            string CycleTestDataResultsDir = Environment.GetEnvironmentVariable(EnvironmentVariable);
 
-            if (string.IsNullOrWhiteSpace(testDataDir))
+            if (string.IsNullOrWhiteSpace(CycleTestDataResultsDir))
             {
-                testDataDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Functional Tests");
+                CycleTestDataResultsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Functional Tests");
             }
 
-            KdTestProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_functional_test.bin"));
-			InterruptProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_interrupt_test.bin"));
-            CycleProgram = File.ReadAllBytes(Path.Combine(testDataDir, "6502_cycle_test.bin"));
+            KdTestProgram = File.ReadAllBytes(Path.Combine(CycleTestDataResultsDir, "6502_functional_test.bin"));
+			InterruptProgram = File.ReadAllBytes(Path.Combine(CycleTestDataResultsDir, "6502_interrupt_test.bin"));
+            CycleProgram = File.ReadAllBytes(Path.Combine(CycleTestDataResultsDir, "6502_cycle_test.bin"));
+
+            LoadCycleTestResults(CycleTestDataResultsDir, "cycle_test_data.csv");
         }
-	}
+
+        private void LoadCycleTestResults(string folder, string filename)
+        {
+            var path = Path.Combine(folder, filename);
+
+            var reader =
+                new StreamReader(File.OpenRead(path));
+
+            CycleTestDataResults = new List<TestData>();
+            var lineNumber = 0;
+
+            try
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    var values = line.Split(',');
+
+                    if (int.Parse(values[0]) % 2 != 0)
+                    {
+                        lineNumber++;
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(values[8]))
+                    {
+                        continue;
+                    }
+
+                    CycleTestDataResults.Add(new TestData
+                    {
+                        ProgramCounter = Int32.Parse(values[1], System.Globalization.NumberStyles.HexNumber),
+                        Accumulator = Int32.Parse(values[2], System.Globalization.NumberStyles.HexNumber),
+                        XRegister = Int32.Parse(values[3], System.Globalization.NumberStyles.HexNumber),
+                        YRegister = Int32.Parse(values[4], System.Globalization.NumberStyles.HexNumber),
+                        Flags = Int32.Parse(values[5], System.Globalization.NumberStyles.HexNumber),
+                        StackPointer = Int32.Parse(values[6], System.Globalization.NumberStyles.HexNumber),
+                        CycleCount = int.Parse(values[7]),
+                    });
+
+                    lineNumber++;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            
+            
+        }
+    }
 }

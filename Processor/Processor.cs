@@ -1567,15 +1567,13 @@ namespace Processor
 				newProgramCounter++;
 
             //We Crossed a Page Boundary. So we Read from the wrong place.
-            if (valueToMove < 128 && (ProgramCounter & 0xFF) + movement > 0xFF)
+            if (valueToMove < 128 && (ProgramCounter + 1 & 0xFF) + movement > 0xFF)
 			{
                 IncrementCycleCount();
-			    //ReadMemoryValue(WrapProgramCounter(ProgramCounter - 0x0100));
 			}
             else if (valueToMove > 127 && (ProgramCounter & 0xFF) + movement < 0x00)
 		    {
                 IncrementCycleCount();
-                //ReadMemoryValue(WrapProgramCounter(ProgramCounter + 0x0100));
             }
 
             ProgramCounter = newProgramCounter;
