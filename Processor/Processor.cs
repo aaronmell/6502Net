@@ -1566,13 +1566,9 @@ namespace Processor
 			if (movement >= 0)
 				newProgramCounter++;
 
-            //We Crossed a Page Boundary. So we Read from the wrong place.
-            if (valueToMove < 128 && (ProgramCounter + 1 & 0xFF) + movement > 0xFF)
-			{
-                IncrementCycleCount();
-			}
-            else if (valueToMove > 127 && (ProgramCounter & 0xFF) + movement < 0x00)
-		    {
+            //We Crossed a Page Boundary. So we increment the cycle counter by one. The +1 is because we always check from the end of the instruction not the beginning
+            if (((ProgramCounter + 1 ^ newProgramCounter) & 0xff00) != 0x0000)
+            {
                 IncrementCycleCount();
             }
 
