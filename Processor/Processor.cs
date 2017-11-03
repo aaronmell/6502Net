@@ -16,13 +16,11 @@ namespace Processor
         private static readonly ILogger _logger = LogManager.GetLogger("Processor");
 		private int _programCounter;
 		private int _stackPointer;
-	    private int _cycleCount;
-	    private bool _nmiTriggered;
-	    private bool _irqTriggered;
-		#endregion
+	    private int _cycleCount;	   
+        #endregion
 
-		//All of the properties here are public and read only to facilitate ease of debugging and testing.
-		#region Properties
+        //All of the properties here are public and read only to facilitate ease of debugging and testing.
+        #region Properties
         /// <summary>
         /// The memory
         /// </summary>
@@ -116,13 +114,21 @@ namespace Processor
 		/// In shift operations the sign holds the carry.
 		/// </summary>
 		public bool NegativeFlag { get; private set; }
-		#endregion
 
-		#region Public Methods
-		/// <summary>
-		/// Default Constructor, Instantiates a new instance of the processor.
-		/// </summary>
-		public Processor()
+        /// <summary>
+        /// Set to true when an NMI has occurred and is being processed by the CPU
+        /// </summary>
+        public bool NMIOcurring { get; private set; }
+
+        /// Set to true when an IRQ has occurred and is being processed by the CPU
+        public bool IRQOccurring { get; private set; }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Default Constructor, Instantiates a new instance of the processor.
+        /// </summary>
+        public Processor()
 		{
 			Memory = new byte[0x10000];
 			StackPointer = 0x100;
@@ -163,15 +169,15 @@ namespace Processor
 			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
 
-		    if (_nmiTriggered)
+		    if (NMIOcurring)
 		    {
-		        NmiOccurred();
-		        _nmiTriggered = false;
+		        ProcessNMI();
+		        NMIOcurring = false;
 		    }
-            else if (_irqTriggered)
+            else if (IRQOccurring)
 		    {
-		        IrqTriggered();
-		        _irqTriggered = false;
+                ProcessIRQ();
+		        IRQOccurring = false;
 		    }
 		    else
 		    {
@@ -225,7 +231,7 @@ namespace Processor
 		/// </summary>
 		public void InterruptRequest()
 		{
-		    _irqTriggered = true;
+		    IRQOccurring = true;
 		}
 
 		/// <summary>
@@ -233,7 +239,7 @@ namespace Processor
 		/// </summary>
 		public void NonMaskableInterrupt()
 		{
-		    _nmiTriggered = true;
+		    NMIOcurring = true;
 		}
 
         /// <summary>
@@ -2493,7 +2499,7 @@ namespace Processor
         /// <summary>
         /// This is ran anytime an NMI occurrs
         /// </summary>
-	    private void NmiOccurred()
+	    private void ProcessNMI()
 	    {
             ProgramCounter--;
             BreakOperation(false, 0xFFFA);
@@ -2505,7 +2511,7 @@ namespace Processor
         /// <summary>
         /// This is ran anytime an IRQ occurrs
         /// </summary>
-        private void IrqTriggered()
+        private void ProcessIRQ()
         {
             if (DisableInterruptFlag)
                 return;
