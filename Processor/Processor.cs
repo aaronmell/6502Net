@@ -43,6 +43,7 @@ namespace Processor
 		/// The Current Op Code being executed by the system
 		/// </summary>
 		public int CurrentOpCode { get; private set; }
+        
 		/// <summary>
 		/// The disassembly of the current operation. This value is only set when the CPU is built in debug mode.
 		/// </summary>
@@ -116,9 +117,9 @@ namespace Processor
 		public bool NegativeFlag { get; private set; }
 
         /// <summary>
-        /// Set to true when an NMI has occurred and is being processed by the CPU
+        /// Set to true when an NMI should occur
         /// </summary>
-        public bool NMIOcurring { get; private set; }
+        public bool TriggerNmi { get; set; }
 
         /// Set to true when an IRQ has occurred and is being processed by the CPU
         public bool IRQOccurring { get; private set; }
@@ -169,10 +170,10 @@ namespace Processor
 			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
 
-		    if (NMIOcurring)
+		    if (TriggerNmi)
 		    {
 		        ProcessNMI();
-		        NMIOcurring = false;
+		        TriggerNmi = false;
 		    }
             else if (IRQOccurring)
 		    {
@@ -234,15 +235,7 @@ namespace Processor
 		    IRQOccurring = true;
 		}
 
-		/// <summary>
-		/// The InterruptRequest or IRQ
-		/// </summary>
-		public void NonMaskableInterrupt()
-		{
-		    NMIOcurring = true;
-		}
-
-        /// <summary>
+		        /// <summary>
         /// Clears the memory
         /// </summary>
         public void ClearMemory()

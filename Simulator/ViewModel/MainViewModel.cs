@@ -556,7 +556,7 @@ namespace Simulator.ViewModel
 			if (_backgroundWorker.IsBusy)
 				_backgroundWorker.CancelAsync();
 
-			Proc.NonMaskableInterrupt();
+			Proc.TriggerNmi = true;
 
 			UpdateMemoryPage();
 
