@@ -274,8 +274,8 @@ namespace Processor
         /// <param name="data">The data to write</param>
         public virtual void WriteMemoryValue(int address, byte data)
         {
-             Memory[address] = data;
             IncrementCycleCount();
+            Memory[address] = data;
         }
 
         /// <summary>
