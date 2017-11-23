@@ -16,7 +16,9 @@ namespace Processor
         private static readonly ILogger _logger = LogManager.GetLogger("Processor");
 		private int _programCounter;
 		private int _stackPointer;
-	    private int _cycleCount;	   
+	    private int _cycleCount;
+        private bool _previousInterrupt;
+        private bool _interrupt;
         #endregion
 
         //All of the properties here are public and read only to facilitate ease of debugging and testing.
@@ -122,7 +124,7 @@ namespace Processor
         public bool TriggerNmi { get; set; }
 
         /// Set to true when an IRQ has occurred and is being processed by the CPU
-        public bool IRQOccurring { get; private set; }
+        public bool TriggerIRQ { get; private set; }
         #endregion
 
         #region Public Methods
@@ -170,21 +172,26 @@ namespace Processor
 			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
 			CurrentOpCode = ReadMemoryValue(ProgramCounter);
 
-		    if (TriggerNmi)
-		    {
-		        ProcessNMI();
-		        TriggerNmi = false;
-		    }
-            else if (IRQOccurring)
-		    {
-                ProcessIRQ();
-		        IRQOccurring = false;
-		    }
-		    else
-		    {
-		        SetDisassembly();
-		    }
-		}
+            if (_previousInterrupt)
+            {
+                if (TriggerNmi)
+                {
+                    ProcessNMI();
+                    TriggerNmi = false;
+                }
+                else if (TriggerIRQ)
+                {
+                    ProcessIRQ();
+                    TriggerIRQ = false;
+                }                
+            }
+            else
+            {
+                SetDisassembly();
+            }
+
+
+        }
 
 		/// <summary>
 		/// Loads a program into the processors memory
@@ -232,7 +239,7 @@ namespace Processor
 		/// </summary>
 		public void InterruptRequest()
 		{
-		    IRQOccurring = true;
+		    TriggerIRQ = true;
 		}
 
 		        /// <summary>
@@ -294,6 +301,9 @@ namespace Processor
         {
             _cycleCount++;
             CycleCountIncrementedAction();
+
+            _previousInterrupt = _interrupt;
+            _interrupt = TriggerNmi || (TriggerIRQ && !DisableInterruptFlag); 
         }
 
         /// <summary>
@@ -2462,7 +2472,9 @@ namespace Processor
 			DisableInterruptFlag = true;
 
             ProgramCounter = (ReadMemoryValue(vector + 1) << 8) | ReadMemoryValue(vector);
-		}
+
+            _previousInterrupt = false;
+        }
 
 		/// <summary>
 		/// The RTI routine. Called when returning from a BRK opertion.
