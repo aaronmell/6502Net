@@ -158,6 +158,9 @@ namespace Processor
             //SetDisassembly();
 
 			DisableInterruptFlag = true;
+            _previousInterrupt = false;
+            TriggerNmi = false;
+            TriggerIRQ = false;
 		}
 
 		/// <summary>
@@ -165,12 +168,12 @@ namespace Processor
 		/// </summary>
 		public void NextStep()
 		{
-			ProgramCounter++;
+            //Have to read this first otherwise it causes tests to fail on a NES
+            CurrentOpCode = ReadMemoryValue(ProgramCounter);
+
+            ProgramCounter++;
 		    
             ExecuteOpCode();
-            
-			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
-			CurrentOpCode = ReadMemoryValue(ProgramCounter);
 
             if (_previousInterrupt)
             {
