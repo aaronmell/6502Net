@@ -168,6 +168,8 @@ namespace Processor
 		/// </summary>
 		public void NextStep()
 		{
+            SetDisassembly();
+
             //Have to read this first otherwise it causes tests to fail on a NES
             CurrentOpCode = ReadMemoryValue(ProgramCounter);
 
@@ -187,13 +189,7 @@ namespace Processor
                     ProcessIRQ();
                     TriggerIRQ = false;
                 }                
-            }
-            else
-            {
-                SetDisassembly();
-            }
-
-
+            }  
         }
 
 		/// <summary>
