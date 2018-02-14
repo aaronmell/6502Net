@@ -11,4 +11,10 @@ build:
   project: 6502.sln
   parallel: true
   verbosity: minimal
+ 
+build_script:
+  - choco install "msbuild-sonarqube-runner" -y
+  - MSBuild.SonarQube.Runner.exe begin /k:"6502-net" /d:"sonar.host.url=https://sonarqube.com" /d:"sonar.login=f35b2c6016cbcd7bf16a3a3841e299311f0fdafc"
+  - msbuild "6502.sln"
+  - MSBuild.SonarQube.Runner.exe end /d:"sonar.login=f35b2c6016cbcd7bf16a3a3841e299311f0fdafc"
   
