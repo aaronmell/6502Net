@@ -17,12 +17,12 @@ namespace Processor
 		private int _programCounter;
 		private int _stackPointer;
 	    private int _cycleCount;
-	    private bool _nmiTriggered;
-	    private bool _irqTriggered;
-		#endregion
+        private bool _previousInterrupt;
+        private bool _interrupt;
+        #endregion
 
-		//All of the properties here are public and read only to facilitate ease of debugging and testing.
-		#region Properties
+        //All of the properties here are public and read only to facilitate ease of debugging and testing.
+        #region Properties
         /// <summary>
         /// The memory
         /// </summary>
@@ -45,6 +45,7 @@ namespace Processor
 		/// The Current Op Code being executed by the system
 		/// </summary>
 		public int CurrentOpCode { get; private set; }
+        
 		/// <summary>
 		/// The disassembly of the current operation. This value is only set when the CPU is built in debug mode.
 		/// </summary>
@@ -116,13 +117,21 @@ namespace Processor
 		/// In shift operations the sign holds the carry.
 		/// </summary>
 		public bool NegativeFlag { get; private set; }
-		#endregion
 
-		#region Public Methods
-		/// <summary>
-		/// Default Constructor, Instantiates a new instance of the processor.
-		/// </summary>
-		public Processor()
+        /// <summary>
+        /// Set to true when an NMI should occur
+        /// </summary>
+        public bool TriggerNmi { get; set; }
+
+        /// Set to true when an IRQ has occurred and is being processed by the CPU
+        public bool TriggerIRQ { get; private set; }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Default Constructor, Instantiates a new instance of the processor.
+        /// </summary>
+        public Processor()
 		{
 			Memory = new byte[0x10000];
 			StackPointer = 0x100;
@@ -149,6 +158,9 @@ namespace Processor
             //SetDisassembly();
 
 			DisableInterruptFlag = true;
+            _previousInterrupt = false;
+            TriggerNmi = false;
+            TriggerIRQ = false;
 		}
 
 		/// <summary>
@@ -156,28 +168,29 @@ namespace Processor
 		/// </summary>
 		public void NextStep()
 		{
-			ProgramCounter++;
+            SetDisassembly();
+
+            //Have to read this first otherwise it causes tests to fail on a NES
+            CurrentOpCode = ReadMemoryValue(ProgramCounter);
+
+            ProgramCounter++;
 		    
             ExecuteOpCode();
-            
-			//Grabbing this at the end, ensure thats when we read the CurrentOp Code field, that we have the correct OpCode for the instruction we are going to execute Next.
-			CurrentOpCode = ReadMemoryValue(ProgramCounter);
 
-		    if (_nmiTriggered)
-		    {
-		        NmiOccurred();
-		        _nmiTriggered = false;
-		    }
-            else if (_irqTriggered)
-		    {
-		        IrqTriggered();
-		        _irqTriggered = false;
-		    }
-		    else
-		    {
-		        SetDisassembly();
-		    }
-		}
+            if (_previousInterrupt)
+            {
+                if (TriggerNmi)
+                {
+                    ProcessNMI();
+                    TriggerNmi = false;
+                }
+                else if (TriggerIRQ)
+                {
+                    ProcessIRQ();
+                    TriggerIRQ = false;
+                }                
+            }  
+        }
 
 		/// <summary>
 		/// Loads a program into the processors memory
@@ -225,18 +238,10 @@ namespace Processor
 		/// </summary>
 		public void InterruptRequest()
 		{
-		    _irqTriggered = true;
+		    TriggerIRQ = true;
 		}
 
-		/// <summary>
-		/// The InterruptRequest or IRQ
-		/// </summary>
-		public void NonMaskableInterrupt()
-		{
-		    _nmiTriggered = true;
-		}
-
-        /// <summary>
+		        /// <summary>
         /// Clears the memory
         /// </summary>
         public void ClearMemory()
@@ -275,8 +280,8 @@ namespace Processor
         /// <param name="data">The data to write</param>
         public virtual void WriteMemoryValue(int address, byte data)
         {
-             Memory[address] = data;
             IncrementCycleCount();
+            Memory[address] = data;
         }
 
         /// <summary>
@@ -295,6 +300,9 @@ namespace Processor
         {
             _cycleCount++;
             CycleCountIncrementedAction();
+
+            _previousInterrupt = _interrupt;
+            _interrupt = TriggerNmi || (TriggerIRQ && !DisableInterruptFlag); 
         }
 
         /// <summary>
@@ -2463,7 +2471,9 @@ namespace Processor
 			DisableInterruptFlag = true;
 
             ProgramCounter = (ReadMemoryValue(vector + 1) << 8) | ReadMemoryValue(vector);
-		}
+
+            _previousInterrupt = false;
+        }
 
 		/// <summary>
 		/// The RTI routine. Called when returning from a BRK opertion.
@@ -2493,7 +2503,7 @@ namespace Processor
         /// <summary>
         /// This is ran anytime an NMI occurrs
         /// </summary>
-	    private void NmiOccurred()
+	    private void ProcessNMI()
 	    {
             ProgramCounter--;
             BreakOperation(false, 0xFFFA);
@@ -2505,7 +2515,7 @@ namespace Processor
         /// <summary>
         /// This is ran anytime an IRQ occurrs
         /// </summary>
-        private void IrqTriggered()
+        private void ProcessIRQ()
         {
             if (DisableInterruptFlag)
                 return;

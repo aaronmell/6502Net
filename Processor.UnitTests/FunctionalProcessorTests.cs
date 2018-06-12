@@ -123,7 +123,7 @@ namespace Processor.UnitTests
 					previousInterruptWatchValue = interruptWatch;
 
 					if ((interruptWatch & 2) != 0)
-						processor.NonMaskableInterrupt();
+						processor.TriggerNmi = true;
 				}
 				
 				if (!processor.DisableInterruptFlag && (interruptWatch & 1) != 0)

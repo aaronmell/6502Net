@@ -3,10 +3,23 @@ version: 0.3.{build}
 max_jobs: 1
 configuration: Release
 platform: Any CPU
+image: Visual Studio 2017
+
 before_build:
   - nuget restore
 build:
   project: 6502.sln
   parallel: true
   verbosity: minimal
+  
+after_test:
+  - cmd: MSBuild.SonarQube.Runner.exe end /d:"sonar.login=f35b2c6016cbcd7bf16a3a3841e299311f0fdafc"
+
+build_script:
+  - choco install "msbuild-sonarqube-runner" -y
+  - MSBuild.SonarQube.Runner.exe begin /k:"6502net" /o:"aaronmell-github" /d:"sonar.host.url=https://sonarqube.com" /d:"sonar.login=f35b2c6016cbcd7bf16a3a3841e299311f0fdafc"
+  - msbuild "6502.sln"
+
+test_script:
+  - packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -register:user -target:"packages\NUnit.ConsoleRunner.3.7.0\tools\nunit3-console.exe" -targetargs:"Processor.UnitTests\bin\Release\Processor.UnitTests.dll"
   
