@@ -222,7 +222,7 @@ namespace Processor
             if (offset > Memory.Length)
                 throw new InvalidOperationException("Offset '{0}' is larger than memory size '{1}'");
 
-            if (program.Length > Memory.Length + offset)
+            if (program.Length + offset > Memory.Length)
                 throw new InvalidOperationException(string.Format("Program Size '{0}' Cannot be Larger than Memory Size '{1}' plus offset '{2}'", program.Length, Memory.Length, offset));
 
             for (var i = 0; i < program.Length; i++)

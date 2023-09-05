@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using GalaSoft.MvvmLight;
@@ -80,12 +81,13 @@ namespace Simulator.ViewModel
 			get { return _memoryPageOffset.ToString("X"); }
 			set
 			{
-				//I don't like this hack, but WPF doesn't support any way to update the Value on keypress
-				if (string.IsNullOrEmpty(value))
+				int v = Convert.ToInt32(value, 16);
+                //I don't like this hack, but WPF doesn't support any way to update the Value on keypress
+                if (string.IsNullOrEmpty(value) || (v * 0xFF) > 0xFFFF)
 					return;
 				try
 				{
-					_memoryPageOffset = Convert.ToInt32(value, 16);
+					_memoryPageOffset = v;
 				}
 // ReSharper disable EmptyGeneralCatchClause
 				catch {}
@@ -223,7 +225,7 @@ namespace Simulator.ViewModel
 			}
 
 			Proc.LoadProgram(notificationMessage.Content.MemoryOffset, notificationMessage.Content.Program, notificationMessage.Content.InitialProgramCounter);
-			FilePath = string.Format("Loaded Program: {0}", notificationMessage.Content.FilePath);
+			FilePath = string.Format("Loaded Program: {0}", Path.GetFileName(notificationMessage.Content.FilePath));
 			RaisePropertyChanged("FilePath");
 
 			IsProgramLoaded = true;
