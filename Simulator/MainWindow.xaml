@@ -1,199 +1,420 @@
 ﻿<Window x:Class="Simulator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="6502 Simulator" Height="856" Width="1821"
-		DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" WindowState="Normal" Background="DarkGray">
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        Title="6502 Simulator"
+        DataContext="{Binding Main, Source={StaticResource Locator}}"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="DarkGray"
+        Padding="8">
 
-	<Window.Resources>
-		<Style TargetType="{x:Type Button}">
-			<Setter Property="Padding" Value="3.5,0" />
-			<Setter Property="Margin" Value="3.5" />
-			<Setter Property="MinWidth" Value="80" />
-		</Style>
+    <Window.Resources>
+        <system:Double
+            x:Key="FontSize">12.0</system:Double>
 
-		<!-- This Style inherits from the Button style seen above. -->
-		<Style BasedOn="{StaticResource {x:Type Button}}"  TargetType="{x:Type Button}" x:Key="RunButtonStyle">
-			<Setter Property="Content" Value="Run" />
-			<Style.Triggers>
-				<DataTrigger Binding="{Binding Path=IsRunning}" Value="True">
-					<Setter Property="Content" Value="Pause" />
-				</DataTrigger>
-				<DataTrigger Binding="{Binding Path=IsRunning}" Value="False">
-					<Setter Property="Content" Value="Run" />
-				</DataTrigger>
-			</Style.Triggers>
-		</Style>
+        <Style
+            TargetType="{x:Type TextBox}">
+            <Setter
+                Property="FontFamily"
+                Value="Consolas" />
+            <Setter
+                Property="FontSize"
+                Value="{StaticResource FontSize}" />
+        </Style>
+        
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Padding" Value="3.5,0" />
+            <Setter Property="Margin" Value="3.5" />
+            <Setter Property="MinWidth" Value="80" />
+        </Style>
 
-		<Style x:Key="ColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
-			<Setter Property="FontSize" Value="14"/>
-		</Style>
+        <!-- This Style inherits from the Button style seen above. -->
+        <Style BasedOn="{StaticResource {x:Type Button}}"
+               TargetType="{x:Type Button}" x:Key="RunButtonStyle">
+            <Setter Property="Content" Value="Run" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=IsRunning}" Value="True">
+                    <Setter Property="Content" Value="Pause" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=IsRunning}" Value="False">
+                    <Setter Property="Content" Value="Run" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
-		<Style x:Key="MemoryMapColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}" BasedOn="{ StaticResource ColumnHeaderStyle}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
-						<Grid Background="{TemplateBinding Background}">
-							<ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-						</Grid>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-		</Style>
+        <Style x:Key="ColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="FontSize" Value="{StaticResource FontSize}" />
+        </Style>
 
-		<Style x:Key="CellStyle" TargetType="{x:Type DataGridCell}">
-			<Setter Property="FontSize" Value="14"/>
-			<Setter Property="MinHeight" Value="24"/>
-		</Style>
+        <Style x:Key="MemoryMapColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}"
+               BasedOn="{ StaticResource ColumnHeaderStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter
+                Property="FontSize"
+                Value="{StaticResource FontSize}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
 
-		<Style x:Key="MemoryMapContentCellStyle" TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource CellStyle}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type DataGridCell}">
-						<Grid Background="{TemplateBinding Background}">
-							<ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
-						</Grid>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-			<Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
-			<Setter Property="MinWidth" Value="30"/>
-		</Style>
+        <Style x:Key="CellStyle" TargetType="{x:Type DataGridCell}">
+            <Setter Property="FontSize" Value="{StaticResource FontSize}" />
+            <!--<Setter Property="MinHeight" Value="24" />-->
+        </Style>
 
-	</Window.Resources>
+        <Style x:Key="MemoryMapContentCellStyle" TargetType="{x:Type DataGridCell}"
+               BasedOn="{StaticResource CellStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter
+                Property="HorizontalContentAlignment"
+                Value="Center" />
+            <Setter
+                Property="Width"
+                Value="Auto" />
+            <Setter
+                Property="Padding"
+                Value="8,4" />
+        </Style>
 
-	<Grid Width="1799" Margin="8,4">
-		<DataGrid MaxHeight="435" HorizontalAlignment="Left" Margin="1230,58,0,0" Name="MemoryMap" VerticalAlignment="Top" Height="Auto" Width="Auto" AutoGenerateColumns="False" 
-					CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" CanUserResizeColumns="False" CanUserDeleteRows="False"
-					CanUserAddRows="False" ItemsSource="{Binding MemoryPage}" CellStyle="{StaticResource MemoryMapContentCellStyle}">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="Offset (h)" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Offset, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="00" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location00, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="01" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location01, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="02" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location02, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="03" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location03, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="04" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location04, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="05" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location05, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="06" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location06, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="07" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location07, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="08" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location08, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="09" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location09, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="0A" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0A, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="0B" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0B, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="0C" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0C, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="0D" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0D, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="0E" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0E, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-				<DataGridTextColumn Header="0F" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding Location0F, Mode=OneWay}" HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
-			</DataGrid.Columns>
-		</DataGrid>
+    </Window.Resources>
 
-		<DataGrid Height="247" HorizontalAlignment="Left" Margin="49,532,0,0" Name="OutputLog" VerticalAlignment="Top" MaxWidth="800" Width="Auto" AutoGenerateColumns="False" 
-					CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" CanUserResizeColumns="False" CanUserDeleteRows="False"
-					CanUserAddRows="False" ItemsSource="{Binding OutputLog}" CellStyle="{StaticResource CellStyle}" GridLinesVisibility="Horizontal">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="PC" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding ProgramCounter, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="" Width="Auto" MinWidth="50" CanUserResize="False" IsReadOnly="True" Binding="{Binding CurrentOpCode, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding LowAddress, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding HighAddress, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="" Width="Auto" MinWidth="60" CanUserResize="False" IsReadOnly="True" Binding="{Binding OpCodeString, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="" Width="Auto" MinWidth="80" CanUserResize="False" IsReadOnly="True" Binding="{Binding DisassemblyOutput, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="A" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding Accumulator, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="X" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding XRegister, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="Y" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding YRegister, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="SP" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True" Binding="{Binding StackPointer, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridTextColumn Header="CycleCount" MinWidth="200" Width="Auto" CanUserResize="False" IsReadOnly="True" Binding="{Binding NumberOfCycles, Mode=OneWay}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-			</DataGrid.Columns>
-		</DataGrid>
+    <Grid Margin="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="738" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="48" />
+            <RowDefinition Height="48" />
+        </Grid.RowDefinitions>
+        <TextBox Grid.Column="0" Grid.Row="0" Margin="8"
+                 HorizontalAlignment="Stretch" Name="CodeView"
+                 Text="{Binding Path=Listing, Mode=OneWay}" 
+                 VerticalScrollBarVisibility="Visible" />
 
-		<TextBox Height="412" HorizontalAlignment="Left" Margin="49,51,0,0" Name="CodeView" VerticalAlignment="Top" Width="1112" Text="{Binding Path=Listing, Mode=OneWay}" VerticalScrollBarVisibility="Visible" />
+        <DataGrid Grid.Column="1" Grid.Row="0" Margin="8"
+            HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Name="OutputLog"
+                  Width="Auto" AutoGenerateColumns="False"
+                  CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False"
+                  CanUserResizeColumns="False" CanUserDeleteRows="False"
+                  CanUserAddRows="False" ItemsSource="{Binding OutputLog}"
+                  CellStyle="{StaticResource CellStyle}"
+                  GridLinesVisibility="Horizontal">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="PC" Width="Auto" MinWidth="20" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding ProgramCounter, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="" Width="Auto" MinWidth="25" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding CurrentOpCode, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="" Width="Auto" MinWidth="20" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding LowAddress, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="" Width="Auto" MinWidth="20" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding HighAddress, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="" Width="Auto" MinWidth="30" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding OpCodeString, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="" Width="Auto" MinWidth="40" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding DisassemblyOutput, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="A" Width="Auto" MinWidth="20" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Accumulator, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="X" Width="Auto" MinWidth="20" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding XRegister, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="Y" Width="Auto" MinWidth="20" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding YRegister, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="SP" Width="Auto" MinWidth="20" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding StackPointer, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridTextColumn Header="CycleCount" MinWidth="100" Width="Auto" CanUserResize="False"
+                                    IsReadOnly="True" Binding="{Binding NumberOfCycles, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+            </DataGrid.Columns>
+        </DataGrid>
 
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,623,740,0" Name="YRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.YRegister, StringFormat=X,  Mode=OneWay}"/>
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,623,845,0" Name="XRegister" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.XRegister, StringFormat=X,  Mode=OneWay}" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,625,949,0" Name="Accumulator" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.Accumulator, StringFormat=X,  Mode=OneWay}" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,625,644,0" Name="StackPointer" VerticalAlignment="Top" Width="60" Text="{Binding Path=Proc.StackPointer, StringFormat=X,  Mode=OneWay}"/>
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,552,875,0" Name="ProgramCounter" VerticalAlignment="Top" Width="134" Text="{Binding Path=Proc.ProgramCounter, StringFormat=X,  Mode=OneWay}" />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,552,687,0" Name="Dissambly" VerticalAlignment="Top" Width="134" Text="{Binding Path=CurrentDisassembly, Mode=OneWay}"  />
-		<TextBox Height="23" HorizontalAlignment="Right" Margin="0,750,874,0" Name="CycleCount" VerticalAlignment="Top" Width="134" Text="{Binding Path=NumberOfCycles, Mode=OneWay}" />
+        <DataGrid Grid.Column="2" Grid.Row="0" Name="MemoryMap" Margin="8"
+                  FontSize="{StaticResource FontSize}"
+                  VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                  AutoGenerateColumns="False"
+                  CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False"
+                  CanUserResizeColumns="False" CanUserDeleteRows="False"
+                  CanUserAddRows="False" ItemsSource="{Binding MemoryPage}"
+                  CellStyle="{StaticResource MemoryMapContentCellStyle}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Ofs. (h)" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Offset, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="00" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location00, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="01" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location01, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="02" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location02, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="03" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location03, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="04" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location04, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="05" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location05, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="06" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location06, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="07" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location07, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="08" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location08, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="09" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location09, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="0A" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location0A, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="0B" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location0B, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="0C" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location0C, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="0D" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location0D, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="0E" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location0E, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+                <DataGridTextColumn Header="0F" Width="Auto" CanUserResize="False" IsReadOnly="True"
+                                    Binding="{Binding Location0F, Mode=OneWay}"
+                                    HeaderStyle="{StaticResource MemoryMapColumnHeaderStyle}" />
+            </DataGrid.Columns>
+        </DataGrid>
 
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,605,896,0" Name="XRegisterText" Text="X" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,605,792,0" Name="YRegisterText" Text="Y" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,605,687,0" Name="StackPointerRegisterText" Text="SP" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,605,999,0" Name="AText" Text="A" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,532,703,0" Name="CurrentInstructionText" Text="Current Instruction" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Right" Margin="0,532,991,0" Name="ProgramCounterText" Text="PC" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="792,731,0,0" Name="CycleCountText" Text="Cycle Count" VerticalAlignment="Top" />
+        <StackPanel Orientation="Horizontal" Margin="8,8" Grid.Column="0" Grid.Row="1">
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}" 
+                           Name="ProgramCounterText"
+                           Text="PC" />
+                <TextBox  Name="ProgramCounter"
+                         Width="134"
+                         Text="{Binding Path=Proc.ProgramCounter, StringFormat=X,  Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}" 
+                           Name="CurrentInstructionText" Text="Current Instruction" />
+                <TextBox  Name="Dissambly"
+                         Width="134" Text="{Binding Path=CurrentDisassembly, Mode=OneWay}" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="8,8" Grid.Column="0" Grid.Row="2">
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  Name="YRegisterText"
+                           Text="Y" />
+                <TextBox  Name="YRegister"
+                         Width="60" Text="{Binding Path=Proc.YRegister, StringFormat=X,  Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  Name="XRegisterText"
+                           Text="X" />
+                <TextBox  Name="XRegister"
+                         Width="60" Text="{Binding Path=Proc.XRegister, StringFormat=X,  Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  Name="AText" Text="A" />
+                <TextBox  Name="Accumulator"
+                         Width="60"
+                         Text="{Binding Path=Proc.Accumulator, StringFormat=X,  Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}" 
+                           Name="StackPointerRegisterText" Text="SP" />
+                <TextBox  Name="StackPointer"
+                         Width="60"
+                         Text="{Binding Path=Proc.StackPointer, StringFormat=X,  Mode=OneWay}" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Margin="8,8" Grid.Column="0" Grid.Row="3">
+            <TextBlock FontSize="{StaticResource FontSize}"  Name="CycleCountText"
+                       Text="Cycle Count" />
+            <TextBox  Name="CycleCount" HorizontalAlignment="Left"
+                     Width="134" Text="{Binding Path=NumberOfCycles, Mode=OneWay}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="8,8" Grid.Column="0" Grid.Row="4">
+            <Button Content="Save"  HorizontalAlignment="Left" Name="SaveState"
+                    Width="75" FontSize="{StaticResource FontSize}" Command="{Binding Path= SaveStateCommand}"
+                    IsEnabled="{Binding Path=IsProgramLoaded}" />
+            <Button  HorizontalAlignment="Left" Name="Run"
+                    Width="75" FontSize="{StaticResource FontSize}" Command="{Binding Path= RunPauseCommand}"
+                    IsEnabled="{Binding Path=IsProgramLoaded}" Style="{StaticResource RunButtonStyle}" />
+            <Button Content="Step" FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left"
+                    Name="Step"
+                    Width="75" Command="{Binding Path= StepCommand}"
+                    IsEnabled="{Binding Path=IsProgramLoaded}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="8,8" Grid.Column="0" Grid.Row="5">
+            <Button Content="Reset" FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left"
+                    Name="Reset"
+                    Width="75" Command="{Binding Path= ResetCommand}"
+                    IsEnabled="{Binding Path=IsProgramLoaded}" />
+            <Button Content="Load" FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left" Name="Load"
+                    Width="75" Command="{Binding Path=OpenCommand}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="8,8" Grid.Column="1" Grid.Row="1">
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left" Name="CarryFlagText"
+                           Text="C" />
+                <CheckBox  HorizontalAlignment="Left" Name="CarryFlag"
 
-		<Button Content="Save" Height="23" HorizontalAlignment="Left" Margin="145,506,0,0" Name="SaveState" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= SaveStateCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
-		<Button Height="23" HorizontalAlignment="Left" Margin="243,506,0,0" Name="Run" VerticalAlignment="Top" Width="75" FontSize="14" Command="{Binding Path= RunPauseCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" Style="{StaticResource RunButtonStyle}" />
-		<Button Content="Step" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="340,506,0,0" Name="Step" VerticalAlignment="Top" Width="75" Command="{Binding Path= StepCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
-		<Button Content="Reset" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="438,506,0,0" Name="Reset" VerticalAlignment="Top" Width="75" Command="{Binding Path= ResetCommand}" IsEnabled="{Binding Path=IsProgramLoaded}" />
-		<Button Content="Load" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="49,506,0,0" Name="Load" VerticalAlignment="Top" Width="75" Command="{Binding Path=OpenCommand}" />
+                          IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}" HorizontalAlignment="Left" Name="ZeroFlagText" Text="Z"
+                            />
+                <CheckBox  HorizontalAlignment="Left" Name="ZeroFlag"
+                          IsChecked="{Binding Path=Proc.ZeroFlag, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}" HorizontalAlignment="Left" Name="InterruptFlagText" Text="I"
+                            />
+                <CheckBox  HorizontalAlignment="Left" Name="InterrupFlag"
+                          IsChecked="{Binding Path=Proc.DisableInterruptFlag, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left" Name="BcdFlagText"
+                           Text="D" />
+                <CheckBox  HorizontalAlignment="Left" Name="BcdFlag"
 
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="1021,692,0,0" Name="CarryFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.CarryFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1021,672,0,0" Name="CarryFlagText" Text="C" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="983,692,0,0" Name="ZeroFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.ZeroFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="983,672,0,0" Name="ZeroFlagText" Text="Z" Height="23" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="945,692,0,0" Name="InterrupFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DisableInterruptFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" HorizontalAlignment="Left" Margin="945,672,0,0" Name="InterruptFlagText" Text="I" Height="23" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="906,692,0,0" Name="BcdFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.DecimalFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="906,672,0,0" Name="BcdFlagText" Text="D" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="868,692,0,0" Name="BreakFlag" VerticalAlignment="Top" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="868,672,0,0" Name="BreakFlagText" Text="B" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="830,692,0,0" Name="OverflowFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.OverflowFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="830,672,0,0" Name="OverflowFlagText" Text="V" VerticalAlignment="Top" />
-		<CheckBox Height="16" HorizontalAlignment="Left" Margin="792,692,0,0" Name="NegativeFlag" VerticalAlignment="Top" IsChecked="{Binding Path=Proc.NegativeFlag, Mode=OneWay}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="792,672,0,0" Name="NegativeFlagText" Text="N" VerticalAlignment="Top" />
-
-		<TextBlock Height="23" HorizontalAlignment="Left" Margin="49,29,0,0" Name="FilePathText" Text="{Binding Path=FilePath}" VerticalAlignment="Top" Width="630" FontSize="14" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1230,36,0,0" Name="MemoryMapText" Text="Memory Map" VerticalAlignment="Top" Width="86" />
-		<TextBox Height="23" HorizontalAlignment="Left" Margin="1642,29,0,0" Name="CurrentPage" Text="{Binding Path=MemoryPageOffset, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="72" >
-			<TextBox.InputBindings>
-				<KeyBinding Command="{Binding Path=UpdateMemoryMapCommand}" Key="Enter"/>
-			</TextBox.InputBindings>
-		</TextBox>
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="1544,29,0,0" Name="CurrentPageText" Text="Current Page:" VerticalAlignment="Top" Width="86" />
-		<Slider Height="23" HorizontalAlignment="Left" Margin="978,750,0,0" Name="CpuSpeed" VerticalAlignment="Top" Width="100" Value="{Binding Path=CpuSpeed}" />
-		<TextBlock FontSize="14" Height="23" HorizontalAlignment="Left" Margin="978,731,0,0" Name="SpeedText" Text="CPU Speed S->F" VerticalAlignment="Top" />
-		<DataGrid Height="247" HorizontalAlignment="Left" Margin="1230,532,0,0" x:Name="Breakpoints" VerticalAlignment="Top" MaxWidth="800" Width="546" AutoGenerateColumns="False" 
-			CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" CanUserResizeColumns="False" CanUserDeleteRows="False"
-			CanUserAddRows="False" ItemsSource="{Binding Breakpoints}" CellStyle="{StaticResource CellStyle}" GridLinesVisibility="Horizontal" SelectedItem="{Binding SelectedBreakpoint}">
-			<DataGrid.Columns>
-				<DataGridCheckBoxColumn Header="Enabled" Width="Auto" MinWidth="70" CanUserResize="False" Binding="{Binding IsEnabled}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-				<DataGridComboBoxColumn Header="Type" Width="Auto" MinWidth="240" CanUserResize="False" SelectedItemBinding="{Binding Type}" HeaderStyle="{StaticResource ColumnHeaderStyle}">
-					<DataGridComboBoxColumn.ElementStyle>
-						<Style TargetType="ComboBox">
-<!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-							<Setter Property="ItemsSource" Value="{Binding AllTypes}"/>
-<!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
-							<Setter Property="IsReadOnly" Value="True"/>
-						</Style>
-					</DataGridComboBoxColumn.ElementStyle>
-					<DataGridComboBoxColumn.EditingElementStyle>
-						<Style TargetType="ComboBox">
-<!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-							<Setter Property="ItemsSource" Value="{Binding AllTypes}"/>
-<!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
-						</Style>
-					</DataGridComboBoxColumn.EditingElementStyle>
-				</DataGridComboBoxColumn>
-				<DataGridTextColumn Header="Value (Hex)" Width="Auto" MinWidth="240" CanUserResize="False" Binding="{Binding Value}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
-			</DataGrid.Columns>
-			<DataGrid.ContextMenu>
-				<ContextMenu>
-					<MenuItem Header="Add A New Breakpoint" Command="{Binding Path=AddBreakPointCommand}">
-						<MenuItem.Icon>
-							<Image Source="Images\add.png" />
-						</MenuItem.Icon>
-					</MenuItem>
-					<MenuItem Header="Remove Selected Breakpoint" Command="{Binding Path=RemoveBreakPointCommand}">
-						<MenuItem.Icon>
-							<Image Source="Images\remove.png" />
-						</MenuItem.Icon>
-					</MenuItem>
-				</ContextMenu>
-			</DataGrid.ContextMenu>
-		</DataGrid>
-		<Button Content="IRQ" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="539,506,0,0" x:Name="InterruptRequest" VerticalAlignment="Top" Width="75" Command="{Binding SendInterruptRequestCommand}" IsEnabled="{Binding IsProgramLoaded}" />
-		<Button Content="NMI" FontSize="14" Height="23" HorizontalAlignment="Left" Margin="641,506,0,0" x:Name="NonMaskableInterrupt" VerticalAlignment="Top" Width="75" Command="{Binding SendNonMaskableInterruptComand}" IsEnabled="{Binding IsProgramLoaded}" />
-	</Grid>
+                          IsChecked="{Binding Path=Proc.DecimalFlag, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left" Name="BreakFlagText"
+                           Text="B" />
+                <CheckBox  HorizontalAlignment="Left" Name="BreakFlag" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left"
+                           Name="OverflowFlagText"
+                           Text="V" />
+                <CheckBox  HorizontalAlignment="Left" Name="OverflowFlag"
+                          IsChecked="{Binding Path=Proc.OverflowFlag, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left"
+                           Name="NegativeFlagText"
+                           Text="N" />
+                <CheckBox  HorizontalAlignment="Left" Name="NegativeFlag"
+                          IsChecked="{Binding Path=Proc.NegativeFlag, Mode=OneWay}" />
+            </StackPanel>
+        </StackPanel>
+        <TextBlock Grid.Column="1" Grid.Row="2"
+                    HorizontalAlignment="Left" Name="FilePathText"
+                   VerticalAlignment="Center"
+                   Text="{Binding Path=FilePath}" FontSize="{StaticResource FontSize}" />
+        <StackPanel Margin="8,8" Grid.Column="1" Grid.Row="3">
+            <TextBlock FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left" Name="CurrentPageText"
+                       Text="Current Page:" Width="86" />
+            <TextBox  HorizontalAlignment="Left" Name="CurrentPage"
+                     Text="{Binding Path=MemoryPageOffset, UpdateSourceTrigger=PropertyChanged}"
+                     Width="72">
+                <TextBox.InputBindings>
+                    <KeyBinding Command="{Binding Path=UpdateMemoryMapCommand}" Key="Enter" />
+                </TextBox.InputBindings>
+            </TextBox>
+        </StackPanel>
+        <StackPanel Margin="8,8" Grid.Column="1" Grid.Row="4">
+            <TextBlock FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left" Name="SpeedText"
+                       Text="CPU Speed S->F" />
+            <Slider  HorizontalAlignment="Left" Name="CpuSpeed"
+                    Width="100" Value="{Binding Path=CpuSpeed}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="8,8" Grid.Column="1" Grid.Row="5">
+            <Button Content="IRQ" FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left"
+                    x:Name="InterruptRequest" Width="75"
+                    Command="{Binding SendInterruptRequestCommand}" IsEnabled="{Binding IsProgramLoaded}" />
+            <Button Content="NMI" FontSize="{StaticResource FontSize}"  HorizontalAlignment="Left"
+                    x:Name="NonMaskableInterrupt" Width="75"
+                    Command="{Binding SendNonMaskableInterruptComand}" IsEnabled="{Binding IsProgramLoaded}" />
+        </StackPanel>
+        <DataGrid Grid.Column="2" Grid.Row="1" Grid.RowSpan="5"
+                  Margin="8"
+                  HorizontalAlignment="Left" x:Name="Breakpoints"
+                  VerticalAlignment="Stretch" MaxWidth="800" Width="546" AutoGenerateColumns="False"
+                  CanUserReorderColumns="False" CanUserResizeRows="False" CanUserSortColumns="False"
+                  CanUserResizeColumns="False" CanUserDeleteRows="False"
+                  CanUserAddRows="False" ItemsSource="{Binding Breakpoints}" CellStyle="{StaticResource CellStyle}"
+                  GridLinesVisibility="Horizontal" SelectedItem="{Binding SelectedBreakpoint}">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Enabled" Width="Auto" MinWidth="70" CanUserResize="False"
+                                        Binding="{Binding IsEnabled}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+                <DataGridComboBoxColumn Header="Type" Width="Auto" MinWidth="240" CanUserResize="False"
+                                        SelectedItemBinding="{Binding Type}"
+                                        HeaderStyle="{StaticResource ColumnHeaderStyle}">
+                    <DataGridComboBoxColumn.ElementStyle>
+                        <Style TargetType="ComboBox">
+                            <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
+                            <Setter Property="ItemsSource" Value="{Binding AllTypes}" />
+                            <!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
+                            <Setter Property="IsReadOnly" Value="True" />
+                        </Style>
+                    </DataGridComboBoxColumn.ElementStyle>
+                    <DataGridComboBoxColumn.EditingElementStyle>
+                        <Style TargetType="ComboBox">
+                            <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
+                            <Setter Property="ItemsSource" Value="{Binding AllTypes}" />
+                            <!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
+                        </Style>
+                    </DataGridComboBoxColumn.EditingElementStyle>
+                </DataGridComboBoxColumn>
+                <DataGridTextColumn Header="Value (Hex)" Width="Auto" MinWidth="240" CanUserResize="False"
+                                    Binding="{Binding Value}" HeaderStyle="{StaticResource ColumnHeaderStyle}" />
+            </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Add A New Breakpoint" Command="{Binding Path=AddBreakPointCommand}">
+                        <MenuItem.Icon>
+                            <Image Source="Images\add.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Remove Selected Breakpoint" Command="{Binding Path=RemoveBreakPointCommand}">
+                        <MenuItem.Icon>
+                            <Image Source="Images\remove.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+    </Grid>
 </Window>
